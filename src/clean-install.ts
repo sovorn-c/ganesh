@@ -1,3 +1,4 @@
+// story: e01s03
 import { cpSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";

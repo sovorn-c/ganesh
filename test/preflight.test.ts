@@ -1,3 +1,4 @@
+// story: e01s02
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
