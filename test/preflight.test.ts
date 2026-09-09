@@ -20,7 +20,7 @@ test("preflight returns a stable ready report for a configured supported environ
   assert.equal(report.exitCode, 0);
   assert.deepEqual(
     report.checks.map((check) => check.id),
-    ["node-runtime", "package-manager", "project-dependencies", "required-tools", "execution-mode"]
+    ["node-runtime", "package-manager", "project-dependencies", "project-configuration", "required-tools", "execution-mode"]
   );
   assert.equal(JSON.parse(renderJson(report)).exitCode, 0);
   assert.match(renderHuman(report), /node-runtime/);
