@@ -29,14 +29,30 @@ fi
 extract_command() {
   local section="$1"
   local file="$2"
-  # Extract the first non-empty, non-comment line after a ## <section> heading
-  awk "
+  local command
+  # Extract the first non-empty, non-comment line after a ## <section> heading.
+  command=$(awk "
     /^## $section/ { found=1; next }
     found && /^## / { found=0 }
     found && /^\`\`\`/ { in_block=!in_block; next }
     found && in_block && /^[a-zA-Z]/ { print; exit }
     found && !/^\`\`\`/ && /^[a-zA-Z]/ && !in_block { print; exit }
-  " "$file" 2>/dev/null | head -1 | tr -d '\r' || true
+  " "$file" 2>/dev/null | head -1 | tr -d '\r' || true)
+  if [ -n "$command" ]; then
+    printf '%s\n' "$command"
+    return
+  fi
+
+  # Project instructions commonly keep commands in a Markdown table.
+  awk -F'|' -v section="$section" '
+    BEGIN { IGNORECASE = 1 }
+    $2 ~ "^[[:space:]]*" section "[[:space:]]*$" {
+      command = $3
+      gsub(/`/, "", command)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", command)
+      if (command != "") { print command; exit }
+    }
+  ' "$file" 2>/dev/null | head -1 | tr -d '\r' || true
 }
 
 BP_PREFLIGHT=$(extract_command "Preflight" "$FOUND_FILE")
