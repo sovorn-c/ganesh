@@ -1,29 +1,21 @@
-import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const DISPOSABLE_DIRECTORIES = new Set([
-  ".git",
-  ".npm",
-  "dist",
-  "graphify-out",
-  "node_modules",
-  "specs"
-]);
+const BASELINE_PATHS = ["package.json", "package-lock.json", "tsconfig.json", "eslint.config.js", "src", "test"] as const;
 
 export function runCleanInstall(sourceRoot = process.cwd()): 0 | 1 {
   let temporaryRoot: string | undefined;
   try {
     temporaryRoot = mkdtempSync(join(tmpdir(), "ganesh-clean-"));
-    cpSync(sourceRoot, temporaryRoot, {
-      recursive: true,
-      filter: (sourcePath) => {
-        const relativePath = relative(sourceRoot, sourcePath);
-        const firstPathPart = relativePath.split(/[\\/]/, 1)[0];
-        return relativePath === "" || !DISPOSABLE_DIRECTORIES.has(firstPathPart);
+    for (const path of BASELINE_PATHS) {
+      const sourcePath = join(sourceRoot, path);
+      if (!existsSync(sourcePath)) {
+        throw new Error(`required baseline path is missing: ${path}`);
       }
-    });
+      cpSync(sourcePath, join(temporaryRoot, path), { recursive: true });
+    }
 
     const commands: readonly [string, readonly string[]][] = [
       ["npm ci", ["ci", "--ignore-scripts"]],
