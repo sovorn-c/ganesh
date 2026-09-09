@@ -42,7 +42,7 @@ test("preflight blocks an unsupported Node runtime with remediation", () => {
   assert.match(check?.remediation ?? "", /Node\.js 24/);
 });
 
-test("preflight reports missing tools without installing them", () => {
+test("preflight required tool recovery remediation is explicit", () => {
   const report = runPreflight({
     runtimeVersion: "24.20.0",
     npmVersion: "11.19.0",
