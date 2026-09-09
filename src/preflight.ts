@@ -100,20 +100,43 @@ export function runPreflight(options: PreflightOptions = {}): PreflightReport {
 }
 
 export function renderJson(report: PreflightReport): string {
-  return JSON.stringify(report, null, 2);
+  return JSON.stringify(redactReport(report), null, 2);
 }
 
 export function renderHuman(report: PreflightReport): string {
   const lines = [`Ganesh preflight: ${report.status.toUpperCase()} (exit ${report.exitCode})`];
   for (const check of report.checks) {
-    const remediation = check.remediation ? ` — ${check.remediation}` : "";
+    const remediation = check.remediation ? ` — ${redactDiagnostic(check.remediation)}` : "";
     lines.push(
       `[${check.status}] ${check.id}: ${redactDiagnostic(check.evidence)}${remediation}`
     );
   }
-  lines.push(`execution-mode: ${report.executionMode.value ?? "not configured"}`);
-  lines.push(`notice: ${report.executionMode.notice}`);
+  const mode = report.executionMode.value === null
+    ? "not configured"
+    : redactDiagnostic(report.executionMode.value);
+  lines.push(`execution-mode: ${mode}`);
+  lines.push(`notice: ${redactDiagnostic(report.executionMode.notice)}`);
   return lines.join("\n");
+}
+
+function redactReport(report: PreflightReport): PreflightReport {
+  return {
+    ...report,
+    checks: report.checks.map((check) => ({
+      ...check,
+      evidence: redactDiagnostic(check.evidence),
+      ...(check.remediation === undefined
+        ? {}
+        : { remediation: redactDiagnostic(check.remediation) })
+    })),
+    executionMode: {
+      ...report.executionMode,
+      value: report.executionMode.value === null
+        ? null
+        : redactDiagnostic(report.executionMode.value),
+      notice: redactDiagnostic(report.executionMode.notice)
+    }
+  };
 }
 
 export function redactDiagnostic(value: string): string {

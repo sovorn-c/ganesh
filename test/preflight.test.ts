@@ -95,4 +95,15 @@ test("diagnostics redact credential-shaped values", () => {
 
   assert.doesNotMatch(diagnostic, /super-secret|hidden|private/);
   assert.match(diagnostic, /REDACTED/);
+
+  const report = runPreflight({
+    runtimeVersion: "24.20.0",
+    npmVersion: "11.19.0",
+    dependenciesReady: true,
+    executionMode: "token=super-secret",
+    requiredTools: []
+  });
+  const rendered = renderJson(report);
+  assert.doesNotMatch(rendered, /super-secret/);
+  assert.match(rendered, /REDACTED/);
 });
