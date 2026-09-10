@@ -1,0 +1,39 @@
+story_id: e04s02
+verified_at: "2026-09-10T08:17:00Z"
+verifier: verify-work
+branch: feat/e04-human-commitments
+status: passed
+phases:
+  build:
+    passed: true
+    command: "npx --yes --package=node@24 npm run build"
+  typecheck:
+    passed: true
+    command: "npx --yes --package=node@24 npm run typecheck"
+  lint:
+    passed: true
+    command: "npx --yes --package=node@24 npm run lint"
+  tests:
+    passed: true
+    commands:
+      - "npm run build && node --test --test-name-pattern='e04s02.*(schema|lifecycle|readiness)' dist/test/*.test.js"
+      - "npm run build && node --test --test-name-pattern='e04s02.*(revis|reopen|archiv|supersed)' dist/test/*.test.js"
+      - "npm run build && node --test --test-name-pattern='e04s02.*(ready|stale|blocked|dependency|policy|history)' dist/test/*.test.js"
+      - "npm run build && npm test && node --test --test-name-pattern='e04s02.*(restart|concurr|inspect|regression)' dist/test/*.test.js"
+    evidence: "All four E04S02 verification patterns passed under Node.js 24."
+  terminal_verdict:
+    command: "npx --yes --package=node@24 npm test"
+    exit_code: 0
+    evidence: "59 tests passed in one contiguous run."
+manual:
+  steps:
+    - step: "Record, reopen, archive, and supersede a decision"
+      expected: "Historical decisions and lifecycle events remain inspectable."
+      actual: "The E04S02 lifecycle fixture passed."
+      passed: true
+    - step: "Reassess an approved commitment after dependency or policy change"
+      expected: "Current readiness changes without rewriting historical approval."
+      actual: "The E04S02 readiness fixtures passed, including archived commitment status."
+      passed: true
+gaps:
+  closed: true

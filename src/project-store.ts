@@ -10,7 +10,7 @@ import {
   type ProjectStatus,
   ProjectStoreError
 } from "./project-types.js";
-import { createSchema, configureDatabase, readSchemaVersion, transaction } from "./schema.js";
+import { createE04Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "./schema.js";
 import { assertIdentifier, ensureDirectory, isoNow, newId, resolveProjectRoot } from "./storage-utils.js";
 
 const STORE_DIRECTORY = ".ganesh";
@@ -178,6 +178,9 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
   const schemaVersion = readSchemaVersion(db);
   const schemaStatus = statusForSchema(schemaVersion);
   const schemaMismatch = project.schemaVersion !== schemaVersion;
+  if (schemaStatus === "ready" && !schemaMismatch && options.readOnly !== true && !openedReadOnlyFallback && writableDirectory(paths.store)) {
+    createE04Schema(db);
+  }
   const mustReadOnly = options.readOnly === true || !writableDirectory(paths.store) || schemaStatus !== "ready" || schemaMismatch;
   if (mustReadOnly && options.readOnly !== true && !openedReadOnlyFallback) {
     db.close();

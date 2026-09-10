@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T05:40:12Z",
+  "generated_at": "2026-09-10T10:02:40Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -433,11 +433,179 @@
         }
       ],
       "link_count": 4
+    },
+    {
+      "id": "e04s01",
+      "title": "Versioned Decision Packets and Explicit Owner Dispositions",
+      "epic_id": "e04",
+      "epic_title": "Human commitments and research alternatives",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "done",
+      "links": [
+        {
+          "file": "test/e04s01-decisions.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/e04-utils.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/decision-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/decision-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e04-human-commitments/e04s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 5
+    },
+    {
+      "id": "e04s02",
+      "title": "Commitment Lifecycle and Current Readiness",
+      "epic_id": "e04",
+      "epic_title": "Human commitments and research alternatives",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "done",
+      "links": [
+        {
+          "file": "test/e04s02-commitments.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/decision-lifecycle-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/decision-history-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/commitment-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/readiness-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/commitment-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e04-human-commitments/e04s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 7
+    },
+    {
+      "id": "e04s03",
+      "title": "Isolated Alternatives and Transitive Impact Review",
+      "epic_id": "e04",
+      "epic_title": "Human commitments and research alternatives",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "done",
+      "links": [
+        {
+          "file": "test/e04s03-alternatives.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/alternative-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/alternative-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e04-human-commitments/e04s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 4
+    },
+    {
+      "id": "e04s04",
+      "title": "Reasoned Scholarly Overrides and Non-Waivable Gates",
+      "epic_id": "e04",
+      "epic_title": "Human commitments and research alternatives",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "done",
+      "links": [
+        {
+          "file": "test/e04s04-overrides.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/override-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/override-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e04-human-commitments/e04s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 4
     }
   ],
   "summary": {
-    "total_stories": 11,
-    "tagged_stories": 11,
+    "total_stories": 15,
+    "tagged_stories": 15,
     "dark_stories": [
 
     ],
@@ -462,13 +630,17 @@
       "e03s02",
       "e03s03",
       "e03s04",
-      "e03s05"
+      "e03s05",
+      "e04s01",
+      "e04s02",
+      "e04s03",
+      "e04s04"
     ],
-    "stale_count": 11,
+    "stale_count": 15,
     "oracle_stats": {
-      "high": 39,
+      "high": 55,
       "medium": 0,
-      "low": 11
+      "low": 15
     }
   }
 }

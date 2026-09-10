@@ -101,6 +101,7 @@ export function createSchema(db: DatabaseSync): void {
     String(PROJECT_SCHEMA_VERSION)
   );
   createE03Schema(db);
+  createE04Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -237,6 +238,173 @@ export function createE03Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE04Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS decision_packets (
+      id TEXT PRIMARY KEY,
+      packet_version INTEGER NOT NULL,
+      question TEXT NOT NULL,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      snapshot_id TEXT NOT NULL REFERENCES snapshots(id),
+      branch_revision INTEGER NOT NULL,
+      candidate_version_ids TEXT NOT NULL,
+      candidate_details TEXT NOT NULL,
+      dependency_version_ids TEXT NOT NULL,
+      review_references TEXT NOT NULL,
+      permitted_actions TEXT NOT NULL,
+      status TEXT NOT NULL,
+      parent_packet_id TEXT REFERENCES decision_packets(id),
+      created_at TEXT NOT NULL,
+      UNIQUE(parent_packet_id, packet_version)
+    );
+    CREATE INDEX IF NOT EXISTS idx_decision_packets_branch ON decision_packets(branch_id, status);
+
+    CREATE TABLE IF NOT EXISTS decision_records (
+      id TEXT PRIMARY KEY,
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      packet_version INTEGER NOT NULL,
+      disposition TEXT NOT NULL,
+      selected_candidate_version_ids TEXT NOT NULL,
+      dependency_version_ids TEXT NOT NULL,
+      rationale TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      actor TEXT NOT NULL,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      branch_revision INTEGER NOT NULL,
+      commitment_id TEXT,
+      payload_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_decision_records_packet ON decision_records(packet_id, created_at);
+
+    CREATE TABLE IF NOT EXISTS decision_events (
+      id TEXT PRIMARY KEY,
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      event_type TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      actor TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS commitments (
+      id TEXT PRIMARY KEY,
+      decision_id TEXT NOT NULL UNIQUE REFERENCES decision_records(id),
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      packet_version INTEGER NOT NULL,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      branch_revision INTEGER NOT NULL,
+      selected_candidate_version_ids TEXT NOT NULL,
+      dependency_version_ids TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_commitments_packet ON commitments(packet_id, status);
+
+    CREATE TABLE IF NOT EXISTS commitment_events (
+      id TEXT PRIMARY KEY,
+      commitment_id TEXT NOT NULL REFERENCES commitments(id),
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      event_type TEXT NOT NULL,
+      status TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      actor TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS readiness_assessments (
+      id TEXT PRIMARY KEY,
+      commitment_id TEXT NOT NULL REFERENCES commitments(id),
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      action TEXT NOT NULL,
+      status TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      causes TEXT NOT NULL,
+      affected_version_ids TEXT NOT NULL,
+      next_action TEXT NOT NULL,
+      command_id TEXT UNIQUE,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS alternative_adoptions (
+      id TEXT PRIMARY KEY,
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      source_branch_id TEXT NOT NULL REFERENCES branches(id),
+      destination_branch_id TEXT NOT NULL REFERENCES branches(id),
+      source_snapshot_id TEXT NOT NULL,
+      destination_snapshot_id TEXT NOT NULL,
+      changed_references TEXT NOT NULL,
+      impacted_dependents TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      payload_hash TEXT NOT NULL,
+      destination_revision INTEGER NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS scholarly_findings (
+      id TEXT PRIMARY KEY,
+      affected_version_ids TEXT NOT NULL,
+      source_basis TEXT NOT NULL,
+      rationale TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      reviewer_id TEXT NOT NULL,
+      methodology_position TEXT,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS reasoned_overrides (
+      id TEXT PRIMARY KEY,
+      finding_id TEXT NOT NULL REFERENCES scholarly_findings(id),
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      selected_candidate_version_ids TEXT NOT NULL,
+      owner_rationale TEXT NOT NULL,
+      dissent TEXT NOT NULL,
+      uncertainty TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      status TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      payload_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS commitment_gate_results (
+      id TEXT PRIMARY KEY,
+      packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      override_id TEXT REFERENCES reasoned_overrides(id),
+      gate TEXT NOT NULL,
+      passed INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      command_id TEXT,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS review_revisions (
+      id TEXT PRIMARY KEY,
+      finding_id TEXT NOT NULL REFERENCES scholarly_findings(id),
+      prior_packet_id TEXT NOT NULL REFERENCES decision_packets(id),
+      replacement_packet_id TEXT REFERENCES decision_packets(id),
+      reviewer_position TEXT NOT NULL,
+      methodology_position TEXT NOT NULL,
+      rationale TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_review_revisions_finding ON review_revisions(finding_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_reasoned_overrides_finding_packet ON reasoned_overrides(finding_id, packet_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_review_revisions_one_per_finding ON review_revisions(finding_id);
+  `);
+  const readinessColumns = db.prepare("PRAGMA table_info(readiness_assessments)").all() as Array<{ name?: unknown }>;
+  if (!readinessColumns.some((column) => column.name === "next_action")) {
+    db.exec("ALTER TABLE readiness_assessments ADD COLUMN next_action TEXT NOT NULL DEFAULT 'resolve the blocking condition before use'");
+  }
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -249,6 +417,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
     }
     transaction(db, () => {
       createE03Schema(db);
+      createE04Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY
