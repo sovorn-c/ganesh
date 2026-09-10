@@ -90,5 +90,5 @@ stories:
   spec_file: e02s03-crash-safe-recovery-and-read-only-inspection.md
   tasks_file: e02s03-tasks.yaml
 capsule_dir: epics/e02-durable-projects
-next_skill: bp-review
+next_skill: bp-release-solo
 sequence: 2

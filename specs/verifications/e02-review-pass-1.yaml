@@ -1,0 +1,106 @@
+epic_id: e02
+branch: feat/e02-durable-projects
+review_pass: 1
+verified_at: "2026-09-10T03:15:55Z"
+verdict: PASS
+scope: whole-epic
+summary: >-
+  Fresh whole-epic review of the complete e02 branch. All three stories, 12 task
+  verifications, NFR evidence, and project gates pass under Node.js 24. No
+  unresolved e02 finding remains; release and merge were not run.
+stories:
+  - id: e02s01
+    title: Create and Reopen Durable Projects and Immutable Artifact Versions
+    status: passing
+    tasks: 4/4
+    acceptance_criteria: [SC-e02s01-P0-01, SC-e02s01-P0-02, SC-e02s01-P1-03]
+  - id: e02s02
+    title: Versioned Research Branches and Concurrent Commit History
+    status: passing
+    tasks: 4/4
+    acceptance_criteria: [SC-e02s02-P0-01, SC-e02s02-P0-02, SC-e02s02-P1-03]
+  - id: e02s03
+    title: Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection
+    status: passing
+    tasks: 4/4
+    acceptance_criteria: [SC-e02s03-P0-01, SC-e02s03-P1-02, SC-e02s03-P1-03]
+checks:
+  runtime:
+    command: "npx --yes --package=node@24 node --version"
+    result: passed
+    evidence: "v24.21.0"
+  cold_start:
+    command: "npx --yes --package=node@24 npm run dev"
+    result: passed
+    evidence: "Build completed and the CLI printed ganesh 0.1.0."
+  task_verifications:
+    result: passed
+    evidence: "All 12 current e02 task verify patterns passed."
+  nfr:
+    result: passed
+    evidence: "NFR-e02s01.json, NFR-e02s02.json, and NFR-e02s03.json record passing reliability and operability evidence; no fixed performance threshold is defined."
+  project_commands:
+    commands: ["npm run build", "npm run typecheck", "npm run lint", "npm test"]
+    result: passed
+    evidence: "All commands passed under Node.js 24; npm test passed 28 tests."
+  preflight:
+    commands: ["npm run preflight -- --json", "npm run preflight -- --clean-install"]
+    result: passed
+    evidence: "The JSON result is an intentional warning for unconfigured execution mode with exitCode 0; disposable clean install passed."
+  coverage:
+    command: "npx --yes --package=node@24 node --experimental-test-coverage --test dist/test/*.test.js"
+    result: passed
+    evidence: "87.75% lines, 79.35% branches, 97.64% functions across the full suite."
+  clean_install:
+    command: "npx --yes --package=node@24 npm run preflight -- --clean-install"
+    result: passed
+  npm_audit_high:
+    command: "npx --yes --package=node@24 npm audit --audit-level=high"
+    result: passed
+    evidence: "0 vulnerabilities"
+  blind_spots:
+    command: "bash scripts/check-blind-spots.sh"
+    result: passed
+    evidence: "0 HIGH and 0 MEDIUM findings; three pre-existing informational stale tags belong to released e01 code."
+  blind_spots_regression:
+    command: "bash scripts/lib/blind-spots-regression.sh"
+    result: passed
+  completeness:
+    command: "bash scripts/lib/completeness-critic.sh"
+    result: passed
+    evidence: "BLOCKER=0 WARNING=0 FILLED=1"
+  traceability:
+    command: "bash scripts/trace-stories.sh --strict --json"
+    result: passed
+    evidence: "6 stories, 0 dark; all e02 stories have high-confidence implementation and test tags."
+  plan_consistency:
+    command: "bash scripts/lib/plan-consistency-check.sh specs/epics/e02-durable-projects"
+    result: passed
+    evidence: "CRITICAL=0 HIGH=0 MED=0"
+  yaml:
+    command: "Ruby safe-load scan of e02 YAML and state YAML"
+    result: passed
+  diff_whitespace:
+    command: "git diff --check main"
+    result: passed
+security:
+  result: passed
+  evidence: "Manual changed-scope scan and npm audit found no unresolved high-confidence injection, path traversal, unsafe deserialization, shell, network, or secret-exposure finding."
+review_process:
+  verify_work:
+    result: passed
+    evidence: "Story evidence, NFR bundles, cold-start smoke, mechanical gates, blind-spot, completeness, and step-by-step integration checks are recorded."
+  audit_code:
+    result: passed_for_changed_scope
+    evidence: "Types, immutable no-clobber artifact finalization, path/symlink boundaries, transaction handling, tests, and scope were reviewed."
+  request_review:
+    status: not_run
+    reason: "The explicit workflow prohibits subagents, interactive forks, and worktrees; this review used a fresh manual boundary instead."
+  product_code_changed_during_review: false
+  release_or_merge: not_done
+findings: []
+known_non_blocking_observations:
+  - "Node.js 26.7.0 is unsupported; all release checks used Node.js 24.21.0."
+  - "Preflight reports an intentional warning when no execution mode is configured; exitCode remains 0."
+  - "The blind-spot detector retains three informational stale-tag findings from released e01 code."
+next_command: "/bp-release-solo"

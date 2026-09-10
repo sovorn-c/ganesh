@@ -21,7 +21,7 @@ development_status:
 planning_level: e02_complete
 active_epic: e02
 active_story: e02s03
-note: E01 was released locally; all three e02 stories built on feat/e02-durable-projects with passing task ledgers and planned checks. Whole-epic review and local release remain pending; later epics remain epic-only and backlog.
+note: E01 was released locally; all three e02 stories built on feat/e02-durable-projects with passing task ledgers, NFR evidence, and whole-epic review pass 1. Local release remains pending; later epics remain epic-only and backlog.
 epics:
   e01:
     title: Verified development and runtime baseline

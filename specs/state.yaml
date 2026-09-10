@@ -1,12 +1,12 @@
 ---
 workflow_mode: solo-git
-active_flow: review
+active_flow: release
 active_epic: e02
 active_story: e02s03
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
-  summary: E02's three stories and 12 task entries built successfully on feat/e02-durable-projects. Whole-epic review and local release remain pending; the other 16 epics remain blueprint-only.
+  next_skill: bp-release-solo
+  next_command: "/bp-release-solo"
+  summary: E02 whole-epic review pass 1 is PASS with three stories and 12 passing task entries on feat/e02-durable-projects. Local release remains pending; the other 16 epics remain blueprint-only.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -55,13 +55,13 @@ discovery:
       npm_version: passed
     blockers: []
   survey:
-    phase: Review
-    rationale: The e01 runtime baseline is merged into local main. E02's dependency-ordered stories, task ledgers, implementation, and planned verification commands pass on feat/e02-durable-projects; whole-epic review is the next gate. The pre-build Discover snapshot is retained below as history, not current state.
+    phase: Release
+    rationale: The e01 runtime baseline is merged into local main. E02's dependency-ordered stories, task ledgers, implementation, NFR evidence, and whole-epic review pass 1 pass on feat/e02-durable-projects; local release is the next gate. The pre-build Discover snapshot is retained below as history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: feat/e02-durable-projects
-      commits: 21
+      commits: 24
       implementation_files: 19
       package_manifests: 2
       test_files: 9
@@ -118,7 +118,7 @@ discovery:
   - Approved e01 baseline commands are implemented and verified; later product commands
     remain assigned to their epics.
   - "E02 is built as three vertical slices: durable project/artifact registration, branch concurrency/history, and crash-safe recovery/read-only inspection."
-  - E02 task ledgers pass their story verification commands on the feature branch; whole-epic review and release gates remain pending.
+  - E02 task ledgers, NFR evidence, and whole-epic review pass 1 pass on the feature branch; local release remains pending.
   - Supplementary blueprint reconciled; canonical artifact ownership is listed in
     specs/README.md.
   - Node.js 24 target and direct dependency/license choices are documented; broader
