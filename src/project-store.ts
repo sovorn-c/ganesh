@@ -1,3 +1,4 @@
+// story: e02s01
 import { accessSync, constants, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";

@@ -1,3 +1,5 @@
+// story: e02s01
+// scenario: SC-e02s01-P0-01, SC-e02s01-P0-02, SC-e02s01-P1-03
 import assert from "node:assert/strict";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import test from "node:test";

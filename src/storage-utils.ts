@@ -1,3 +1,4 @@
+// story: e02s01
 import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";

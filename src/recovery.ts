@@ -1,3 +1,4 @@
+// story: e02s03
 import { rmSync } from "node:fs";
 import {
   PROJECT_SCHEMA_VERSION,

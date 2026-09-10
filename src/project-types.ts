@@ -1,3 +1,4 @@
+// story: e02s01
 import type { DatabaseSync } from "node:sqlite";
 
 export const PROJECT_SCHEMA_VERSION = 1;

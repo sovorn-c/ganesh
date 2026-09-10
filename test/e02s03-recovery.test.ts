@@ -1,3 +1,5 @@
+// story: e02s03
+// scenario: SC-e02s03-P0-01, SC-e02s03-P1-02, SC-e02s03-P1-03
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";

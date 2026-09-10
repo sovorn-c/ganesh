@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T01:58:58.663110+00:00",
+  "generated_at": "2026-09-10T03:07:57.192187+00:00",
   "version": "1.0",
   "summary": {
     "total_findings": 3,
@@ -17,17 +17,17 @@
     },
     {
       "check": "stale-tag",
-      "story_id": "e01s03",
-      "severity": "LOW",
-      "description": "Story e01s03 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e01s03` tags from files or confirm the story should remain done"
-    },
-    {
-      "check": "stale-tag",
       "story_id": "e01s01",
       "severity": "LOW",
       "description": "Story e01s01 is marked done but still has story tags in code",
       "remediation": "Remove `// story: e01s01` tags from files or confirm the story should remain done"
+    },
+    {
+      "check": "stale-tag",
+      "story_id": "e01s03",
+      "severity": "LOW",
+      "description": "Story e01s03 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e01s03` tags from files or confirm the story should remain done"
     }
   ]
 }

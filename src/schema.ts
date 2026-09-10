@@ -1,3 +1,4 @@
+// story: e02s03
 import type { DatabaseSync } from "node:sqlite";
 import { PROJECT_SCHEMA_VERSION } from "./project-types.js";
 

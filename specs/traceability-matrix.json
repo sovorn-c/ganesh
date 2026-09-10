@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T01:58:59Z",
+  "generated_at": "2026-09-10T03:08:03Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -121,11 +121,143 @@
         }
       ],
       "link_count": 3
+    },
+    {
+      "id": "e02s01",
+      "title": "Create and Reopen Durable Projects and Immutable Artifact Versions",
+      "epic_id": "e02",
+      "epic_title": "Durable versioned research projects",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "in_progress",
+      "links": [
+        {
+          "file": "test/e02s01-projects.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/artifact-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/storage-utils.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/project-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/project-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e02-durable-projects/e02s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 6
+    },
+    {
+      "id": "e02s02",
+      "title": "Versioned Research Branches and Concurrent Commit History",
+      "epic_id": "e02",
+      "epic_title": "Durable versioned research projects",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "in_progress",
+      "links": [
+        {
+          "file": "test/e02s02-branches.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/promotion-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/dependency-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/history-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/branch-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e02-durable-projects/e02s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 6
+    },
+    {
+      "id": "e02s03",
+      "title": "Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection",
+      "epic_id": "e02",
+      "epic_title": "Durable versioned research projects",
+      "bcp": 0,
+      "wsjf": 1.380952,
+      "status": "in_progress",
+      "links": [
+        {
+          "file": "test/e02s03-recovery.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/schema.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/recovery.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e02-durable-projects/e02s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 4
     }
   ],
   "summary": {
-    "total_stories": 3,
-    "tagged_stories": 3,
+    "total_stories": 6,
+    "tagged_stories": 6,
     "dark_stories": [
 
     ],
@@ -146,9 +278,9 @@
     ],
     "stale_count": 3,
     "oracle_stats": {
-      "high": 11,
+      "high": 24,
       "medium": 0,
-      "low": 3
+      "low": 6
     }
   }
 }
