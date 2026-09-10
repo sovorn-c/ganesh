@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T03:15:51Z",
+  "generated_at": "2026-09-10T03:31:01Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -129,7 +129,7 @@
       "epic_title": "Durable versioned research projects",
       "bcp": 0,
       "wsjf": 1.380952,
-      "status": "in_progress",
+      "status": "done",
       "links": [
         {
           "file": "test/e02s01-projects.test.ts",
@@ -162,7 +162,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e02-durable-projects/e02s01-tasks.yaml",
+          "file": "specs/epics/archive/e02-durable-projects/e02s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -177,7 +177,7 @@
       "epic_title": "Durable versioned research projects",
       "bcp": 0,
       "wsjf": 1.380952,
-      "status": "in_progress",
+      "status": "done",
       "links": [
         {
           "file": "test/e02s02-branches.test.ts",
@@ -210,7 +210,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e02-durable-projects/e02s02-tasks.yaml",
+          "file": "specs/epics/archive/e02-durable-projects/e02s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -225,7 +225,7 @@
       "epic_title": "Durable versioned research projects",
       "bcp": 0,
       "wsjf": 1.380952,
-      "status": "in_progress",
+      "status": "done",
       "links": [
         {
           "file": "test/e02s03-recovery.test.ts",
@@ -246,7 +246,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e02-durable-projects/e02s03-tasks.yaml",
+          "file": "specs/epics/archive/e02-durable-projects/e02s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -274,9 +274,12 @@
     "stale_tags": [
       "e01s01",
       "e01s02",
-      "e01s03"
+      "e01s03",
+      "e02s01",
+      "e02s02",
+      "e02s03"
     ],
-    "stale_count": 3,
+    "stale_count": 6,
     "oracle_stats": {
       "high": 24,
       "medium": 0,

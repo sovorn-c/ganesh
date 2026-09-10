@@ -35,8 +35,8 @@ epics:
   - R01
 - id: e02
   title: Durable versioned research projects
-  capsule_dir: epics/e02-durable-projects
-  file: epics/e02-durable-projects/epic.yaml
+  capsule_dir: epics/archive/e02-durable-projects
+  file: epics/archive/e02-durable-projects/epic.yaml
   sequence: 2
   depends_on:
   - e01

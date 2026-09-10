@@ -44,7 +44,7 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     implementation only if evidence changes the approved story scope.
-status: in_progress
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -64,7 +64,7 @@ requirement_deltas:
 stories:
 - id: e02s01
   title: Create and Reopen Durable Projects and Immutable Artifact Versions
-  status: in_progress
+  status: done
   bcps: 8
   risk: P0
   delta: ADDED
@@ -73,7 +73,7 @@ stories:
   tasks_file: e02s01-tasks.yaml
 - id: e02s02
   title: Versioned Research Branches and Concurrent Commit History
-  status: in_progress
+  status: done
   bcps: 8
   risk: P0
   delta: ADDED
@@ -82,13 +82,13 @@ stories:
   tasks_file: e02s02-tasks.yaml
 - id: e02s03
   title: Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection
-  status: in_progress
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
   depends_on: [e02s01, e02s02]
   spec_file: e02s03-crash-safe-recovery-and-read-only-inspection.md
   tasks_file: e02s03-tasks.yaml
-capsule_dir: epics/e02-durable-projects
-next_skill: bp-release-solo
+capsule_dir: epics/archive/e02-durable-projects
+next_skill: bp-plan
 sequence: 2
