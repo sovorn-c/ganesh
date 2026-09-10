@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T05:36:47.426035+00:00",
+  "generated_at": "2026-09-10T05:40:11.168312+00:00",
   "version": "1.0",
   "summary": {
     "total_findings": 11,
@@ -8,6 +8,27 @@
     "low": 11
   },
   "findings": [
+    {
+      "check": "stale-tag",
+      "story_id": "e03s01",
+      "severity": "LOW",
+      "description": "Story e03s01 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e03s01` tags from files or confirm the story should remain done"
+    },
+    {
+      "check": "stale-tag",
+      "story_id": "e01s03",
+      "severity": "LOW",
+      "description": "Story e01s03 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e01s03` tags from files or confirm the story should remain done"
+    },
+    {
+      "check": "stale-tag",
+      "story_id": "e02s03",
+      "severity": "LOW",
+      "description": "Story e02s03 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e02s03` tags from files or confirm the story should remain done"
+    },
     {
       "check": "stale-tag",
       "story_id": "e03s04",
@@ -31,34 +52,6 @@
     },
     {
       "check": "stale-tag",
-      "story_id": "e01s02",
-      "severity": "LOW",
-      "description": "Story e01s02 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e01s02` tags from files or confirm the story should remain done"
-    },
-    {
-      "check": "stale-tag",
-      "story_id": "e03s03",
-      "severity": "LOW",
-      "description": "Story e03s03 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e03s03` tags from files or confirm the story should remain done"
-    },
-    {
-      "check": "stale-tag",
-      "story_id": "e03s01",
-      "severity": "LOW",
-      "description": "Story e03s01 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e03s01` tags from files or confirm the story should remain done"
-    },
-    {
-      "check": "stale-tag",
-      "story_id": "e02s03",
-      "severity": "LOW",
-      "description": "Story e02s03 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e02s03` tags from files or confirm the story should remain done"
-    },
-    {
-      "check": "stale-tag",
       "story_id": "e01s01",
       "severity": "LOW",
       "description": "Story e01s01 is marked done but still has story tags in code",
@@ -66,10 +59,10 @@
     },
     {
       "check": "stale-tag",
-      "story_id": "e02s02",
+      "story_id": "e01s02",
       "severity": "LOW",
-      "description": "Story e02s02 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e02s02` tags from files or confirm the story should remain done"
+      "description": "Story e01s02 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e01s02` tags from files or confirm the story should remain done"
     },
     {
       "check": "stale-tag",
@@ -80,10 +73,17 @@
     },
     {
       "check": "stale-tag",
-      "story_id": "e01s03",
+      "story_id": "e03s03",
       "severity": "LOW",
-      "description": "Story e01s03 is marked done but still has story tags in code",
-      "remediation": "Remove `// story: e01s03` tags from files or confirm the story should remain done"
+      "description": "Story e03s03 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e03s03` tags from files or confirm the story should remain done"
+    },
+    {
+      "check": "stale-tag",
+      "story_id": "e02s02",
+      "severity": "LOW",
+      "description": "Story e02s02 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e02s02` tags from files or confirm the story should remain done"
     }
   ]
 }

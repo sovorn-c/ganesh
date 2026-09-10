@@ -21,7 +21,7 @@ development_status:
 planning_level: e03_complete
 active_epic: e03
 active_story: e03s05
-note: E03 is complete across all five stories with 20/20 tasks passing. E01, E02, and E03 are complete; later epics remain blueprint-only and backlog.
+note: E03 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All five stories and 20 task verifications are complete; later epics remain blueprint-only and backlog.
 epics:
   e01:
     title: Verified development and runtime baseline

@@ -46,8 +46,8 @@ epics:
   - R02
 - id: e03
   title: Enforced data-use and capability controls
-  capsule_dir: epics/e03-permission-enforcement
-  file: epics/e03-permission-enforcement/epic.yaml
+  capsule_dir: epics/archive/e03-permission-enforcement
+  file: epics/archive/e03-permission-enforcement/epic.yaml
   sequence: 3
   depends_on:
   - e01

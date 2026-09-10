@@ -1,7 +1,7 @@
 epic_id: e03
-branch: feat/e03-permission-enforcement
-verified_at: "2026-09-10T05:15:00Z"
-verifier: bp-build
+branch: main
+verified_at: "2026-09-10T05:39:10Z"
+verifier: release-solo
 status: passed
 stories:
   - id: e03s01
@@ -22,8 +22,8 @@ stories:
 checks:
   runtime:
     passed: true
-    command: "node --version"
-    evidence: "v24.21.0"
+    command: "node --version && npm --version"
+    evidence: "Node.js v24.21.0; npm 11.19.0"
   tests:
     passed: true
     command: "npm test"
@@ -34,10 +34,33 @@ checks:
       - "npm run build"
       - "npm run typecheck"
       - "npm run lint"
+  coverage:
+    passed: true
+    command: "node --experimental-test-coverage --test dist/test/*.test.js"
+    evidence: "85.86% lines, 75.53% branches, 95.80% functions"
+  security:
+    passed: true
+    command: "npm audit --audit-level=high"
+    evidence: "0 vulnerabilities"
+  clean_install:
+    passed: true
+    command: "npm run preflight -- --clean-install"
   traceability:
     passed: true
     command: "bash scripts/trace-stories.sh --strict"
-    evidence: "11 stories, 0 dark"
+    evidence: "11 stories, 0 dark; all e03 stories have implementation and test tags"
+  blind_spots:
+    passed: true
+    command: "bash scripts/check-blind-spots.sh"
+    evidence: "No HIGH findings; 11 stale done-story tags are informational"
+  completeness:
+    passed: true
+    command: "bash scripts/lib/completeness-critic.sh"
+    evidence: "BLOCKER=0 WARNING=0"
+  plan_consistency:
+    passed: true
+    command: "bash scripts/lib/plan-consistency-check.sh specs/epics/archive/e03-permission-enforcement/"
+    evidence: "CRITICAL=0 HIGH=0 MED=0"
   blueprint:
     passed: true
     command: "ruby specs/verifications/check-blueprint.rb"

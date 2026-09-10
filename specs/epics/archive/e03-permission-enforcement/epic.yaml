@@ -46,7 +46,7 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     /bp-plan.
-status: done
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -117,6 +117,6 @@ stories:
   depends_on: [e03s02, e03s03, e03s04]
   spec_file: e03s05-reviewed-declassification-and-adversarial-integration.md
   tasks_file: e03s05-tasks.yaml
-capsule_dir: epics/e03-permission-enforcement
-next_skill: bp-build
+capsule_dir: epics/archive/e03-permission-enforcement
+next_skill: bp-plan
 sequence: 3
