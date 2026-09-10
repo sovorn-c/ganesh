@@ -20,7 +20,7 @@ development_status:
   e18: backlog
 planning_level: e03_complete
 active_epic: e03
-active_story: e03s04
+active_story: e03s05
 note: E03 is fully planned as five dependency-ordered stories; all 18 task ledger entries remain failing until implementation. E01 and E02 are complete; later epics remain blueprint-only and backlog.
 epics:
   e01:
@@ -118,16 +118,16 @@ epics:
         tasks_failing: 0
       e03s04:
         title: Lifecycle Revocation and Resume Enforcement
-        status: in_progress
+        status: done
         planning_status: ready
         bcps: 7
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
       e03s05:
         title: Reviewed Declassification and Adversarial Integration
-        status: pending
+        status: in_progress
         planning_status: ready
         bcps: 6
         risk: P0

@@ -101,7 +101,7 @@ stories:
   tasks_file: e03s03-tasks.yaml
 - id: e03s04
   title: Lifecycle Revocation and Resume Enforcement
-  status: in_progress
+  status: done
   bcps: 7
   risk: P0
   delta: ADDED
@@ -110,7 +110,7 @@ stories:
   tasks_file: e03s04-tasks.yaml
 - id: e03s05
   title: Reviewed Declassification and Adversarial Integration
-  status: pending
+  status: in_progress
   bcps: 6
   risk: P0
   delta: ADDED
