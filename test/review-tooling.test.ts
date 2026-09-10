@@ -24,4 +24,3 @@ test("preflight rejects unknown arguments", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /unknown argument: --unknown/);
 });
-
