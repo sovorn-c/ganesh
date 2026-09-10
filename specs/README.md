@@ -1,22 +1,25 @@
 # Ganesh discovery artifacts
 
-## Status
+## Start here
 
-The owner confirmed the complete production-release intent, project conventions, and domain model.
-The complete release blueprint is audited READY for `/bp-plan`, and e01 now has a complete implementation-ready story plan: 18 epics cover the full release.
-No dependencies or application code were created; e01 story specifications and task ledgers now exist for the authorized planning step.
-Environment blockers remain assigned to release epics; e01 planning readiness is not build or production readiness.
-Blueprint artifacts are planning documents, not implementation or production evidence.
+Read [state.yaml](state.yaml) for the next authorized action and [execution-status.yaml](execution-status.yaml) for delivery status. Plans and blueprint audits are not implementation or production evidence.
+
+The owner requested repository organization before E05. The approved source and test migration is implemented, verified, and reviewed on the current refactor branch; see [REFACTOR_LATEST.md](REFACTOR_LATEST.md) for scope and [../CONVENTIONS.md](../CONVENTIONS.md) for the rules. E05 remains paused until its planning workflow is explicitly resumed.
 
 ## Canonical artifacts
 
 | Artifact | Owns |
 |---|---|
-| [../CLAUDE.md](../CLAUDE.md) and [../CONVENTIONS.md](../CONVENTIONS.md) | Approved project conventions and intended commands |
+| [../AGENTS.md](../AGENTS.md) and [../CONVENTIONS.md](../CONVENTIONS.md) | Agent routing, repository layout, review obligations, and project rules |
+| [execution-status.yaml](execution-status.yaml) | Epic and story execution status |
+| [epics/](epics/) | Story requirements and task plans; released capsules remain in archive |
+| [verifications/](verifications/) | Historical validation evidence, not future promises |
+| [adr/](adr/) | Recorded architectural decisions |
 | [planning-context.yaml](planning-context.yaml) | Confirmed release intent, constraints, coverage, and exclusions |
 | [product/VISION_LATEST.yaml](product/VISION_LATEST.yaml) | Confirmed product vision, operating model, and release-level non-goals |
 | [product/PRIOR_ART.md](product/PRIOR_ART.md) | Local reuse findings, inspected evidence, and unperformed integration checks |
 | [tech-architecture/tech-stack.md](tech-architecture/tech-stack.md) | Domain relationships, invariants, legal transitions, and concurrency contracts |
+| [REFACTOR_LATEST.md](REFACTOR_LATEST.md) | Approved-plan gate and migration map for source/test organization |
 | [adr/0001-research-authority-outside-pi-sessions.md](adr/0001-research-authority-outside-pi-sessions.md) | Accepted authority/persistence trade-off |
 | [UBIQUITOUS_LANGUAGE_LATEST.md](UBIQUITOUS_LANGUAGE_LATEST.md) | Canonical terminology; product glossary YAML is an index to this file |
 | [product/SCOPE_LATEST.yaml](product/SCOPE_LATEST.yaml) | Complete release outcomes and exclusions |
@@ -29,7 +32,7 @@ Blueprint artifacts are planning documents, not implementation or production evi
 ## Supplementary material
 
 [docs/README.md](docs/README.md) indexes the earlier six-document blueprint, reconciled with the confirmed discovery decisions.
-It supplies acceptance scenarios and explanatory detail, not a competing authority or a required discovery output. The active e01 capsule owns its story specifications and task ledgers after `/bp-plan`.
+It supplies acceptance scenarios and explanatory detail, not a competing authority or a required discovery output. Each epic capsule owns its story specifications and task ledgers.
 Detailed engineering defaults in that blueprint remain proposals unless explicitly confirmed in canonical discovery artifacts.
 The work-package dependency table is illustrative, not an approved epic plan.
 

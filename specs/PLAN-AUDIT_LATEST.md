@@ -1,11 +1,11 @@
 # Ganesh release blueprint audit
 
-**Verdict: READY — e01 is ready for `/bp-build`; the remaining release is not implementation-ready**
+**Verdict: READY — e02 is ready for `/bp-build`; e01 is complete and the remaining release is not implementation-ready**
 
 ## Gate scope
 
-This audit covers the complete release blueprint and the completed e01 `/bp-plan` handoff. It is not a build or production-readiness verdict for the remaining epics.
-E01 has three vertical story specifications and runnable task ledgers; the other 17 epics remain intentionally blueprint-only.
+This audit covers the complete release blueprint, the released e01 baseline, and the completed e02 `/bp-plan` handoff. It is not a build or production-readiness verdict for e02 or the remaining epics.
+E01 is released locally. E02 has three vertical story specifications, a risk-scaled test plan, and runnable task ledgers; the other 16 epics remain intentionally blueprint-only.
 Product discovery is confirmed; no release outcome is removed to accommodate sequencing.
 
 ## Principles and conventions
@@ -19,10 +19,10 @@ Product discovery is confirmed; no release outcome is removed to accommodate seq
 | Domain language | PASS | Canonical glossary, domain model and ADR 0001 preserved |
 | Stable epic IDs and dependencies | PASS | Eighteen capsule manifests; dependency-constrained WSJF order |
 | Estimates | PROVISIONAL | 440 aggregate BCP; uncalibrated epic estimates, ranges and formula recorded |
-| Story vertical slices and task checks | PASS for e01; DEFERRED for e02–e18 | E01 has three vertical stories, all tasks have runnable verification, and remaining epics retain deferred planning |
+| Story vertical slices and task checks | PASS for e01/e02; DEFERRED for e03–e18 | E01 is released; e02 has three dependency-ordered vertical stories, an epic test plan, and runnable failing-ledger verification; remaining epics retain deferred planning |
 | Agent/project conventions | PASS | CLAUDE.md and CONVENTIONS.md present; Conventional Commits and solo-git |
-| Source control | PASS | Local Git initialized on unborn main; no commit/branch/push performed here |
-| Implementation readiness | READY for e01 planning handoff; BLOCKED for execution/release | E01 tasks are implementation-ready, but the manifest, lockfile, runtime setup, and executable baseline do not yet exist |
+| Source control | PASS | E01 is merged into local main; e02 planning remains on main with no new feature branch or commit created in this planning step |
+| Implementation readiness | READY for e02 build handoff; BLOCKED for e02 execution/release | E01's baseline exists and is released; e02 tasks are implementation-ready, but e02 persistence code and behavior remain unbuilt |
 
 ## Complete scope-to-roadmap coverage
 
@@ -84,17 +84,18 @@ Runtime packaging and role/capability contracts belong to e05; metadata/license/
 
 | Question | Answer |
 |---|---|
-| Test | `npm test` — approved contract, not implemented |
-| Build | `npm run build` — approved contract, not implemented |
-| Lint | `npm run lint` — approved contract, not implemented |
-| Typecheck | `npm run typecheck` — approved contract, not implemented |
-| Preflight | `npm test && npm run lint && npm run typecheck && npm run build` — not implemented |
+| Test | `npm test` — e01 baseline passed under Node.js 24; e02 scenarios remain unimplemented |
+| Build | `npm run build` — e01 baseline passed; e02 implementation is not yet built |
+| Lint | `npm run lint` — e01 baseline passed; e02 implementation is not yet linted |
+| Typecheck | `npm run typecheck` — e01 baseline passed; e02 implementation is not yet typechecked |
+| Preflight | `npm test && npm run lint && npm run typecheck && npm run build` — e01 baseline passed; e02 behavior remains unimplemented |
 | CI | None; local repeatable gates required by e01/e17/e18; hosted CI intentionally deferred |
 | Workflow | solo-git; explicit authorization for branches, commits and publication |
 | Stack | TypeScript, Node 24 LTS target, reused Pi SDK/TUI, SQLite and artifacts; local execution follows user-selected Pi modes |
-| Baseline | Greenfield, no product code, package manifest or executable test suite |
+| Baseline | E01 TypeScript/Node runtime baseline is implemented and released; e02 product persistence code and tests remain absent |
 
-- **e01:** resolve missing manifest/lockfile, document the selected Node 24 target and dependency licenses, define the distribution support matrix, and establish reproducible project commands before dependent implementation relies on them.
+- **e01:** released locally with manifest/lockfile, Node 24 target, dependency evidence, reproducible commands, and preflight baseline.
+- **e02:** implement SQLite/artifact durability, exact dependency references, branch concurrency/history, recovery, schema status, and read-only inspection according to the active capsule and test plan.
 - **e03:** prove no owner-authority/disclosure bypass through Pi commands, sessions, resources, tools or attachments before sensitive data or autonomous operations.
 - **e11:** define and verify Pi-compatible ask/approve/full-access behavior and the per-project bash guard before enabling agent-run local commands; no sandbox guarantee is implied.
 - **e14:** qualify accessible critical terminal flows; naming a keyboard shortcut is not accessibility evidence.
@@ -104,15 +105,17 @@ Runtime packaging and role/capability contracts belong to e05; metadata/license/
 
 ## Validation and review evidence
 
-- Executed `ruby specs/verifications/check-blueprint.rb`: PASS after extending the documentation gate to validate planned e01 story manifests, task ledgers, BCP totals, maturity, dependency order, and runnable verification fields while retaining deferred-empty validation for e02–e18.
+- Executed `ruby specs/verifications/check-blueprint.rb`: PASS after validating the released e01 capsule, planned e02 story manifests, task ledgers, BCP totals, maturity, dependency order, and runnable verification fields while retaining deferred-empty validation for e03–e18.
 - The check parses YAML, verifies scope/epic acceptance equality, all AC-01–20 ownership outside the qualification epic, dependencies, eligible WSJF selection, estimates, manifests, status IDs, and planned-story artifact consistency.
 - The standard `validate-specs-yaml.sh specs` was attempted and failed because Python lacks PyYAML. Its generic invalid-YAML message is not evidence of a syntax defect; independent Ruby parsing passed.
-- This alternate documentation gate does not waive the missing standard tooling requirement assigned to e01/B04. No dependencies were installed in this blueprint session.
+- This alternate documentation gate does not waive the missing standard tooling requirement assigned to e01/B04. E01 installed and verified its locked baseline; e02 planning adds no application dependency and uses the Node.js 24 SQLite boundary as an implementation verification obligation.
 - First independent review found incorrect scenario references and an omitted explicit monetary cap; both were corrected in scope and manifests.
+- E02 planning adds `e02-TEST_PLAN_LATEST.md` with nine risk-scaled scenarios covering restart, atomicity, concurrency, branch isolation, recovery, schema compatibility, and read-only inspection.
 - Independent re-audit returned READY FOR `/bp-plan`, confirming semantic scenario ownership, all 22 competencies, full production coverage, dependencies and monetary-cap acceptance.
-- No application tests, build, lint, typecheck, runtime security checks or scholarly evaluations ran; e01 task ledgers therefore remain failing by design.
+- No e02 application tests, build, lint, typecheck, runtime security checks or scholarly evaluations ran; e02 task ledgers therefore remain failing by design. E01's baseline checks are historical release evidence.
+- The package-referenced `scripts/sync-status-from-epics.sh` is absent. E02 status was synchronized through explicit `specs/execution-status.yaml`, `specs/planning-status.yaml`, and `specs/state.yaml` edits; this is a tooling limitation, not a hidden gate bypass.
 
 ## Handoff limits
 
-E01 is ready for `/bp-build` planning handoff, not evidence that implementation or preflight passes. The remaining release is still blueprint-only and no epic is production-ready.
+E02 is ready for `/bp-build` planning handoff, not evidence that e02 implementation or persistence behavior passes. E01 is complete; e03–e18 remain blueprint-only and the complete release is not production-ready.
 Every recorded runtime/operational blocker has an owning epic. No approved scope outcome is deferred outside the release.

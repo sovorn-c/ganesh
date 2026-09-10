@@ -1,12 +1,18 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
+active_flow: refactor_complete
 active_epic: e04
 active_story: e04s04
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E04 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All four stories and 16 task verifications are complete; later epics remain blueprint-only.
+  next_skill: survey-context
+  next_command: "/skill:survey-context"
+  summary: >-
+    Owner-approved source and test organization refactor is implemented, verified,
+    and independently reviewed on the current refactor branch. Source modules are
+    grouped by responsibility under src/, tests mirror those responsibilities under
+    tests/, and epic prefixes were removed from test names while traceability
+    comments remain. E05 remains paused until its planning workflow is explicitly
+    resumed. E04 release status is retained in execution-status.yaml.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -48,7 +54,7 @@ discovery:
     vcs:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
-      branch: main
+      branch: refactor/source-test-layout
       commits: 40
     smoke:
       node_version: passed
@@ -63,7 +69,7 @@ discovery:
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
-      branch: main
+      branch: refactor/source-test-layout
       commits: 40
       implementation_files: 41
       package_manifests: 2

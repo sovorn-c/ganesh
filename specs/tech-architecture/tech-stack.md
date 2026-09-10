@@ -1,36 +1,30 @@
 # Ganesh — Technical Context and Research Domain
 
-## Observed codebase baseline
+## Implementation and organization
 
-This map was produced from the current `ganesh/` tree before implementation.
-It describes what exists, not the approved target architecture.
+Use [../execution-status.yaml](../execution-status.yaml) for delivery status and [../state.yaml](../state.yaml) for the next action. The domain model below defines invariants; it does not prove that every target capability exists.
 
-- **Source stack:** no TypeScript, JavaScript, Python, Swift, or other application source files exist.
-- **Entry points:** no CLI, library, service, or test entry point exists.
-- **Dependencies:** no `package.json`, lockfile, Python manifest, Cargo manifest, or Swift package manifest exists.
-- **Runtime:** Node.js 26.7.0 and npm 11.19.0 are available on the host; Node.js 24 LTS remains the approved target and is not verified.
-- **VCS:** `ganesh/` is an initialized Git repository on unborn `main`; no commits or executable baseline exist.
-- **Commands:** `dev`, `test`, `build`, `lint`, `typecheck`, and `preflight` are documented contracts only.
-- **Tests:** no test files or runnable test command exists.
-- **Architecture:** no implemented controller, Pi adapter, persistence layer, artifact store, worker coordinator, provider adapter, or analysis runner exists.
+The current implementation uses TypeScript, Node.js 24, SQLite project state, and local artifact files. Source entrypoints remain at `src/`; implementation modules now live in responsibility folders. Tests now live under `tests/` in matching responsibility folders and use behavior-based names.
 
-## Observed gray areas
+The owner-approved organization refactor is implemented, verified, and reviewed on the current refactor branch. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E05 remains paused until its planning workflow is explicitly resumed.
 
-- **Error handling:** unimplemented; no exception, result, or user-facing error convention exists.
-- **API shape:** unimplemented; no IPC, RPC, HTTP, or command schema exists.
-- **Type safety:** unimplemented; strict TypeScript is an approved convention, not an observed property.
-- **Observability:** unimplemented; no structured logger, health check, or diagnostic destination exists.
-- **Testing:** unimplemented; acceptance scenarios exist in supplementary blueprint documents, but no executable tests exist.
-- **Concurrency:** no runtime shared state exists; required race controls are domain contracts below, not code findings.
+## Repository organization contract
+
+Follow [../../CONVENTIONS.md](../../CONVENTIONS.md) for naming, module boundaries, test placement, and document ownership. Organize by domain or runtime responsibility, never by release epic.
+
+Tests should mirror source responsibilities under `tests/`, with behavior-based names. Use integration tests for cross-boundary behavior. Keep story IDs in supported traceability metadata rather than filenames.
+
+The approved refactor plan mapped existing files to responsibilities, inspected dependencies, and specified import boundaries. Future moves or new responsibility folders still require an approved plan; do not create speculative modules.
+
+Preserve public APIs, runtime behavior, stored data, authority enforcement, and existing test coverage. Update active verification paths, test discovery, and tooling in the same migration; keep historical evidence truthful.
 
 ## Planning signals
 
-- Initialize the project manifest and lockfile before dependency installation.
-- Use the prior Pi SDK compatibility check; resolve the selected package/version and Node target when creating an adapter.
-- Select the SQLite binding and define Pi-compatible execution modes plus the per-project bash guard through technical planning and executable checks.
-- Use the initialized Ganesh Git repository; implementation still requires an authorized feature branch.
-- Convert approved commands from contracts into real scripts alongside the first planned vertical slice.
-- Keep the domain model below as the source of invariants while implementation architecture is introduced.
+- Keep E05 paused until the organization refactor passes final verification and implementation review.
+- Reuse the existing manifest, lockfile, and Node.js 24 commands.
+- Run applicable checks in the foreground under Node.js 24, not the host Node.js 26.
+- Keep work in the current workspace; use an authorized branch and no automatic commits or pushes.
+- Treat placement and dependency review as required review checks, not as an already implemented automated gate.
 
 ## Approved target architecture (not observed)
 
@@ -42,7 +36,7 @@ The canonical glossary lives in `../UBIQUITOUS_LANGUAGE_LATEST.md`; the product 
 Selected interface decisions live in [DESIGN_PLAN_LATEST.md](DESIGN_PLAN_LATEST.md) and [ADR 0002](../adr/0002-focused-authority-separated-commands.md).
 Technical deployment proposals remain in `../docs/04-system-architecture.md`.
 Human commitments, data-use permissions, and work contracts/runs are logical responsibilities in one application, not services.
-No measured code-deepening opportunity exists in this greenfield baseline.
+No measured code-deepening opportunity applies to the released E01 runtime baseline; e02 domain modules are not implemented yet.
 
 ## Language
 
@@ -181,7 +175,7 @@ A grant covers only its stated activities and conditions.
 
 ## Concurrency
 
-There is no application code yet; these are required synchronization contracts, not findings about existing globals.
+There is no e02 domain application code yet; these are required synchronization contracts, not findings about existing globals.
 
 | Shared mutable location | Readers and writers | Required synchronization | Race consequence |
 |---|---|---|---|

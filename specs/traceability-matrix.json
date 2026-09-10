@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T10:05:36Z",
+  "generated_at": "2026-09-10T12:58:58Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -12,7 +12,7 @@
       "status": "done",
       "links": [
         {
-          "file": "test/baseline.test.ts",
+          "file": "tests/runtime/baseline.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -42,43 +42,43 @@
       "status": "done",
       "links": [
         {
-          "file": "test/preflight-branches.test.ts",
+          "file": "tests/runtime/preflight-branches.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "test/preflight.test.ts",
+          "file": "tests/runtime/preflight.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/preflight.ts",
+          "file": "src/runtime/preflight.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/preflight-constants.ts",
+          "file": "src/runtime/preflight-constants.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/preflight-config.ts",
+          "file": "src/runtime/preflight-config.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/preflight-types.ts",
+          "file": "src/runtime/preflight-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/preflight-checks.ts",
+          "file": "src/runtime/preflight-checks.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -102,13 +102,13 @@
       "status": "done",
       "links": [
         {
-          "file": "test/clean-install.test.ts",
+          "file": "tests/runtime/clean-install.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/clean-install.ts",
+          "file": "src/runtime/clean-install.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -132,31 +132,31 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e02s01-projects.test.ts",
+          "file": "tests/project/persistence.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/artifact-store.ts",
+          "file": "src/artifacts/artifact-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/storage-utils.ts",
+          "file": "src/project/project-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/project-store.ts",
+          "file": "src/project/project-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/project-types.ts",
+          "file": "src/persistence/storage-utils.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -180,31 +180,31 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e02s02-branches.test.ts",
+          "file": "tests/branches/isolation.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/promotion-store.ts",
+          "file": "src/persistence/history-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/dependency-store.ts",
+          "file": "src/branches/promotion-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/history-store.ts",
+          "file": "src/branches/dependency-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/branch-store.ts",
+          "file": "src/branches/branch-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -228,19 +228,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e02s03-recovery.test.ts",
+          "file": "tests/branches/recovery.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/schema.ts",
+          "file": "src/persistence/schema.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/recovery.ts",
+          "file": "src/branches/recovery.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -264,19 +264,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e03s01-policy.test.ts",
+          "file": "tests/policy/permissions.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/policy-store.ts",
+          "file": "src/policy/policy-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/policy-types.ts",
+          "file": "src/policy/policy-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -300,19 +300,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e03s02-disclosure.test.ts",
+          "file": "tests/policy/disclosure.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/disclosure-gateway.ts",
+          "file": "src/policy/disclosure-gateway.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/disclosure-types.ts",
+          "file": "src/policy/disclosure-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -336,19 +336,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e03s03-capabilities.test.ts",
+          "file": "tests/authority/capabilities.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/capability-types.ts",
+          "file": "src/authority/capability-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/capability-broker.ts",
+          "file": "src/authority/capability-broker.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -372,19 +372,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e03s04-lifecycle.test.ts",
+          "file": "tests/lifecycle/operation-gates.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/lifecycle-types.ts",
+          "file": "src/lifecycle/lifecycle-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/lifecycle-gate.ts",
+          "file": "src/lifecycle/lifecycle-gate.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -408,19 +408,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e03s05-adversarial.test.ts",
+          "file": "tests/policy/declassification-boundaries.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/declassification-types.ts",
+          "file": "src/policy/declassification-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/declassification-store.ts",
+          "file": "src/policy/declassification-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -444,25 +444,25 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e04s01-decisions.test.ts",
+          "file": "tests/decisions/decision-packets.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/e04-utils.ts",
+          "file": "src/decisions/decision-helpers.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/decision-types.ts",
+          "file": "src/decisions/decision-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/decision-store.ts",
+          "file": "src/decisions/decision-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -486,37 +486,37 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e04s02-commitments.test.ts",
+          "file": "tests/decisions/commitments.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/decision-lifecycle-store.ts",
+          "file": "src/decisions/decision-lifecycle-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/decision-history-store.ts",
+          "file": "src/decisions/decision-history-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/commitment-types.ts",
+          "file": "src/decisions/commitment-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/readiness-store.ts",
+          "file": "src/decisions/readiness-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/commitment-store.ts",
+          "file": "src/decisions/commitment-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -540,19 +540,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e04s03-alternatives.test.ts",
+          "file": "tests/decisions/alternatives.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/alternative-types.ts",
+          "file": "src/decisions/alternative-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/alternative-store.ts",
+          "file": "src/decisions/alternative-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -576,19 +576,19 @@
       "status": "done",
       "links": [
         {
-          "file": "test/e04s04-overrides.test.ts",
+          "file": "tests/decisions/overrides.test.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/override-store.ts",
+          "file": "src/decisions/override-store.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
         },
         {
-          "file": "src/override-types.ts",
+          "file": "src/decisions/override-types.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"

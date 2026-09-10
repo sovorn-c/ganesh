@@ -12,7 +12,7 @@ export const runtimeBaseline: RuntimeBaseline = {
 export {
   ProjectStoreError,
   PROJECT_SCHEMA_VERSION
-} from "./project-types.js";
+} from "./project/project-types.js";
 export type {
   ArtifactAccess,
   ArtifactInspection,
@@ -37,39 +37,39 @@ export type {
   SchemaStatus,
   SharedSourceCorrectionInput,
   SnapshotInspection
-} from "./project-types.js";
-export * from "./project-store.js";
-export * from "./artifact-store.js";
-export * from "./branch-store.js";
-export * from "./history-store.js";
-export * from "./dependency-store.js";
-export * from "./promotion-store.js";
-export * from "./recovery.js";
-export * from "./policy-types.js";
-export * from "./policy-store.js";
-export * from "./disclosure-types.js";
-export * from "./disclosure-gateway.js";
-export * from "./capability-types.js";
-export * from "./capability-broker.js";
-export * from "./lifecycle-types.js";
-export * from "./lifecycle-gate.js";
-export * from "./declassification-types.js";
-export * from "./declassification-store.js";
-export { FULL_ACCESS_NOTICE } from "./preflight-constants.js";
-export { migrateSchema, createE03Schema, createE04Schema } from "./schema.js";
-export * from "./decision-types.js";
-export * from "./decision-store.js";
-export * from "./decision-lifecycle-store.js";
-export * from "./decision-history-store.js";
-export * from "./commitment-types.js";
+} from "./project/project-types.js";
+export * from "./project/project-store.js";
+export * from "./artifacts/artifact-store.js";
+export * from "./branches/branch-store.js";
+export * from "./persistence/history-store.js";
+export * from "./branches/dependency-store.js";
+export * from "./branches/promotion-store.js";
+export * from "./branches/recovery.js";
+export * from "./policy/policy-types.js";
+export * from "./policy/policy-store.js";
+export * from "./policy/disclosure-types.js";
+export * from "./policy/disclosure-gateway.js";
+export * from "./authority/capability-types.js";
+export * from "./authority/capability-broker.js";
+export * from "./lifecycle/lifecycle-types.js";
+export * from "./lifecycle/lifecycle-gate.js";
+export * from "./policy/declassification-types.js";
+export * from "./policy/declassification-store.js";
+export { FULL_ACCESS_NOTICE } from "./runtime/preflight-constants.js";
+export { migrateSchema, createE03Schema, createE04Schema } from "./persistence/schema.js";
+export * from "./decisions/decision-types.js";
+export * from "./decisions/decision-store.js";
+export * from "./decisions/decision-lifecycle-store.js";
+export * from "./decisions/decision-history-store.js";
+export * from "./decisions/commitment-types.js";
 export {
   getCommitment,
   listCommitments,
   listCommitmentHistory
-} from "./commitment-store.js";
-export { assessReadiness, listReadiness } from "./readiness-store.js";
-export type { CommitmentHistoryItem } from "./commitment-store.js";
-export * from "./alternative-types.js";
-export * from "./alternative-store.js";
-export * from "./override-types.js";
-export * from "./override-store.js";
+} from "./decisions/commitment-store.js";
+export { assessReadiness, listReadiness } from "./decisions/readiness-store.js";
+export type { CommitmentHistoryItem } from "./decisions/commitment-store.js";
+export * from "./decisions/alternative-types.js";
+export * from "./decisions/alternative-store.js";
+export * from "./decisions/override-types.js";
+export * from "./decisions/override-store.js";

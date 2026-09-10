@@ -3,9 +3,9 @@
 ## Status and applicability
 
 Selected for blueprinting under the owner's instruction to decide and continue.
-These are Ganesh contracts, not implemented behavior. Prior Pi SDK compatibility work is treated as settled; Ganesh-specific policy wiring is not yet verified.
-`deepen-architecture` found no implementation to refactor; measured Module Depth scores, churn analysis, and import-boundary changes are not applicable.
-The churn command reported an unborn Git branch. Three independent design explorations informed this comparison.
+These are Ganesh contracts, not implemented behavior beyond the released E01 runtime baseline. Prior Pi SDK compatibility work is treated as settled; Ganesh-specific policy wiring is not yet verified.
+`deepen-architecture` was not applicable to the greenfield baseline; E01 now supplies runtime/preflight code, while e02's persistence and recovery modules remain unimplemented. Three independent design explorations informed this comparison.
+The current repository is on local `main` after the E01 release.
 
 ## Forcing functions
 
@@ -85,4 +85,4 @@ Pi reuse must verify policy coverage across built-in commands, attachments, reso
 Failure to enforce the seam blocks affected delivery; do not quietly weaken security or replace Pi without an explicit architectural revision.
 Behavioral checks must exercise forged approval, stale packets, duplicate commands, concurrent budget admission, revocation races, restart uncertainty, cancellation/late output, and old snapshots.
 Recovery must reconcile finalized artifact bytes and database records without partial approval or silent data loss.
-The exact SDK bindings, SQLite binding, execution-mode contract, bash-guard behavior, and distribution support matrix remain technical selections owned by release epics, not validated facts. Prior Pi SDK compatibility is treated as settled.
+The exact SQLite binding, execution-mode contract, bash-guard behavior, and distribution support matrix remain technical selections owned by release epics, not validated facts. E02 plans to verify Node.js 24 `node:sqlite` before implementation; prior Pi SDK compatibility is treated as settled.

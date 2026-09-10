@@ -1,5 +1,5 @@
-import { runCleanInstall } from "./clean-install.js";
-import { renderHuman, renderJson, runPreflight } from "./preflight.js";
+import { runCleanInstall } from "./runtime/clean-install.js";
+import { renderHuman, renderJson, runPreflight } from "./runtime/preflight.js";
 
 type Fixture = "unsupported-runtime";
 

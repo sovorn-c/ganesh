@@ -10,9 +10,9 @@
   "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "npm run build && node dist/src/cli.js",
-    "test": "npm run build && node --test dist/test/*.test.js",
+    "test": "npm run build && node --test dist/tests/*/*.test.js",
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint src test",
+    "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "preflight": "npm run build && node dist/src/preflight-cli.js"
   },
