@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T01:52:20Z",
+  "generated_at": "2026-09-10T01:58:59Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -9,7 +9,7 @@
       "epic_title": "Verified development and runtime baseline",
       "bcp": 0,
       "wsjf": 2.153846,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "test/baseline.test.ts",
@@ -24,7 +24,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e01-runtime-baseline/e01s01-tasks.yaml",
+          "file": "specs/epics/archive/e01-runtime-baseline/e01s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -39,7 +39,7 @@
       "epic_title": "Verified development and runtime baseline",
       "bcp": 0,
       "wsjf": 2.153846,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "test/preflight-branches.test.ts",
@@ -84,7 +84,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e01-runtime-baseline/e01s02-tasks.yaml",
+          "file": "specs/epics/archive/e01-runtime-baseline/e01s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -99,7 +99,7 @@
       "epic_title": "Verified development and runtime baseline",
       "bcp": 0,
       "wsjf": 2.153846,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "test/clean-install.test.ts",
@@ -114,7 +114,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e01-runtime-baseline/e01s03-tasks.yaml",
+          "file": "specs/epics/archive/e01-runtime-baseline/e01s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -140,9 +140,11 @@
     ],
     "orphan_count": 6,
     "stale_tags": [
-
+      "e01s01",
+      "e01s02",
+      "e01s03"
     ],
-    "stale_count": 0,
+    "stale_count": 3,
     "oracle_stats": {
       "high": 11,
       "medium": 0,

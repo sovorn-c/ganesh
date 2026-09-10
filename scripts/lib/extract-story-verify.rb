@@ -18,7 +18,7 @@ end
 
 require "pathname"
 
-Dir[File.join(repo_root, "specs", "epics", "*", "epic.yaml")].sort.each do |epic_path|
+Dir[File.join(repo_root, "specs", "epics", "**", "epic.yaml")].sort.each do |epic_path|
   document = YAML.safe_load(File.read(epic_path), [], [], false) || {}
   Array(document["stories"]).each do |story|
     next unless story.is_a?(Hash)
@@ -27,7 +27,7 @@ Dir[File.join(repo_root, "specs", "epics", "*", "epic.yaml")].sort.each do |epic
   end
 end
 
-tasks_glob = File.join(repo_root, "specs", "epics", "*", "*-tasks.yaml")
+tasks_glob = File.join(repo_root, "specs", "epics", "**", "*-tasks.yaml")
 Dir[tasks_glob].sort.each do |tasks_path|
   document = YAML.safe_load(File.read(tasks_path), [], [], false) || {}
   next unless document.is_a?(Hash)

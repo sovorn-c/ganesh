@@ -1,0 +1,60 @@
+epic_id: e01
+branch: main
+verified_at: "2026-09-10T02:00:00Z"
+verifier: release-solo
+status: passed
+stories:
+  - id: e01s01
+    status: done
+    tasks: 4/4
+  - id: e01s02
+    status: done
+    tasks: 4/4
+  - id: e01s03
+    status: done
+    tasks: 3/3
+checks:
+  runtime:
+    passed: true
+    command: "npx --yes --package=node@24 node --version"
+    evidence: "v24.21.0"
+  tests:
+    passed: true
+    command: "npx --yes --package=node@24 npm test"
+    evidence: "16 tests passed"
+  build_typecheck_lint:
+    passed: true
+    commands:
+      - "npx --yes --package=node@24 npm run build"
+      - "npx --yes --package=node@24 npm run typecheck"
+      - "npx --yes --package=node@24 npm run lint"
+  coverage:
+    passed: true
+    command: "npx --yes --package=node@24 node --experimental-test-coverage --test dist/test/*.test.js"
+    evidence: "99.80% lines, 92.16% branches"
+  security:
+    passed: true
+    command: "npx --yes --package=node@24 npm audit --audit-level=high"
+    evidence: "0 vulnerabilities"
+  clean_install:
+    passed: true
+    command: "npx --yes --package=node@24 npm run preflight -- --clean-install"
+  traceability:
+    passed: true
+    command: "bash scripts/trace-stories.sh --json"
+    evidence: "3 stories, 0 dark stories"
+  blind_spots:
+    passed: true
+    command: "bash scripts/check-blind-spots.sh"
+    evidence: "No HIGH findings; stale done-story tags are informational"
+  completeness:
+    passed: true
+    command: "bash scripts/lib/completeness-critic.sh"
+    evidence: "BLOCKER=0"
+  plan_consistency:
+    passed: true
+    command: "bash scripts/lib/plan-consistency-check.sh specs/epics/archive/e01-runtime-baseline/"
+    evidence: "CRITICAL=0 HIGH=0 MED=0"
+  blueprint:
+    passed: true
+    command: "ruby specs/verifications/check-blueprint.rb"
