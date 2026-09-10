@@ -1,0 +1,87 @@
+---
+id: e01
+title: Verified development and runtime baseline
+scope_ids:
+- R01
+outcome: Developers can reproduce the approved runtime and commands without relying
+  on global Pi configuration.
+boundaries:
+  includes:
+  - Node 24 target and dependency/license choices are documented; Pi SDK/TUI compatibility is treated as settled from prior verification.
+  - Locked dependency installation and real dev, test, build, lint, typecheck and
+    preflight commands run repeatably; setup failures have remediation.
+  - Clean-machine checks expose missing local tools and permission-mode configuration; product launch is completed in e14 and distribution in e18.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on: []
+acceptance_outcomes:
+- Node 24 target and dependency/license choices are documented; Pi SDK/TUI compatibility is treated as settled from prior verification.
+- Locked dependency installation and real dev, test, build, lint, typecheck and preflight
+  commands run repeatably; setup failures have remediation.
+- Clean-machine checks expose missing local tools and permission-mode configuration; product launch is completed in e14 and distribution in e18.
+acceptance_scenarios: []
+wsjf: 2.153846
+wsjf_inputs:
+  business_value: 8
+  time_criticality: 10
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 13
+total_bcps: 13
+bcp_estimate:
+  range:
+  - 8
+  - 21
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: complete
+planning_stage: complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e01s01
+  type: ADDED
+  requirement: Reproducible TypeScript runtime and locked command baseline
+  after: The repository has a pinned Node.js 24 target, documented dependency and license choices, a lockfile, and repeatable dev, test, build, lint, typecheck, and preflight commands.
+- story_id: e01s02
+  type: ADDED
+  requirement: Actionable local environment and execution-mode preflight
+  after: A local preflight reports runtime, tool, dependency, and Pi-compatible execution-mode readiness with actionable remediation without claiming sandbox containment.
+- story_id: e01s03
+  type: ADDED
+  requirement: Clean-machine setup and recovery guidance
+  after: A developer can reproduce the baseline from a clean local folder, diagnose setup failures, and recover without relying on global Pi configuration.
+stories:
+- id: e01s01
+  title: Reproducible TypeScript Runtime and Locked Command Baseline
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: []
+  spec_file: e01s01-reproducible-typescript-runtime-and-locked-command-baseline.md
+  tasks_file: e01s01-tasks.yaml
+- id: e01s02
+  title: Actionable Local Environment and Execution-Mode Preflight
+  status: done
+  bcps: 4
+  risk: P1
+  delta: ADDED
+  depends_on: [e01s01]
+  spec_file: e01s02-actionable-local-environment-and-execution-mode-preflight.md
+  tasks_file: e01s02-tasks.yaml
+- id: e01s03
+  title: Clean-Machine Setup and Recovery Guidance
+  status: done
+  bcps: 3
+  risk: P1
+  delta: ADDED
+  depends_on: [e01s01, e01s02]
+  spec_file: e01s03-clean-machine-setup-and-recovery-guidance.md
+  tasks_file: e01s03-tasks.yaml
+capsule_dir: epics/archive/e01-runtime-baseline
+next_skill: bp-plan
+sequence: 1

@@ -1,0 +1,56 @@
+---
+id: e04
+title: Human commitments and research alternatives
+scope_ids:
+- R04
+outcome: Owners adopt exact options, preserve objections and understand the impact
+  of changes.
+boundaries:
+  includes:
+  - Explicit local approval binds displayed packet, option and dependencies; forged,
+    stale and duplicate actions cannot create partial or repeated commitments.
+  - Approval, rejection, deferral, revision, reopening, archival and supersession
+    retain historical dispositions and distinguish current readiness.
+  - Alternative branches stay independent; adoption triggers transitive impact review;
+    reasoned scholarly overrides retain dissent and cannot waive safety or external
+    authorization.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e02
+- e03
+acceptance_outcomes:
+- Explicit local approval binds displayed packet, option and dependencies; forged,
+  stale and duplicate actions cannot create partial or repeated commitments.
+- Approval, rejection, deferral, revision, reopening, archival and supersession retain
+  historical dispositions and distinguish current readiness.
+- Alternative branches stay independent; adoption triggers transitive impact review;
+  reasoned scholarly overrides retain dissent and cannot waive safety or external
+  authorization.
+acceptance_scenarios:
+- AC-06
+- AC-07
+- AC-08
+- AC-14
+wsjf: 1.380952
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 9
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e04-human-commitments
+sequence: 4

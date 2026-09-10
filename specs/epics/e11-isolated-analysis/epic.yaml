@@ -1,0 +1,48 @@
+---
+id: e11
+title: User-controlled local analysis and test execution
+scope_ids:
+- R11
+outcome: Researchers execute authorized local analyses and tests in the tools they choose and retain available provenance, results and diagnostics.
+boundaries:
+  includes:
+  - User-selected languages and tools record exact inputs, command or script versions, parameters, outputs, diagnostics and environment details when available; repeatability is reported rather than guaranteed across arbitrary environments.
+  - Execution follows Pi-compatible ask, approve, and full-access modes plus a per-project configurable bash guard; full-access is an explicit local-risk choice, not a sandbox guarantee. Missing tools and packages are surfaced, and installation follows the selected mode.
+  - Quantitative, qualitative, mixed-method integration and artifact-evaluation workflows expose appropriate diagnostics and limitations; externally produced outputs are marked reported unless independently reproduced.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e05
+- e06
+- e09
+- e10
+acceptance_outcomes:
+- User-selected languages and tools record exact inputs, command or script versions, parameters, outputs, diagnostics and environment details when available; repeatability is reported rather than guaranteed across arbitrary environments.
+- Execution follows Pi-compatible ask, approve, and full-access modes plus a per-project configurable bash guard; full-access is an explicit local-risk choice, not a sandbox guarantee. Missing tools and packages are surfaced, and installation follows the selected mode.
+- Quantitative, qualitative, mixed-method integration and artifact-evaluation workflows expose appropriate diagnostics and limitations; externally produced outputs are marked reported unless independently reproduced.
+acceptance_scenarios:
+- AC-12
+- AC-13
+- AC-18
+wsjf: 0.823529
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 8
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 20
+  - 54
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e11-isolated-analysis
+sequence: 15

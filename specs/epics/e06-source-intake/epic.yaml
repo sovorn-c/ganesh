@@ -1,0 +1,53 @@
+---
+id: e06
+title: Local import and source inspection
+scope_ids:
+- R06
+outcome: Researchers acquire and inspect required materials without losing source
+  identity or provenance.
+boundaries:
+  includes:
+  - Text-based PDF, DOCX, Markdown, text, BibTeX, RIS, CSV and XLSX imports preserve
+    originals, versions, stable locators, access level and extraction diagnostics.
+  - Scanned input reports unsupported extraction unless external OCR provenance exists;
+    corrupt, oversized and hostile files fail safely.
+  - Metadata deduplication distinguishes related versions rather than silently merging
+    them; document/viewer handoff enforces current permissions.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e02
+- e03
+acceptance_outcomes:
+- Text-based PDF, DOCX, Markdown, text, BibTeX, RIS, CSV and XLSX imports preserve
+  originals, versions, stable locators, access level and extraction diagnostics.
+- Scanned input reports unsupported extraction unless external OCR provenance exists;
+  corrupt, oversized and hostile files fail safely.
+- Metadata deduplication distinguishes related versions rather than silently merging
+  them; document/viewer handoff enforces current permissions.
+acceptance_scenarios:
+- AC-05
+- AC-10
+- AC-20
+wsjf: 1.095238
+wsjf_inputs:
+  business_value: 8
+  time_criticality: 7
+  risk_reduction: 8
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e06-source-intake
+sequence: 5

@@ -1,0 +1,58 @@
+---
+id: e15
+title: Recovery portability and controlled deletion
+scope_ids:
+- R15
+outcome: Owners recover and move projects without losing commitments or resurrecting
+  revoked data use.
+boundaries:
+  includes:
+  - Versioned project export/restore checks integrity and current permissions; migrations,
+    backups and restore drills preserve permitted history and evidence resolution.
+  - Crash injection, interrupted writes, disk-full, corruption and concurrent launches
+    produce no partial approvals or silent canonical changes; uncertain external operations
+    are reconciled before retry.
+  - Deletion propagates through derived content, caches and backup policy while retaining
+    only permitted audit stubs; stale restores cannot silently reinstate withdrawn
+    grants and external disclosures are not promised recall.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e02
+- e03
+- e05
+acceptance_outcomes:
+- Versioned project export/restore checks integrity and current permissions; migrations,
+  backups and restore drills preserve permitted history and evidence resolution.
+- Crash injection, interrupted writes, disk-full, corruption and concurrent launches
+  produce no partial approvals or silent canonical changes; uncertain external operations
+  are reconciled before retry.
+- Deletion propagates through derived content, caches and backup policy while retaining
+  only permitted audit stubs; stale restores cannot silently reinstate withdrawn grants
+  and external disclosures are not promised recall.
+acceptance_scenarios:
+- AC-08
+- AC-17
+- AC-20
+wsjf: 0.852941
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 9
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 20
+  - 54
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e15-recovery-portability
+sequence: 10

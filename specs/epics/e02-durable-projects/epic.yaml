@@ -1,0 +1,51 @@
+---
+id: e02
+title: Durable versioned research projects
+scope_ids:
+- R02
+outcome: Researchers can inspect and retain exact research state independently of
+  conversation history.
+boundaries:
+  includes:
+  - Immutable artifact/source versions and exact dependency references survive restart
+    with atomic registration and explicit missing/corrupt content.
+  - Project ownership, branch references and history use concurrent-writer exclusion
+    and expected-version checks; offline records remain readable.
+  - Session navigation cannot roll back state; schema versions and storage permissions
+    support the recovery and migration work in e15.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e01
+acceptance_outcomes:
+- Immutable artifact/source versions and exact dependency references survive restart
+  with atomic registration and explicit missing/corrupt content.
+- Project ownership, branch references and history use concurrent-writer exclusion
+  and expected-version checks; offline records remain readable.
+- Session navigation cannot roll back state; schema versions and storage permissions
+  support the recovery and migration work in e15.
+acceptance_scenarios:
+- AC-08
+- AC-17
+wsjf: 1.380952
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 9
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e02-durable-projects
+sequence: 2

@@ -1,0 +1,285 @@
+---
+release:
+  version: 1.0.0-target
+  version_authority: Non-authoritative first-production-release label; no published
+    version or semantic-release pipeline exists.
+  codename: Ganesh complete local-first release
+  status: blueprinted
+  semantic_release: false
+  bump_hint: major
+  planning_level: epic_only
+  shipping_rule: All 18 epics and all scope outcomes are required; intermediate epic
+    completion is not the production release.
+estimation:
+  wsjf_formula: "(business_value + time_criticality + risk_reduction + security_boost)
+    / job_size"
+  scales: BV, TC and RR each 1–10 relative; job size uses provisional epic BCP.
+  ordering: 'Dependency-constrained descending WSJF: select highest-scored eligible
+    epic, break ties by stable ID.'
+  security_boost: 'Zero: no formal per-epic threat model exists; high risk is represented
+    in RR, not fabricated +2 evidence. Recompute when threat models exist.'
+  bcp_method: Rough epic-level relative estimates, not measured effort, schedule promises,
+    story sums or verified BCP Plus output.
+  total_bcps: 440
+  reestimate_at: "/bp-plan"
+epics:
+- id: e01
+  title: Verified development and runtime baseline
+  capsule_dir: epics/archive/e01-runtime-baseline
+  file: epics/archive/e01-runtime-baseline/epic.yaml
+  sequence: 1
+  depends_on: []
+  wsjf: 2.153846
+  bcps: 13
+  scope_ids:
+  - R01
+- id: e02
+  title: Durable versioned research projects
+  capsule_dir: epics/e02-durable-projects
+  file: epics/e02-durable-projects/epic.yaml
+  sequence: 2
+  depends_on:
+  - e01
+  wsjf: 1.380952
+  bcps: 21
+  scope_ids:
+  - R02
+- id: e03
+  title: Enforced data-use and capability controls
+  capsule_dir: epics/e03-permission-enforcement
+  file: epics/e03-permission-enforcement/epic.yaml
+  sequence: 3
+  depends_on:
+  - e01
+  - e02
+  wsjf: 0.882353
+  bcps: 34
+  scope_ids:
+  - R03
+- id: e04
+  title: Human commitments and research alternatives
+  capsule_dir: epics/e04-human-commitments
+  file: epics/e04-human-commitments/epic.yaml
+  sequence: 4
+  depends_on:
+  - e02
+  - e03
+  wsjf: 1.380952
+  bcps: 21
+  scope_ids:
+  - R04
+- id: e06
+  title: Local import and source inspection
+  capsule_dir: epics/e06-source-intake
+  file: epics/e06-source-intake/epic.yaml
+  sequence: 5
+  depends_on:
+  - e02
+  - e03
+  wsjf: 1.095238
+  bcps: 21
+  scope_ids:
+  - R06
+- id: e05
+  title: Bounded autonomous work and specialist coordination
+  capsule_dir: epics/e05-bounded-work
+  file: epics/e05-bounded-work/epic.yaml
+  sequence: 6
+  depends_on:
+  - e03
+  - e04
+  wsjf: 0.852941
+  bcps: 34
+  scope_ids:
+  - R05
+- id: e14
+  title: Accessible terminal research workspace
+  capsule_dir: epics/e14-terminal-workspace
+  file: epics/e14-terminal-workspace/epic.yaml
+  sequence: 7
+  depends_on:
+  - e04
+  - e05
+  - e06
+  wsjf: 1.238095
+  bcps: 21
+  scope_ids:
+  - R14
+- id: e07
+  title: Located evidence and accountable claims
+  capsule_dir: epics/e07-evidence-claims
+  file: epics/e07-evidence-claims/epic.yaml
+  sequence: 8
+  depends_on:
+  - e05
+  - e06
+  wsjf: 1.190476
+  bcps: 21
+  scope_ids:
+  - R07
+- id: e08
+  title: Literature discovery and contribution challenge
+  capsule_dir: epics/e08-literature-contribution
+  file: epics/e08-literature-contribution/epic.yaml
+  sequence: 9
+  depends_on:
+  - e07
+  wsjf: 1.0
+  bcps: 21
+  scope_ids:
+  - R08
+- id: e15
+  title: Recovery portability and controlled deletion
+  capsule_dir: epics/e15-recovery-portability
+  file: epics/e15-recovery-portability/epic.yaml
+  sequence: 10
+  depends_on:
+  - e02
+  - e03
+  - e05
+  wsjf: 0.852941
+  bcps: 34
+  scope_ids:
+  - R15
+- id: e16
+  title: Private operational diagnostics and reliability
+  capsule_dir: epics/e16-operations-reliability
+  file: epics/e16-operations-reliability/epic.yaml
+  sequence: 11
+  depends_on:
+  - e01
+  - e05
+  - e15
+  wsjf: 1.142857
+  bcps: 21
+  scope_ids:
+  - R16
+- id: e09
+  title: Research framing and method-sensitive design
+  capsule_dir: epics/e09-method-sensitive-design
+  file: epics/e09-method-sensitive-design/epic.yaml
+  sequence: 12
+  depends_on:
+  - e08
+  - e04
+  wsjf: 0.705882
+  bcps: 34
+  scope_ids:
+  - R09
+- id: e10
+  title: Ethics and external authorization
+  capsule_dir: epics/e10-ethics-authorization
+  file: epics/e10-ethics-authorization/epic.yaml
+  sequence: 13
+  depends_on:
+  - e09
+  - e03
+  wsjf: 1.333333
+  bcps: 21
+  scope_ids:
+  - R10
+- id: e12
+  title: Study progress and protocol change
+  capsule_dir: epics/e12-study-progress
+  file: epics/e12-study-progress/epic.yaml
+  sequence: 14
+  depends_on:
+  - e04
+  - e09
+  - e10
+  wsjf: 1.615385
+  bcps: 13
+  scope_ids:
+  - R12
+- id: e11
+  title: User-controlled local analysis and test execution
+  capsule_dir: epics/e11-isolated-analysis
+  file: epics/e11-isolated-analysis/epic.yaml
+  sequence: 15
+  depends_on:
+  - e05
+  - e06
+  - e09
+  - e10
+  wsjf: 0.823529
+  bcps: 34
+  scope_ids:
+  - R11
+- id: e13
+  title: Interpretation writing and supervisor exchange
+  capsule_dir: epics/e13-writing-review
+  file: epics/e13-writing-review/epic.yaml
+  sequence: 16
+  depends_on:
+  - e07
+  - e11
+  - e12
+  wsjf: 1.095238
+  bcps: 21
+  scope_ids:
+  - R13
+- id: e17
+  title: Scholarly and adversarial release qualification
+  capsule_dir: epics/e17-release-qualification
+  file: epics/e17-release-qualification/epic.yaml
+  sequence: 17
+  depends_on:
+  - e08
+  - e09
+  - e10
+  - e11
+  - e12
+  - e13
+  - e14
+  - e15
+  - e16
+  wsjf: 0.882353
+  bcps: 34
+  scope_ids:
+  - R17
+- id: e18
+  title: Installable maintained local release
+  capsule_dir: epics/e18-macos-distribution
+  file: epics/e18-macos-distribution/epic.yaml
+  sequence: 18
+  depends_on:
+  - e17
+  wsjf: 1.380952
+  bcps: 21
+  scope_ids:
+  - R18
+bugs:
+  total: 0
+  fixed: 0
+  deferred: 0
+  wontfix: 0
+  open: 0
+  registry: specs/bugs/registry.yaml
+  note: Registry is an unpopulated seed, not evidence of defect absence. Environment
+    blockers tracked separately.
+blockers:
+- id: B01
+  owner_epic: e01
+  issue: Manifest/lockfile and executable commands absent; Node 24 target and distribution support matrix still need to be documented.
+  gate: before dependent implementation relies on runtime
+- id: B02
+  owner_epic: e03
+  issue: Pi authority/disclosure enforcement and trusted extension loading unverified.
+  gate: before real restricted material or autonomous execution
+- id: B03
+  owner_epic: e11
+  issue: Pi-compatible execution modes and the per-project bash guard need an explicit implementation contract before agent-run local commands are enabled.
+  gate: before analysis execution
+- id: B04
+  owner_epic: e01
+  issue: PyYAML unavailable for stock specification validation.
+  gate: resolve standard tooling before build; independent blueprint checks recorded
+- id: B05
+  owner_epic: e18
+  issue: Distribution channel, applicable signing and support matrix need documented
+    verification.
+  gate: before shipment
+- id: B06
+  owner_epic: e17
+  issue: Qualified-human evaluators and method/discipline case evidence required.
+  gate: before shipment

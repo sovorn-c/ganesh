@@ -1,0 +1,172 @@
+---
+workflow_mode: solo-git
+active_flow: release_complete
+active_epic: e01
+active_story: e01s03
+handoff:
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E01 was released locally after fresh whole-epic review pass 7 and Node.js
+    24 release checks. All 3 stories and 11 task verifications are complete; the other
+    17 epics remain blueprint-only.
+discovery:
+  seed_conventions: confirmed
+  elaborate_spec: confirmed
+  grill_me: confirmed
+  research_first: completed_local_review
+  model_domain: confirmed
+  define_language: completed
+  status: complete
+  ready_for_initialization: true
+  release_boundary: complete local-first release for individual researchers
+  interface: Pi SDK with reused Pi terminal UI and curated Ganesh extensions
+  platform: terminal-first local-folder workflow; initial validation host is not a
+    product boundary
+  environment_initialized: true
+  implementation_started: true
+  compatibility_verified: true
+  environment:
+    status: verified_node24_target
+    runtime:
+      node: v26.7.0
+      npm: 11.19.0
+      requested_node: Node.js 24 LTS
+      pi_engine_constraint: ">=22.19.0"
+      compatibility_result: prior_verification_accepted
+    dependencies:
+      manifest: package.json
+      lockfile: package-lock.json
+      installation: npm_ci_passed
+      reason: locked install and disposable clean-install verification passed under
+        Node.js 24
+    commands:
+      dev: passed
+      test: passed
+      build: passed
+      lint: passed
+      typecheck: passed
+      preflight: passed_with_not_configured_mode_warning
+    environment_file: absent
+    vcs:
+      project_git_repository: initialized
+      repository_initialization: local_main_after_epic_merge
+      branch: main
+      commits: 18
+    smoke:
+      node_version: passed
+      npm_version: passed
+    blockers: []
+  survey:
+    phase: Release
+    rationale: The e01 runtime baseline was merged into local main after a passing
+      whole-epic review and release gate. The three planned stories have complete
+      task ledgers and verification bundles. The pre-build Discover snapshot is retained
+      below as history, not current state.
+    repository:
+      root: ganesh
+      vcs: git_initialized_main_after_epic_merge
+      branch: main
+      commits: 18
+      implementation_files: 9
+      package_manifests: 2
+      test_files: 3
+    baseline:
+      tests: passed
+      lint: passed
+      typecheck: passed
+      build: passed
+      preflight: passed_with_not_configured_mode_warning
+    gates:
+      specs_yaml: passed_ruby_safe_load
+      timing_script: passed_state_gate_rerun
+      plan_consistency: passed
+      markdown_links_and_ruby_yaml: prior_pass; full_safe_load_scan_passed
+    blockers: []
+    historical_snapshot:
+      phase: Discover (superseded pre-build snapshot retained for provenance)
+      rationale: Scope and release-plan YAML were complete epic-level blueprint artifacts;
+        no implementation or executable project baseline existed at that time. Product
+        discovery itself was complete.
+      repository:
+        root: ganesh
+        vcs: git_initialized_empty
+        branch: main
+        commits: 0
+        implementation_files: 0
+        package_manifests: 0
+        test_files: 0
+      baseline:
+        tests: unavailable_no_project_manifest
+        lint: unavailable_no_project_manifest
+        typecheck: unavailable_no_project_manifest
+        build: unavailable_no_project_manifest
+        preflight: unavailable_no_project_manifest
+      gates:
+        specs_yaml: blocked_missing_python_yaml_dependency
+        timing_script: blocked_missing_python_yaml_dependency
+        markdown_links_and_ruby_yaml: passed_in_discovery
+      blockers:
+      - Python PyYAML was unavailable during discovery, so the standard Bigpowers
+        YAML gate did not pass.
+      - Project commands and test baseline could not run before manifest and source/test
+        setup.
+  map_codebase:
+    status: completed_runtime_baseline
+    source_files: 9
+    manifest_files: 2
+    test_files: 3
+    architecture_document: specs/tech-architecture/tech-stack.md
+    finding: The e01 TypeScript/Node baseline, local commands, preflight checks, clean-install
+      recovery path, and review tooling now exist. Later product behavior remains
+      assigned to its epics.
+  notes:
+  - Approved e01 baseline commands are implemented and verified; later product commands
+    remain assigned to their epics.
+  - Supplementary blueprint reconciled; canonical artifact ownership is listed in
+    specs/README.md.
+  - Node.js 24 target and direct dependency/license choices are documented; broader
+    platform support still requires release evidence.
+  - Registry, external-source, provider-term, and executable integration checks outside
+    the e01 baseline remain unperformed.
+  - Review pass 2 was blocked at the verify-work state gate. The correction repaired
+    state YAML and refreshed review/evidence history without changing product code
+    or claiming review PASS.
+  - Historical whole-epic review pass 3 ran on the current branch and was BLOCKED;
+    see specs/verifications/e01-review-pass-3.yaml and AUDIT-e01-pass-3.md.
+  - Review pass 4 corrected all pass-3 findings and reached a whole-epic PASS; production
+    readiness is not claimed and other epics remain deferred to /bp-plan.
+  - Fresh whole-epic review pass 6 confirmed 16 passing tests and Node.js 24 coverage
+    of 99.80% lines and 92.16% branches, but found a trailing blank line in test/review-tooling.test.ts.
+    Commit ffacb60 corrected that finding; fresh review pass 7 passed and release
+    remains pending.
+  - Request-review was not dispatched because this run explicitly forbids subagents,
+    interactive forks, and filesystem worktrees.
+  - Installed Bigpowers package lacks docs/AGENTIC-STE.md; bundled strict validator
+    passed for both instruction files.
+blueprint:
+  status: complete
+  deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
+  design_interface: three_options_compared; focused_authority_separated_commands_selected
+  scope_work: complete_release_R01_R18
+  plan_release: 18_epics_dependency_constrained_wsjf;_440_provisional_bcps
+  audit_plan: READY_for_bp_plan_only
+  implementation_ready: true
+  production_ready: false
+  story_planning: e01_complete_remaining_epics_deferred
+  verification: ruby specs/verifications/check-blueprint.rb
+  standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
+  audit_artifact: specs/PLAN-AUDIT_LATEST.md
+metrics:
+  skill_timings:
+    correction-test:
+      calls: 1
+      total_seconds: 0.0
+      avg_seconds: 0.0
+    verify-work:
+      calls: 10
+      total_seconds: 912.0
+      avg_seconds: 91.2
+    release-branch:
+      calls: 3
+      total_seconds: 454.0
+      avg_seconds: 151.33333333333334

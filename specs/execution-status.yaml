@@ -1,0 +1,62 @@
+---
+development_status:
+  e01: done
+  e02: backlog
+  e03: backlog
+  e04: backlog
+  e06: backlog
+  e05: backlog
+  e14: backlog
+  e07: backlog
+  e08: backlog
+  e15: backlog
+  e16: backlog
+  e09: backlog
+  e10: backlog
+  e12: backlog
+  e11: backlog
+  e13: backlog
+  e17: backlog
+  e18: backlog
+planning_level: e01_complete
+active_epic: e01
+active_story: e01s03
+note: E01 was released locally after fresh whole-epic review pass 7 and Node.js 24 release checks. All three stories and 11 task verifications are complete; other epics remain epic-only and backlog.
+epics:
+  e01:
+    title: Verified development and runtime baseline
+    status: complete
+    stories:
+      e01s01:
+        title: Reproducible TypeScript Runtime and Locked Command Baseline
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e01s02:
+        title: Actionable Local Environment and Execution-Mode Preflight
+        status: done
+        planning_status: ready
+        bcps: 4
+        risk: P1
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e01s03:
+        title: Clean-Machine Setup and Recovery Guidance
+        status: done
+        planning_status: ready
+        bcps: 3
+        risk: P1
+        tasks_total: 3
+        tasks_passing: 3
+        tasks_failing: 0
+gate_trace:
+  verdict: PASS
+  generated_at: "2026-09-10T02:00:00Z"
+  rationale: "All three e01 stories have explicit implementation tags, passing task verification evidence, no dark stories, no critical blind spots, and no heuristic downgrade."
+  heuristic_ratio: 0.2143
+  downgrade_applied: false

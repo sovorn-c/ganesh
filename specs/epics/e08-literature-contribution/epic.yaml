@@ -1,0 +1,53 @@
+---
+id: e08
+title: Literature discovery and contribution challenge
+scope_ids:
+- R08
+outcome: Researchers can build a defensible corpus and challenge scoped gap and contribution
+  proposals.
+boundaries:
+  includes:
+  - Landscape mapping, review protocols, query design, authorized retrieval and citation
+    exploration retain search dates, query versions, access rights, failures and coverage
+    limits.
+  - Screening decisions, eligibility amendments and uncertainty queues remain inspectable;
+    no universal paper-count or saturation threshold is imposed.
+  - Gap and contribution proposals receive counter-search and contrary-evidence review;
+    no result claims universal novelty or exhaustive absence.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e07
+acceptance_outcomes:
+- Landscape mapping, review protocols, query design, authorized retrieval and citation
+  exploration retain search dates, query versions, access rights, failures and coverage
+  limits.
+- Screening decisions, eligibility amendments and uncertainty queues remain inspectable;
+  no universal paper-count or saturation threshold is imposed.
+- Gap and contribution proposals receive counter-search and contrary-evidence review;
+  no result claims universal novelty or exhaustive absence.
+acceptance_scenarios:
+- AC-04
+- AC-16
+wsjf: 1.0
+wsjf_inputs:
+  business_value: 9
+  time_criticality: 6
+  risk_reduction: 6
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e08-literature-contribution
+sequence: 9

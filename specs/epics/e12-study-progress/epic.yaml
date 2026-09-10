@@ -1,0 +1,53 @@
+---
+id: e12
+title: Study progress and protocol change
+scope_ids:
+- R12
+outcome: Researchers track an ongoing study and assess amendments and deviations without
+  rewriting history.
+boundaries:
+  includes:
+  - Progress, protocol versions, reported execution evidence, amendments and deviations
+    remain attributed; retrospective changes stay labelled retrospective.
+  - Changes trigger method/ethics/analysis impact review and current readiness checks
+    rather than blanket reapproval or silent continuation.
+  - Late project entry supports useful consultation while reported prior commitments
+    remain distinct from authenticated Ganesh decisions.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e04
+- e09
+- e10
+acceptance_outcomes:
+- Progress, protocol versions, reported execution evidence, amendments and deviations
+  remain attributed; retrospective changes stay labelled retrospective.
+- Changes trigger method/ethics/analysis impact review and current readiness checks
+  rather than blanket reapproval or silent continuation.
+- Late project entry supports useful consultation while reported prior commitments
+  remain distinct from authenticated Ganesh decisions.
+acceptance_scenarios:
+- AC-02
+- AC-15
+wsjf: 1.615385
+wsjf_inputs:
+  business_value: 8
+  time_criticality: 6
+  risk_reduction: 7
+  security_boost: 0
+  job_size: 13
+total_bcps: 13
+bcp_estimate:
+  range:
+  - 8
+  - 21
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e12-study-progress
+sequence: 14

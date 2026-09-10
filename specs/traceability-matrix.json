@@ -1,0 +1,152 @@
+{
+  "generated_at": "2026-09-10T01:52:20Z",
+  "matrix_version": "1.0",
+  "stories": [
+    {
+      "id": "e01s01",
+      "title": "Reproducible TypeScript Runtime and Locked Command Baseline",
+      "epic_id": "e01",
+      "epic_title": "Verified development and runtime baseline",
+      "bcp": 0,
+      "wsjf": 2.153846,
+      "status": "passing",
+      "links": [
+        {
+          "file": "test/baseline.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/index.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e01-runtime-baseline/e01s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 3
+    },
+    {
+      "id": "e01s02",
+      "title": "Actionable Local Environment and Execution-Mode Preflight",
+      "epic_id": "e01",
+      "epic_title": "Verified development and runtime baseline",
+      "bcp": 0,
+      "wsjf": 2.153846,
+      "status": "passing",
+      "links": [
+        {
+          "file": "test/preflight-branches.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "test/preflight.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/preflight.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/preflight-constants.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/preflight-config.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/preflight-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/preflight-checks.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e01-runtime-baseline/e01s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 8
+    },
+    {
+      "id": "e01s03",
+      "title": "Clean-Machine Setup and Recovery Guidance",
+      "epic_id": "e01",
+      "epic_title": "Verified development and runtime baseline",
+      "bcp": 0,
+      "wsjf": 2.153846,
+      "status": "passing",
+      "links": [
+        {
+          "file": "test/clean-install.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/clean-install.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e01-runtime-baseline/e01s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 3
+    }
+  ],
+  "summary": {
+    "total_stories": 3,
+    "tagged_stories": 3,
+    "dark_stories": [
+
+    ],
+    "dark_count": 0,
+    "orphan_tags": [
+      "e45s31",
+      "e53s01",
+      "e45s04",
+      "e45s05",
+      "e45s18",
+      "e21s03"
+    ],
+    "orphan_count": 6,
+    "stale_tags": [
+
+    ],
+    "stale_count": 0,
+    "oracle_stats": {
+      "high": 11,
+      "medium": 0,
+      "low": 3
+    }
+  }
+}

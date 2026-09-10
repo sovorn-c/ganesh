@@ -1,0 +1,57 @@
+---
+id: e09
+title: Research framing and method-sensitive design
+scope_ids:
+- R09
+outcome: Researchers compare coherent questions, theories and designs suited to their
+  methodological context.
+boundaries:
+  includes:
+  - Orientation, problem framing, RQ alternatives, constructs, theory/frameworks and
+    philosophy/positionality distinguish human views from agent inference.
+  - Methodology comparison, sampling/recruitment planning, measurement/instrument
+    design, rights and pilot plans explain fit and feasibility without executing recruitment.
+  - Quantitative, qualitative, mixed-methods and artifact-evaluation/design-science
+    profiles cover empirical social science, IS, HCI, education and computing.
+  - Alignment audits and analysis plans retain method-specific assumptions, exploratory/confirmatory
+    status, escalation and uncertainty rather than universal rigor rules.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e08
+- e04
+acceptance_outcomes:
+- Orientation, problem framing, RQ alternatives, constructs, theory/frameworks and
+  philosophy/positionality distinguish human views from agent inference.
+- Methodology comparison, sampling/recruitment planning, measurement/instrument design,
+  rights and pilot plans explain fit and feasibility without executing recruitment.
+- Quantitative, qualitative, mixed-methods and artifact-evaluation/design-science
+  profiles cover empirical social science, IS, HCI, education and computing.
+- Alignment audits and analysis plans retain method-specific assumptions, exploratory/confirmatory
+  status, escalation and uncertainty rather than universal rigor rules.
+acceptance_scenarios:
+- AC-11
+- AC-12
+- AC-13
+wsjf: 0.705882
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 6
+  risk_reduction: 8
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 20
+  - 54
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e09-method-sensitive-design
+sequence: 12

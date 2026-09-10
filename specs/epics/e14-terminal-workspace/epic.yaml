@@ -1,0 +1,58 @@
+---
+id: e14
+title: Accessible terminal research workspace
+scope_ids:
+- R14
+outcome: Owners can launch Ganesh and steer any research activity using inspectable
+  accessible local interactions.
+boundaries:
+  includes:
+  - ganesh [project-folder] reuses Pi terminal UI with project intake, contextual
+    help, alternatives, exact-version confirmation, evidence inspection and native
+    local viewers.
+  - Keyboard-only navigation, focus, non-colour status, readable text and supported
+    screen-reader/terminal combinations complete critical flows; unsupported access
+    paths are explicit release blockers.
+  - Incomplete context and late entry do not force a stage pipeline; working/waiting/blocked
+    state, budgets, cancellation and offline inspection are understandable.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e04
+- e05
+- e06
+acceptance_outcomes:
+- ganesh [project-folder] reuses Pi terminal UI with project intake, contextual help,
+  alternatives, exact-version confirmation, evidence inspection and native local viewers.
+- Keyboard-only navigation, focus, non-colour status, readable text and supported
+  screen-reader/terminal combinations complete critical flows; unsupported access paths
+  are explicit release blockers.
+- Incomplete context and late entry do not force a stage pipeline; working/waiting/blocked
+  state, budgets, cancellation and offline inspection are understandable.
+acceptance_scenarios:
+- AC-01
+- AC-02
+- AC-06
+- AC-07
+wsjf: 1.238095
+wsjf_inputs:
+  business_value: 9
+  time_criticality: 8
+  risk_reduction: 9
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e14-terminal-workspace
+sequence: 7

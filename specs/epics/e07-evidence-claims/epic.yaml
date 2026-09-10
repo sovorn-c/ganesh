@@ -1,0 +1,52 @@
+---
+id: e07
+title: Located evidence and accountable claims
+scope_ids:
+- R07
+outcome: Research claims remain inspectable, qualified and linked to supporting and
+  challenging evidence.
+boundaries:
+  includes:
+  - Structured reading, extraction and critical appraisal distinguish author claims,
+    measured findings, inference and human interpretation with exact source locators.
+  - Claim and citation verification distinguishes bibliographic identity from substantive
+    support and inaccessible full text; missing fields and quotations are never invented.
+  - Evidence matrices and synthesis retain disagreements, limitations, corrections
+    and retractions; affected claims trigger reassessment.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e05
+- e06
+acceptance_outcomes:
+- Structured reading, extraction and critical appraisal distinguish author claims,
+  measured findings, inference and human interpretation with exact source locators.
+- Claim and citation verification distinguishes bibliographic identity from substantive
+  support and inaccessible full text; missing fields and quotations are never invented.
+- Evidence matrices and synthesis retain disagreements, limitations, corrections and
+  retractions; affected claims trigger reassessment.
+acceptance_scenarios:
+- AC-05
+- AC-11
+wsjf: 1.190476
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 7
+  risk_reduction: 8
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e07-evidence-claims
+sequence: 8

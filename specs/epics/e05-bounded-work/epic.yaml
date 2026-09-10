@@ -1,0 +1,65 @@
+---
+id: e05
+title: Bounded autonomous work and specialist coordination
+scope_ids:
+- R05
+outcome: Approved research work proceeds without repeated delegation while preserving
+  limits and human control.
+boundaries:
+  includes:
+  - Supervisor, Discovery, Evidence, Methodology and Reviewer roles receive least-privilege
+    input snapshots and return versioned candidate outputs, diagnostics and disagreements.
+  - Exact contracts and standing permissions bind scope and finite token/call/time
+    limits; atomic cumulative reservation and accounting survive retries, concurrent
+    runs, revisions and restart.
+  - Cancellation fences new dispatch and current acceptance; late outputs follow quarantine/retention
+    policy; unknown pricing and uncertain provider outcomes are not treated as zero.
+  - Provider failures, timeouts, bounded retries, consented destination selection
+    and session subscription rebinding degrade honestly without unauthorized fallback.
+  - 'Known provider pricing supports an enforced cumulative spend cap: reserve before
+    dispatch and preserve spent and reserved cost across retries, revisions and restart;
+    unknown pricing cannot satisfy a required monetary guarantee.'
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e03
+- e04
+acceptance_outcomes:
+- Supervisor, Discovery, Evidence, Methodology and Reviewer roles receive least-privilege
+  input snapshots and return versioned candidate outputs, diagnostics and disagreements.
+- Exact contracts and standing permissions bind scope and finite token/call/time limits;
+  atomic cumulative reservation and accounting survive retries, concurrent runs, revisions
+  and restart.
+- Cancellation fences new dispatch and current acceptance; late outputs follow quarantine/retention
+  policy; unknown pricing and uncertain provider outcomes are not treated as zero.
+- Provider failures, timeouts, bounded retries, consented destination selection and
+  session subscription rebinding degrade honestly without unauthorized fallback.
+- 'Known provider pricing supports an enforced cumulative spend cap: reserve before
+  dispatch and preserve spent and reserved cost across retries, revisions and restart;
+  unknown pricing cannot satisfy a required monetary guarantee.'
+acceptance_scenarios:
+- AC-09
+- AC-14
+- AC-17
+wsjf: 0.852941
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 9
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 20
+  - 54
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e05-bounded-work
+sequence: 6

@@ -1,0 +1,56 @@
+---
+id: e16
+title: Private operational diagnostics and reliability
+scope_ids:
+- R16
+outcome: Users can diagnose failures and maintain a reliable local workspace without
+  exposing research material.
+boundaries:
+  includes:
+  - Structured redacted diagnostics, correlation IDs, health/preflight checks and
+    opt-in diagnostic exports disclose neither secrets nor participant content by
+    default.
+  - Bounded provider retry/rate/time limits, storage/resource limits and documented
+    performance budgets are exercised on representative large projects; cancellation
+    stays responsive.
+  - Runbooks cover provider outage, credential rotation, disk exhaustion, recovery,
+    incident response and vulnerability reporting; logs have retention/deletion controls.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e01
+- e05
+- e15
+acceptance_outcomes:
+- Structured redacted diagnostics, correlation IDs, health/preflight checks and opt-in
+  diagnostic exports disclose neither secrets nor participant content by default.
+- Bounded provider retry/rate/time limits, storage/resource limits and documented
+  performance budgets are exercised on representative large projects; cancellation
+  stays responsive.
+- Runbooks cover provider outage, credential rotation, disk exhaustion, recovery,
+  incident response and vulnerability reporting; logs have retention/deletion controls.
+acceptance_scenarios:
+- AC-10
+- AC-17
+wsjf: 1.142857
+wsjf_inputs:
+  business_value: 8
+  time_criticality: 7
+  risk_reduction: 9
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e16-operations-reliability
+sequence: 11

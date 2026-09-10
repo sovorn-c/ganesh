@@ -1,0 +1,26 @@
+story_id: e01s01
+verified_at: "2026-09-09T17:28:30Z"
+verifier: correction-fork
+phases:
+  build:
+    passed: true
+    command: "npx --yes --package=node@24 npm run build"
+  typecheck:
+    passed: true
+    command: "npx --yes --package=node@24 npm run typecheck"
+  lint:
+    passed: true
+    command: "npx --yes --package=node@24 npm run lint"
+  tests:
+    passed: true
+    command: "npx --yes --package=node@24 node --test --test-name-pattern='baseline|entry' dist/test/*.test.js"
+    evidence: "Targeted baseline test passed. Full suite also passed with 7 tests."
+  terminal_verdict:
+    command: "npx --yes --package=node@24 npm test"
+    exit_code: 0
+    note: "Single contiguous run; 7 tests passed."
+  clean_install:
+    passed: true
+    command: "npx --yes --package=node@24 npm run preflight -- --clean-install"
+gaps:
+  closed: true

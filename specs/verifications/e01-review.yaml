@@ -1,0 +1,128 @@
+epic_id: e01
+branch: feat/e01-runtime-baseline
+review_pass: 2
+reviewed_at: "2026-09-09"
+verdict: BLOCKED
+status: historical_review_blocked_correction_complete
+scope: >-
+  Whole-epic review of the built e01 branch. Review pass 2 stopped at the
+  verify-work state gate before a fresh reviewer decision. This file preserves
+  the pass-2 blocker and the earlier resolved findings; it is not a review-pass-3
+  PASS claim.
+stories:
+  - id: e01s01
+    status: passing
+    tasks: 4/4
+    planning_status: ready
+  - id: e01s02
+    status: passing
+    tasks: 4/4
+    planning_status: ready
+  - id: e01s03
+    status: passing
+    tasks: 3/3
+    planning_status: ready
+checks:
+  state_gate:
+    command: "bash scripts/bp-timing.sh start verify-work"
+    result: blocked
+    evidence: >-
+      Review pass 2 failed before the timing record could start with
+      Psych::SyntaxError: mapping values are not allowed in this context at
+      specs/state.yaml:9, caused by an unquoted colon in handoff.summary.
+  fresh_review:
+    result: not_run
+    evidence: >-
+      No fresh review decision was made because the verify-work state gate was
+      blocked.
+resolved_findings_from_prior_review:
+  - id: R-01
+    severity: blocker
+    status: resolved_before_review_pass_2
+    path: scripts/check-blind-spots.sh
+    resolution: >-
+      Required blind-spot gate exists and is runnable on the current built
+      branch.
+  - id: R-02
+    severity: blocker
+    status: resolved_before_review_pass_2
+    path: scripts/lib/completeness-critic.sh
+    resolution: >-
+      Required completeness gate exists and is runnable on the current built
+      branch.
+  - id: R-03
+    severity: high
+    status: resolved_before_review_pass_2
+    path: scripts/lib/extract-story-verify.rb:22,32
+    resolution: >-
+      Both project-controlled YAML documents use YAML.safe_load with no
+      permitted Ruby object classes.
+  - id: R-04
+    severity: high
+    status: resolved_before_review_pass_2
+    path: src/preflight.ts
+    resolution: >-
+      Preflight responsibilities were split into focused modules; the current
+      preflight.ts is below the 300-line repository guideline.
+  - id: R-05
+    severity: high
+    status: resolved_before_review_pass_2
+    path: test/clean-install.test.ts
+    resolution: >-
+      A dedicated incomplete-baseline clean-install failure test now exercises
+      the bounded recovery result.
+  - id: R-06
+    severity: medium
+    status: resolved_before_review_pass_2
+    path: specs/epics/e01-runtime-baseline/*-tasks.yaml
+    resolution: >-
+      Story selectors are passed to node before dist/test/*.test.js, and the
+      correction evidence records targeted commands rather than full-suite
+      substitutions.
+current_correction_findings:
+  - id: R-07
+    severity: blocker
+    status: resolved_by_this_correction
+    path: specs/state.yaml:9
+    evidence: >-
+      The handoff summary contained an unquoted colon and made
+      bash scripts/bp-timing.sh start verify-work fail with Psych::SyntaxError.
+    resolution: >-
+      The summary is now a YAML block scalar, and the complete state document
+      was rewritten with a current built-branch section plus a labeled historical
+      pre-build snapshot.
+  - id: R-08
+    severity: blocker
+    status: resolved_by_this_correction
+    path: specs/state.yaml:57-90; specs/verifications/e01-review.yaml; specs/verifications/AUDIT-e01.md; specs/security/REVIEW.md
+    evidence: >-
+      State and review artifacts still described the pre-build repository and
+      unsafe YAML loader after the first correction.
+    resolution: >-
+      Affected artifacts now describe the built e01 branch, safe Ruby YAML
+      parsing, resolved prior findings, and the still-required fresh review.
+correction_validation:
+  status: passed
+  verified_at: "2026-09-09"
+  commands:
+    - command: "bash scripts/bp-timing.sh start verify-work"
+      result: passed
+    - command: "ruby specs/verifications/check-blueprint.rb"
+      result: passed
+    - command: "ruby -e 'require \"yaml\"; Dir[\"specs/**/*.yaml\"].sort.each { |f| YAML.safe_load(File.read(f), [], [], false) }'"
+      result: passed
+    - command: "bash scripts/lib/plan-consistency-check.sh specs/epics/e01-runtime-baseline/"
+      result: passed
+      evidence: "CRITICAL=0 HIGH=0 MED=0"
+    - command: "bash scripts/bp-timing.sh end verify-work"
+      result: passed
+  note: >-
+    The state gate and correction validations now pass. These validations cannot
+    change the historical pass-2 verdict or substitute for a fresh review fork.
+review_dispatch:
+  request_review: not_run
+  reason: >-
+    The pass-2 verify-work state gate was blocked. A fresh review fork must
+    decide review pass 3 after correction validation.
+product_code_changed_during_review_pass_2: false
+product_code_changed_during_correction: false

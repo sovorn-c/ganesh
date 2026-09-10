@@ -1,0 +1,53 @@
+---
+id: e03
+title: Enforced data-use and capability controls
+scope_ids:
+- R03
+outcome: Restricted research material and human authority stay protected across every
+  execution and disclosure path.
+boundaries:
+  includes:
+  - Classification, destination/purpose permissions, inherited restrictions and cross-branch
+    revocation govern imports, pasted text, prompts, attachments, summaries, compaction,
+    export and diagnostics.
+  - Agents and imported instructions cannot acquire owner authority, credentials, direct canonical writes, or bypass the selected execution mode and per-project bash guard; curated Pi loading and built-in commands are tested for policy bypass.
+  - Current policy is enforced at dispatch, every external operation, resume and acceptance;
+    in-flight revocation and reviewed declassification retain truthful limits.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e01
+- e02
+acceptance_outcomes:
+- Classification, destination/purpose permissions, inherited restrictions and cross-branch
+  revocation govern imports, pasted text, prompts, attachments, summaries, compaction,
+  export and diagnostics.
+- Agents and imported instructions cannot acquire owner authority, credentials, direct canonical writes, or bypass the selected execution mode and per-project bash guard; curated Pi loading and built-in commands are tested for policy bypass.
+- Current policy is enforced at dispatch, every external operation, resume and acceptance;
+  in-flight revocation and reviewed declassification retain truthful limits.
+acceptance_scenarios:
+- AC-06
+- AC-09
+- AC-10
+wsjf: 0.882353
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 10
+  risk_reduction: 10
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 20
+  - 54
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e03-permission-enforcement
+sequence: 3

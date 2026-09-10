@@ -1,0 +1,58 @@
+---
+id: e18
+title: Installable maintained local release
+scope_ids:
+- R18
+outcome: Researchers receive a verified distributable product with complete operating
+  and support documentation.
+boundaries:
+  includes:
+  - Clean supported local environments launch the packaged CLI and pass smoke checks;
+    upgrade, migration compatibility, rollback/recovery and uninstall preserve user
+    research data as documented.
+  - Reproducible packaging, artifact integrity, dependency/license inventory and applicable
+    signing requirements are verified for the chosen distribution channel.
+  - User/developer/accessibility/privacy/local-execution guides, examples, limitations,
+    release notes and support/maintenance procedures ship with the product.
+  - Local Conventional Commits/SemVer release procedures require explicit publication
+    authorization; no hosted service or mandatory remote CI is introduced; all release
+    gates are satisfied before shipment.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Story specifications and implementation tasks at blueprint stage.
+depends_on:
+- e17
+acceptance_outcomes:
+- Clean supported local environments launch the packaged CLI and pass smoke checks;
+  upgrade, migration compatibility, rollback/recovery and uninstall preserve user
+  research data as documented.
+- Reproducible packaging, artifact integrity, dependency/license inventory and applicable
+  signing requirements are verified for the chosen distribution channel.
+- User/developer/accessibility/privacy/local-execution guides, examples, limitations,
+  release notes and support/maintenance procedures ship with the product.
+- Local Conventional Commits/SemVer release procedures require explicit publication
+  authorization; no hosted service or mandatory remote CI is introduced; all release
+  gates are satisfied before shipment.
+acceptance_scenarios:
+- AC-20
+wsjf: 1.380952
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 10
+  risk_reduction: 9
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 13
+  - 34
+  confidence: low
+  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
+    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
+    /bp-plan.
+status: blueprinted
+story_planning: deferred_to_bp_plan
+stories: []
+capsule_dir: epics/e18-macos-distribution
+sequence: 18

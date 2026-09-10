@@ -1,0 +1,38 @@
+{
+  "epic_id": "e01",
+  "story_id": "e01s01",
+  "review_pass": 2,
+  "verdict": "BLOCKED_HISTORICAL",
+  "status": "correction_validated_fresh_review_pending",
+  "dimensions": {
+    "performance": {
+      "status": "not_assessed",
+      "evidence": "The epic test plan defines no fixed startup or installation threshold."
+    },
+    "reliability": {
+      "status": "observed_pass",
+      "evidence": "Node.js 24 clean-install, preflight, build, test, lint, and typecheck completed successfully."
+    },
+    "operability": {
+      "status": "observed_pass",
+      "evidence": "Human and JSON preflight reports expose readiness, remediation, and exit status."
+    }
+  },
+  "historical_blocking_reason": "Review pass 2 stopped because the state YAML was invalid and the review evidence was stale.",
+  "correction_evidence": {
+    "state_gate": {
+      "command": "bash scripts/bp-timing.sh start verify-work",
+      "result": "passed"
+    },
+    "yaml_scan": {
+      "command": "ruby -e 'require \"yaml\"; Dir[\"specs/**/*.yaml\"].sort.each { |f| YAML.safe_load(File.read(f), [], [], false) }'",
+      "result": "passed"
+    },
+    "plan_consistency": {
+      "command": "bash scripts/lib/plan-consistency-check.sh specs/epics/e01-runtime-baseline/",
+      "result": "passed",
+      "evidence": "CRITICAL=0 HIGH=0 MED=0"
+    }
+  },
+  "next_gate": "Fresh whole-epic review pass 3; this artifact does not claim review or release success."
+}
