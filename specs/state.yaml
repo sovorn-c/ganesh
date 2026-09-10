@@ -1,12 +1,14 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
-active_epic: e02
-active_story: e02s03
+active_flow: build
+active_epic: e03
+active_story: e03s02
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E02 was released locally after whole-epic review pass 1 and Node.js 24 release checks. All three stories and 12 task verifications are complete; the other 16 epics remain blueprint-only.
+  next_skill: bp-build
+  next_command: "/bp-build"
+  summary: E03 is fully planned as five dependency-ordered stories with 20 implementation
+    tasks; all task ledgers remain failing until build. E01 and E02 are complete;
+    later epics remain blueprint-only.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -55,8 +57,10 @@ discovery:
       npm_version: passed
     blockers: []
   survey:
-    phase: Release
-    rationale: E02's dependency-ordered stories, task ledgers, implementation, NFR evidence, whole-epic review pass 1, and Node.js 24 release checks passed before the local merge to main. The pre-build Discover snapshot is retained below as history, not current state.
+    phase: Plan
+    rationale: E03 is the next dependency-eligible epic after E01 and E02. Five dependency-ordered
+      stories are implementation-ready; task ledgers remain failing until TDD build.
+      The pre-build Discover snapshot is retained below as history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
@@ -117,8 +121,10 @@ discovery:
   notes:
   - Approved e01 baseline commands are implemented and verified; later product commands
     remain assigned to their epics.
-  - "E02 is built as three vertical slices: durable project/artifact registration, branch concurrency/history, and crash-safe recovery/read-only inspection."
-  - E02 task ledgers, NFR evidence, and whole-epic review pass 1 passed on the feature branch; the branch was merged locally into main after Node.js 24 release checks.
+  - 'E02 is built as three vertical slices: durable project/artifact registration,
+    branch concurrency/history, and crash-safe recovery/read-only inspection.'
+  - E02 task ledgers, NFR evidence, and whole-epic review pass 1 passed on the feature
+    branch; the branch was merged locally into main after Node.js 24 release checks.
   - Supplementary blueprint reconciled; canonical artifact ownership is listed in
     specs/README.md.
   - Node.js 24 target and direct dependency/license choices are documented; broader
@@ -140,9 +146,9 @@ discovery:
     interactive forks, and filesystem worktrees.
   - Installed Bigpowers package lacks docs/AGENTIC-STE.md; bundled strict validator
     passed for both instruction files.
-  - The package-referenced scripts/sync-status-from-epics.sh is absent from this
-    repository; e02 execution/planning status was synchronized by explicit YAML edits
-    and verified with the Ruby blueprint gate.
+  - The package-referenced scripts/sync-status-from-epics.sh is absent from this repository;
+    e02 execution/planning status was synchronized by explicit YAML edits and verified
+    with the Ruby blueprint gate.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -152,7 +158,7 @@ blueprint:
   audit_plan: READY_for_bp_plan_only
   implementation_ready: true
   production_ready: false
-  story_planning: e02_complete_remaining_epics_deferred
+  story_planning: e03_complete_remaining_epics_deferred
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md
@@ -170,3 +176,11 @@ metrics:
       calls: 3
       total_seconds: 454.0
       avg_seconds: 151.33333333333334
+    plan-tests:
+      calls: 1
+      total_seconds: 440.0
+      avg_seconds: 440.0
+    plan-work:
+      calls: 1
+      total_seconds: 0.0
+      avg_seconds: 0.0

@@ -46,8 +46,77 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+status: in_progress
+planning_stage: complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e03s01
+  type: ADDED
+  requirement: Classification and destination/purpose policy records
+  after: Newly imported or pasted material remains local-only until classified and a current permission covers its exact destination and purpose.
+- story_id: e03s02
+  type: ADDED
+  requirement: Disclosure gateway and inherited restrictions
+  after: Derived representations retain the most restrictive applicable restrictions and every disclosure path is evaluated through one gateway.
+- story_id: e03s03
+  type: ADDED
+  requirement: Trusted capabilities and Pi boundary
+  after: Agents and imported instructions cannot acquire owner authority, credentials, direct canonical writes, cross-project reads, or unrestricted local command authority.
+- story_id: e03s04
+  type: ADDED
+  requirement: Lifecycle revocation and resume enforcement
+  after: Current policy is checked at dispatch, external effect, resume, and acceptance, with revocation fences for in-flight and late results.
+- story_id: e03s05
+  type: ADDED
+  requirement: Reviewed declassification and adversarial integration
+  after: Narrow reviewed transformations are attributable and all adversarial protected-path attempts fail without sensitive side effects.
+stories:
+- id: e03s01
+  title: Classification and Destination/Purpose Policy Records
+  status: done
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on: []
+  spec_file: e03s01-classification-and-policy-records.md
+  tasks_file: e03s01-tasks.yaml
+- id: e03s02
+  title: Disclosure Gateway and Inherited Restrictions
+  status: in_progress
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on: [e03s01]
+  spec_file: e03s02-disclosure-gateway-and-inherited-restrictions.md
+  tasks_file: e03s02-tasks.yaml
+- id: e03s03
+  title: Trusted Capabilities and Pi Boundary
+  status: pending
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on: [e03s01]
+  spec_file: e03s03-trusted-capabilities-and-pi-boundary.md
+  tasks_file: e03s03-tasks.yaml
+- id: e03s04
+  title: Lifecycle Revocation and Resume Enforcement
+  status: pending
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on: [e03s01, e03s02, e03s03]
+  spec_file: e03s04-lifecycle-revocation-and-resume.md
+  tasks_file: e03s04-tasks.yaml
+- id: e03s05
+  title: Reviewed Declassification and Adversarial Integration
+  status: pending
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: [e03s02, e03s03, e03s04]
+  spec_file: e03s05-reviewed-declassification-and-adversarial-integration.md
+  tasks_file: e03s05-tasks.yaml
 capsule_dir: epics/e03-permission-enforcement
+next_skill: bp-build
 sequence: 3

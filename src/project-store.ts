@@ -39,7 +39,11 @@ export class ProjectHandle implements ProjectHandleContract {
   }
 
   close(): void {
-    this.db.close();
+    try {
+      this.db.close();
+    } catch {
+      // Ignore if already closed
+    }
   }
 }
 

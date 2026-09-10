@@ -45,3 +45,6 @@ export * from "./history-store.js";
 export * from "./dependency-store.js";
 export * from "./promotion-store.js";
 export * from "./recovery.js";
+export * from "./policy-types.js";
+export * from "./policy-store.js";
+export { migrateSchema, createE03Schema } from "./schema.js";
