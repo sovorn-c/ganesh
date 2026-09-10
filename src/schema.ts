@@ -290,4 +290,3 @@ export function transaction<T>(db: DatabaseSync, action: () => T): T {
     throw error;
   }
 }
-
