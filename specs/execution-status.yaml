@@ -2,7 +2,7 @@
 development_status:
   e01: done
   e02: done
-  e03: in_progress
+  e03: done
   e04: backlog
   e06: backlog
   e05: backlog
@@ -87,7 +87,7 @@ epics:
         tasks_failing: 0
   e03:
     title: Enforced data-use and capability controls
-    status: in_progress
+    status: complete
     stories:
       e03s01:
         title: Classification and Destination/Purpose Policy Records
@@ -127,13 +127,13 @@ epics:
         tasks_failing: 0
       e03s05:
         title: Reviewed Declassification and Adversarial Integration
-        status: in_progress
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-10T03:31:07Z"

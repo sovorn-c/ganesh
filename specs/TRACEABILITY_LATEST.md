@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-10T03:31:01Z
-**Total stories:** 6
+**Generated:** 2026-09-10T05:15:07Z
+**Total stories:** 11
 **Dark stories:** 0
 
 ## Story Coverage
@@ -14,3 +14,8 @@
 | e02s01 | Create and Reopen Durable Projects and Immutable Artifact Versions | e02 | done | 6 |
 | e02s02 | Versioned Research Branches and Concurrent Commit History | e02 | done | 6 |
 | e02s03 | Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection | e02 | done | 4 |
+| e03s01 | Classification and Destination/Purpose Policy Records | e03 | done | 4 |
+| e03s02 | Disclosure Gateway and Inherited Restrictions | e03 | done | 4 |
+| e03s03 | Trusted Capabilities and Pi Boundary | e03 | done | 4 |
+| e03s04 | Lifecycle Revocation and Resume Enforcement | e03 | done | 4 |
+| e03s05 | Reviewed Declassification and Adversarial Integration | e03 | done | 4 |

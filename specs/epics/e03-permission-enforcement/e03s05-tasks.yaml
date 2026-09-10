@@ -1,0 +1,49 @@
+story_id: e03s05
+spec: e03s05-reviewed-declassification-and-adversarial-integration.md
+title: Reviewed Declassification and Adversarial Integration
+status: passing
+bcps: 6
+tasks:
+  - id: e03s05-t01
+    description: Define declassification and policy-audit records with exact inputs, transformation, destination, purpose, authority, residual risk, and validity.
+    verify: "npm run build && node --test --test-name-pattern='e03s05.*(declass|transform|residual|audit)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - declassification
+        - audit
+        - Security Review
+  - id: e03s05-t02
+    description: Enforce transformed disclosure through current policy, capability, lifecycle, and inherited-restriction checks.
+    verify: "npm run build && node --test --test-name-pattern='e03s05.*(authorize|current|restriction|lifecycle)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - disclosure
+        - lifecycle
+        - Security Review
+  - id: e03s05-t03
+    description: Add adversarial fixtures for forged approval, credentials, cross-project reads, direct writes, document scripts, and unauthorized export with side-effect assertions.
+    verify: "npm run build && node --test --test-name-pattern='e03s05.*(adversarial|forged|credential|cross.project|script|side.effect)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - adversarial
+        - isolation
+        - Security Review
+  - id: e03s05-t04
+    description: Add redacted audit inspection and full e03 regression coverage while preserving E01 and E02 behavior.
+    verify: "npm run build && npm test && node --test --test-name-pattern='e03s05.*(redact|regression|provenance|inspect)' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - regression
+        - privacy

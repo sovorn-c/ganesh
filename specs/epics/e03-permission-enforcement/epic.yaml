@@ -46,7 +46,7 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     /bp-plan.
-status: in_progress
+status: done
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -110,7 +110,7 @@ stories:
   tasks_file: e03s04-tasks.yaml
 - id: e03s05
   title: Reviewed Declassification and Adversarial Integration
-  status: in_progress
+  status: done
   bcps: 6
   risk: P0
   delta: ADDED
