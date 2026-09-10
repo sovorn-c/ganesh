@@ -1,5 +1,5 @@
 // story: e02s01
-import { closeSync, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, fsyncSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import {
   type ArtifactInspection,
@@ -141,8 +141,10 @@ export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVe
       }
       writeFileSync(temporaryPath, content, { flag: "wx" });
       flushFile(temporaryPath);
-      renameSync(temporaryPath, finalPath);
+      // A hard link creates the final entry without replacing an existing immutable file.
+      linkSync(temporaryPath, finalPath);
       finalized = true;
+      rmSync(temporaryPath, { force: true });
       if (input.failAt === "after-finalize-before-register") {
         throw new ProjectStoreError("registration-failed", "injected failure after artifact finalization");
       }

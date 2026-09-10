@@ -66,6 +66,33 @@ test("e02s01 artifact immutable hash and later versions", () => {
   }
 });
 
+test("e02s01 duplicate registration cannot replace immutable bytes", () => {
+  const fixture = projectFixture();
+  try {
+    const first = registerArtifactVersion(fixture.handle, {
+      logicalId: "stable",
+      version: "v1",
+      versionId: "stable-v1",
+      content: "original",
+      relativePath: "fixed.artifact"
+    });
+    assert.throws(
+      () => registerArtifactVersion(fixture.handle, {
+        logicalId: "stable",
+        version: "v1-retry",
+        versionId: "stable-v2",
+        content: "replacement",
+        relativePath: "fixed.artifact"
+      }),
+      /EEXIST|already exists|file exists/i
+    );
+    assert.deepEqual(readFileSync(first.storagePath ?? ""), Buffer.from("original"));
+    assert.equal(listArtifactVersions(fixture.handle).length, 1);
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
 test("e02s01 dependency inspection distinguishes missing corrupt and unavailable", () => {
   const fixture = projectFixture();
   try {
