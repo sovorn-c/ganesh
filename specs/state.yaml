@@ -1,14 +1,12 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
-active_epic: e01
-active_story: e01s03
+active_flow: release
+active_epic: e02
+active_story: e02s03
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E01 was released locally after fresh whole-epic review pass 7 and Node.js
-    24 release checks. All 3 stories and 11 task verifications are complete; the other
-    17 epics remain blueprint-only.
+  next_skill: bp-release-solo
+  next_command: "/bp-release-solo"
+  summary: E02 whole-epic review pass 1 is PASS with three stories and 12 passing task entries on feat/e02-durable-projects. Local release remains pending; the other 16 epics remain blueprint-only.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -51,25 +49,22 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 20
+      commits: 21
     smoke:
       node_version: passed
       npm_version: passed
     blockers: []
   survey:
     phase: Release
-    rationale: The e01 runtime baseline was merged into local main after a passing
-      whole-epic review and release gate. The three planned stories have complete
-      task ledgers and verification bundles. The pre-build Discover snapshot is retained
-      below as history, not current state.
+    rationale: The e01 runtime baseline is merged into local main. E02's dependency-ordered stories, task ledgers, implementation, NFR evidence, and whole-epic review pass 1 pass on feat/e02-durable-projects; local release is the next gate. The pre-build Discover snapshot is retained below as history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
-      branch: main
-      commits: 20
-      implementation_files: 9
+      branch: feat/e02-durable-projects
+      commits: 24
+      implementation_files: 19
       package_manifests: 2
-      test_files: 3
+      test_files: 9
     baseline:
       tests: passed
       lint: passed
@@ -122,6 +117,8 @@ discovery:
   notes:
   - Approved e01 baseline commands are implemented and verified; later product commands
     remain assigned to their epics.
+  - "E02 is built as three vertical slices: durable project/artifact registration, branch concurrency/history, and crash-safe recovery/read-only inspection."
+  - E02 task ledgers, NFR evidence, and whole-epic review pass 1 pass on the feature branch; local release remains pending.
   - Supplementary blueprint reconciled; canonical artifact ownership is listed in
     specs/README.md.
   - Node.js 24 target and direct dependency/license choices are documented; broader
@@ -143,16 +140,19 @@ discovery:
     interactive forks, and filesystem worktrees.
   - Installed Bigpowers package lacks docs/AGENTIC-STE.md; bundled strict validator
     passed for both instruction files.
+  - The package-referenced scripts/sync-status-from-epics.sh is absent from this
+    repository; e02 execution/planning status was synchronized by explicit YAML edits
+    and verified with the Ruby blueprint gate.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
   design_interface: three_options_compared; focused_authority_separated_commands_selected
   scope_work: complete_release_R01_R18
   plan_release: 18_epics_dependency_constrained_wsjf;_440_provisional_bcps
-  audit_plan: READY_for_bp_plan_only
+  audit_plan: READY_for_bp_build_e02_only
   implementation_ready: true
   production_ready: false
-  story_planning: e01_complete_remaining_epics_deferred
+  story_planning: e02_complete_remaining_epics_deferred
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md

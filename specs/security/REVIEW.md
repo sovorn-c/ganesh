@@ -39,3 +39,11 @@ The section above records the resolved pass-2 security finding and its checks. I
 - The fresh whole-epic review pass 7 covered the current `feat/e01-runtime-baseline` branch after the coverage and whitespace corrections.
 - `npm audit --audit-level=high`, credential-pattern scanning, and unsafe-sink scanning passed under Node.js 24 with no unresolved high-confidence findings.
 - The current review artifact is `specs/verifications/e01-review-pass-7.yaml`; release and merge were not performed during that review.
+
+## e02 security review pass 1
+
+- Scope: complete `feat/e02-durable-projects` diff from `main`, including SQLite persistence, artifact finalization, branch history, dependency impact, and recovery.
+- `npm audit --audit-level=high`: passed; 0 vulnerabilities under Node.js 24.
+- Credential-shaped literal and unsafe-sink spot checks: passed; no secrets, network sinks, shell interpolation, unsafe deserialization, or unparameterized SQL were introduced.
+- Artifact paths use validated relative paths, canonical-parent checks, symlink rejection, temporary files, and no-clobber finalization. Recovery traverses only non-symlink entries.
+- No unresolved HIGH-confidence finding. Request-review was not run because subagents, interactive forks, and worktrees are prohibited by the project workflow.

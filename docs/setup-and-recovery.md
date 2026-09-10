@@ -37,3 +37,16 @@ It creates a temporary copy, installs only from `package-lock.json`, runs all si
 - **Incomplete setup:** a partial `node_modules` tree is not ready; start again in a disposable folder.
 
 `full-access` is an explicit local-risk choice and is not a sandbox or containment guarantee. e11 owns execution and bash-guard enforcement. e14 owns the product launcher. e18 owns distribution and maintained local release behavior.
+
+## Durable project recovery
+
+E02 stores the canonical project record in `.ganesh/project.sqlite` and finalized artifact bytes below `.ganesh/artifacts/`. `recoverProject` removes only temporary or incomplete artifact files, verifies recorded hashes, and records a recovery checkpoint. It does not invent a database commit or rewrite history.
+
+Project opens report one of these schema/capability states:
+
+- **supported / ready:** the current schema is supported and local mutations are allowed.
+- **read-only:** inspection is allowed, but mutation commands return a blocked result.
+- **migration-required:** an older schema needs a future migration; inspect and metadata export remain allowed.
+- **unknown-future:** a newer schema is inspectable only by this binary; mutations are blocked until a compatible release is used.
+
+Old snapshots are inspection cursors, not rollback commands. Branch promotion and reference changes remain explicit, append-only, and guarded by the destination's expected revision. Full migration, backup/restore, deletion propagation, and portability remain owned by e15; E02 does not claim those capabilities.
