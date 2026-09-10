@@ -51,7 +51,7 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 18
+      commits: 20
     smoke:
       node_version: passed
       npm_version: passed
@@ -66,7 +66,7 @@ discovery:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: main
-      commits: 18
+      commits: 20
       implementation_files: 9
       package_manifests: 2
       test_files: 3
