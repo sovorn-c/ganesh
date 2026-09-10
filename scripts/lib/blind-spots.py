@@ -25,27 +25,57 @@ EPICS_DIR = Path(sys.argv[6])
 
 findings: list[dict] = []
 
+def parse_yaml_scalar(value: str) -> str:
+    value = value.split(" #", 1)[0].strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1]
+    return value
+
+
 def parse_exec_status(path: Path) -> dict[str, str]:
     status: dict[str, str] = {}
     if not path.exists():
         return status
-    text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    in_dev_status = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("development_status:"):
-            in_dev_status = True
+
+    section: str | None = None
+    in_stories = False
+    current_story: str | None = None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
             continue
-        if not in_dev_status:
-            if stripped and not stripped.startswith(" ") and not stripped.startswith("#"):
-                if ":" in stripped:
-                    in_dev_status = False
+        indentation = len(line) - len(line.lstrip())
+        key, separator, raw_value = line.strip().partition(":")
+        if not separator:
             continue
-        if ":" in stripped and not stripped.startswith("#"):
-            m = re.match(r'\s+(\S+):\s*"([^"]*)"', stripped)
-            if m:
-                status[m.group(1)] = m.group(2)
+        value = parse_yaml_scalar(raw_value)
+
+        if indentation == 0:
+            section = key if not value else None
+            in_stories = False
+            current_story = None
+            continue
+
+        if section == "development_status" and indentation == 2:
+            if re.fullmatch(r"e\d+(?:s\d+)?", key):
+                status[key] = value
+            continue
+
+        if section != "epics":
+            continue
+        if indentation == 2 and re.fullmatch(r"e\d+", key):
+            in_stories = False
+            current_story = None
+            if value:
+                status[key] = value
+        elif indentation == 4 and key == "stories":
+            in_stories = True
+            current_story = None
+        elif in_stories and indentation == 6 and re.fullmatch(r"e\d+s\d+", key):
+            current_story = key
+            if value:
+                status[key] = value
+        elif in_stories and current_story and indentation == 8 and key == "status":
+            status[current_story] = value
     return status
 
 dev_status = parse_exec_status(EXEC_STATUS)
@@ -204,15 +234,15 @@ if EPICS_DIR.exists():
         epic_match = re.match(r"(e\d+)", epic_dir.name)
         if not epic_match: continue
         epic_id = epic_match.group(1)
-        
+
         test_plan = TECH_ARCH_DIR / f"{epic_id}-TEST_PLAN_LATEST.md"
         if not test_plan.exists(): continue
-        
+
         for task_file in sorted(epic_dir.glob("e*s[0-9]*-tasks.yaml")):
             sid_match = re.match(r"(e\d+s\d+)", task_file.name)
             if not sid_match: continue
             sid = sid_match.group(1)
-            
+
             content = task_file.read_text(encoding="utf-8")
             if "risk: P0" in content:
                 found_sc = False
