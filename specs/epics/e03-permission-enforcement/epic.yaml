@@ -92,7 +92,7 @@ stories:
   tasks_file: e03s02-tasks.yaml
 - id: e03s03
   title: Trusted Capabilities and Pi Boundary
-  status: in_progress
+  status: done
   bcps: 7
   risk: P0
   delta: ADDED
@@ -101,7 +101,7 @@ stories:
   tasks_file: e03s03-tasks.yaml
 - id: e03s04
   title: Lifecycle Revocation and Resume Enforcement
-  status: pending
+  status: in_progress
   bcps: 7
   risk: P0
   delta: ADDED

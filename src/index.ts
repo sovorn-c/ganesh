@@ -49,4 +49,7 @@ export * from "./policy-types.js";
 export * from "./policy-store.js";
 export * from "./disclosure-types.js";
 export * from "./disclosure-gateway.js";
+export * from "./capability-types.js";
+export * from "./capability-broker.js";
+export { FULL_ACCESS_NOTICE } from "./preflight-constants.js";
 export { migrateSchema, createE03Schema } from "./schema.js";
