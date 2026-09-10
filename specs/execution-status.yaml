@@ -1,7 +1,7 @@
 ---
 development_status:
   e01: done
-  e02: backlog
+  e02: in_progress
   e03: backlog
   e04: backlog
   e06: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e01_complete
-active_epic: e01
-active_story: e01s03
-note: E01 was released locally after fresh whole-epic review pass 7 and Node.js 24 release checks. All three stories and 11 task verifications are complete; other epics remain epic-only and backlog.
+planning_level: e02_complete
+active_epic: e02
+active_story: e02s03
+note: E01 was released locally; all three e02 stories built on feat/e02-durable-projects with passing task ledgers and planned checks. Whole-epic review and local release remain pending; later epics remain epic-only and backlog.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -53,6 +53,37 @@ epics:
         risk: P1
         tasks_total: 3
         tasks_passing: 3
+        tasks_failing: 0
+  e02:
+    title: Durable versioned research projects
+    status: in_progress
+    stories:
+      e02s01:
+        title: Create and Reopen Durable Projects and Immutable Artifact Versions
+        status: in_progress
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e02s02:
+        title: Versioned Research Branches and Concurrent Commit History
+        status: in_progress
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e02s03:
+        title: Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection
+        status: in_progress
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
         tasks_failing: 0
 gate_trace:
   verdict: PASS

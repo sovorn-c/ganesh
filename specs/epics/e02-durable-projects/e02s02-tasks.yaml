@@ -1,0 +1,46 @@
+story_id: e02s02
+spec: e02s02-versioned-branches-and-concurrent-history.md
+title: Versioned Research Branches and Concurrent Commit History
+status: passing
+bcps: 8
+tasks:
+  - id: e02s02-t01
+    description: Add branch records, parent snapshots, independent current references, and append-only history over the e02s01 store (SC-e02s02-P0-02, SC-e02s02-P1-03).
+    verify: "npm run build && node --test --test-name-pattern='e02s02.*branch|snapshot|history' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - branches
+        - history
+  - id: e02s02-t02
+    description: Implement atomic expected-version checks, command-id idempotency, changed-payload rejection, and database-backed concurrent-writer exclusion (SC-e02s02-P0-01).
+    verify: "npm run build && node --test --test-name-pattern='e02s02.*concurr|stale.*writer|duplicate.*command' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - concurrency
+        - idempotency
+  - id: e02s02-t03
+    description: Implement branch-isolated candidate updates and explicit promotion with exact source/destination versions and deterministic impact records (SC-e02s02-P0-02).
+    verify: "npm run build && node --test --test-name-pattern='e02s02.*promot|branch.*isolat|impact.*depend' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - promotion
+        - dependencies
+  - id: e02s02-t04
+    description: Preserve historical snapshots and record shared-source correction notices across all dependent branches without rewriting prior records (SC-e02s02-P1-03).
+    verify: "npm run build && node --test --test-name-pattern='e02s02.*history|shared.*source|retraction|snapshot.*preserv' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - provenance
+        - history

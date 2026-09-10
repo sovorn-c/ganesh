@@ -15,7 +15,7 @@ boundaries:
     support the recovery and migration work in e15.
   excludes:
   - Product outcomes owned by other epics; shared integration remains required.
-  - Story specifications and implementation tasks at blueprint stage.
+  - Human approval, permission enforcement, provider access, and full backup/restore remain owned by later epics.
 depends_on:
 - e01
 acceptance_outcomes:
@@ -43,9 +43,52 @@ bcp_estimate:
   confidence: low
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
-    /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+    implementation only if evidence changes the approved story scope.
+status: in_progress
+planning_stage: complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e02s01
+  type: ADDED
+  requirement: Durable projects and immutable artifact versions
+  after: A researcher can create and reopen a local project whose exact artifact versions and dependency references are atomically registered and whose missing or corrupt content is explicit.
+- story_id: e02s02
+  type: ADDED
+  requirement: Versioned research branches and concurrent commit history
+  after: A researcher can isolate candidate changes, promote exact versions explicitly, reject stale or duplicate writes, and reconstruct dependency impact across branches.
+- story_id: e02s03
+  type: ADDED
+  requirement: Crash-safe recovery, schema compatibility, and read-only inspection
+  after: An interrupted or unsupported project open recovers only complete state, reports schema and write status explicitly, and never rolls canonical state back through session navigation.
+stories:
+- id: e02s01
+  title: Create and Reopen Durable Projects and Immutable Artifact Versions
+  status: in_progress
+  bcps: 8
+  risk: P0
+  delta: ADDED
+  depends_on: []
+  spec_file: e02s01-create-and-reopen-durable-projects.md
+  tasks_file: e02s01-tasks.yaml
+- id: e02s02
+  title: Versioned Research Branches and Concurrent Commit History
+  status: in_progress
+  bcps: 8
+  risk: P0
+  delta: ADDED
+  depends_on: [e02s01]
+  spec_file: e02s02-versioned-branches-and-concurrent-history.md
+  tasks_file: e02s02-tasks.yaml
+- id: e02s03
+  title: Crash-Safe Recovery, Schema Compatibility, and Read-Only Project Inspection
+  status: in_progress
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on: [e02s01, e02s02]
+  spec_file: e02s03-crash-safe-recovery-and-read-only-inspection.md
+  tasks_file: e02s03-tasks.yaml
 capsule_dir: epics/e02-durable-projects
+next_skill: bp-review
 sequence: 2
