@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-10T05:40:12Z
-**Total stories:** 11
+**Generated:** 2026-09-10T10:02:40Z
+**Total stories:** 15
 **Dark stories:** 0
 
 ## Story Coverage
@@ -19,3 +19,7 @@
 | e03s03 | Trusted Capabilities and Pi Boundary | e03 | done | 4 |
 | e03s04 | Lifecycle Revocation and Resume Enforcement | e03 | done | 4 |
 | e03s05 | Reviewed Declassification and Adversarial Integration | e03 | done | 4 |
+| e04s01 | Versioned Decision Packets and Explicit Owner Dispositions | e04 | done | 5 |
+| e04s02 | Commitment Lifecycle and Current Readiness | e04 | done | 7 |
+| e04s03 | Isolated Alternatives and Transitive Impact Review | e04 | done | 4 |
+| e04s04 | Reasoned Scholarly Overrides and Non-Waivable Gates | e04 | done | 4 |

@@ -1,12 +1,14 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
-active_epic: e03
-active_story: e03s05
+active_flow: review_complete
+active_epic: e04
+active_story: e04s04
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E03 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All five stories and 20 task verifications are complete; later epics remain blueprint-only.
+  next_skill: bp-release-solo
+  next_command: "/bp-release-solo e04 ---"
+  summary: E04 whole-epic review pass 2 passed after correction of stale gate-trace
+    metadata, branch-scoped commitment history, and atomic bounded review limits;
+    all four stories and 16 task ledger entries pass. Local release is next.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -56,10 +58,10 @@ discovery:
     blockers: []
   survey:
     phase: Release
-    rationale: E03's dependency-ordered stories, task ledgers, implementation, NFR evidence,
-      whole-epic review pass 2, and Node.js 24 release checks passed before the local
-      merge to main. The pre-build Discover snapshot is retained below as history,
-      not current state.
+    rationale: E03's dependency-ordered stories, task ledgers, implementation, NFR
+      evidence, whole-epic review pass 2, and Node.js 24 release checks passed before
+      the local merge to main. The pre-build Discover snapshot is retained below as
+      history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
@@ -150,6 +152,9 @@ discovery:
   - The package-referenced scripts/sync-status-from-epics.sh is absent from this repository;
     e02 execution/planning status was synchronized by explicit YAML edits and verified
     with the Ruby blueprint gate.
+  - E04 is planned as four dependency-ordered stories with 16 failing task ledgers;
+    implementation starts at e04s01 after the plan-consistency and blueprint gates
+    pass.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -159,7 +164,7 @@ blueprint:
   audit_plan: READY_for_bp_plan_only
   implementation_ready: true
   production_ready: false
-  story_planning: e03_complete_remaining_epics_deferred
+  story_planning: e04_complete_remaining_epics_deferred
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md
@@ -170,18 +175,26 @@ metrics:
       total_seconds: 0.0
       avg_seconds: 0.0
     verify-work:
-      calls: 11
-      total_seconds: 950.0
-      avg_seconds: 86.36363636363636
+      calls: 12
+      total_seconds: 952.0
+      avg_seconds: 79.33333333333333
     release-branch:
-      calls: 4
-      total_seconds: 600.0
-      avg_seconds: 150.0
+      calls: 5
+      total_seconds: 947.0
+      avg_seconds: 189.4
     plan-tests:
       calls: 1
       total_seconds: 440.0
       avg_seconds: 440.0
     plan-work:
+      calls: 1
+      total_seconds: 0.0
+      avg_seconds: 0.0
+    bp-plan:
+      calls: 1
+      total_seconds: 0.0
+      avg_seconds: 0.0
+    bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0

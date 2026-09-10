@@ -1,0 +1,50 @@
+story_id: e04s04
+spec: e04s04-reasoned-overrides-and-nonwaivable-gates.md
+title: Reasoned Scholarly Overrides and Non-Waivable Gates
+status: passing
+bcps: 4
+tasks:
+  - id: e04s04-t01
+    description: Add finding, dissent, override, gate-result, and finite-revision records with additive migration.
+    verify: "npm run build && node --test --test-name-pattern='e04s04.*(schema|finding|dissent|override)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - scholarly-review
+        - dissent
+        - persistence
+  - id: e04s04-t02
+    description: Implement one targeted revision and reasoned override persistence with exact candidate/version binding and retained disagreement.
+    verify: "npm run build && node --test --test-name-pattern='e04s04.*(revision|override|disagree|rationale)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - overrides
+        - bounded-review
+        - integrity
+  - id: e04s04-t03
+    description: Compose current E03 policy, lifecycle, provenance, and external-authorization status checks so non-waivable failures block commitment.
+    verify: "npm run build && node --test --test-name-pattern='e04s04.*(gate|policy|provenance|authorization|non.waiv|blocked)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - non-waivable
+        - privacy
+        - Security Review
+  - id: e04s04-t04
+    description: Add adversarial, privacy, finite-loop, and complete E04 regression fixtures.
+    verify: "npm run build && npm test && node --test --test-name-pattern='e04s04.*(advers|privacy|finite|regression|redact)' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - adversarial
+        - privacy
+        - regression

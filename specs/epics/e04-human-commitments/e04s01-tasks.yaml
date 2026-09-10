@@ -1,0 +1,50 @@
+story_id: e04s01
+spec: e04s01-versioned-decision-packets-and-owner-dispositions.md
+title: Versioned Decision Packets and Explicit Owner Dispositions
+status: passing
+bcps: 6
+tasks:
+  - id: e04s01-t01
+    description: Add e04 packet, candidate, decision, and commitment types plus additive SQLite schema tables and migration compatibility.
+    verify: "npm run build && node --test --test-name-pattern='e04s01.*(schema|type|packet)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - decisions
+        - persistence
+        - Security Review
+  - id: e04s01-t02
+    description: Publish and inspect immutable packets from exact branch snapshots, candidate versions, dependencies, reviews, and permitted actions.
+    verify: "npm run build && node --test --test-name-pattern='e04s01.*(exact|packet|candidate|dependency)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - packet-integrity
+        - provenance
+        - integration
+  - id: e04s01-t03
+    description: Implement explicit owner approval, rejection, and deferral with current packet checks, branch expected versions, and command idempotency.
+    verify: "npm run build && node --test --test-name-pattern='e04s01.*(owner|approv|reject|defer|stale|duplicate)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - human-authority
+        - concurrency
+        - Security Review
+  - id: e04s01-t04
+    description: Add forged-authority, partial-transaction, redaction, and E01–E03 regression fixtures.
+    verify: "npm run build && npm test && node --test --test-name-pattern='e04s01.*(forg|partial|redact|regression)' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - adversarial
+        - privacy
+        - regression

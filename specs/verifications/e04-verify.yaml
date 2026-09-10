@@ -1,0 +1,59 @@
+epic_id: e04
+branch: feat/e04-human-commitments
+verified_at: "2026-09-10T08:18:00Z"
+verifier: verify-work
+status: passed
+stories:
+  - id: e04s01
+    status: done
+    tasks: 4/4
+  - id: e04s02
+    status: done
+    tasks: 4/4
+  - id: e04s03
+    status: done
+    tasks: 4/4
+  - id: e04s04
+    status: done
+    tasks: 4/4
+checks:
+  runtime:
+    passed: true
+    command: "npx --yes --package=node@24 node --version && npx --yes --package=node@24 npm --version"
+    evidence: "Node.js 24.x and npm 11.x."
+  tests:
+    passed: true
+    command: "npx --yes --package=node@24 npm test"
+    evidence: "59 tests passed in one contiguous run."
+  build_typecheck_lint:
+    passed: true
+    commands:
+      - "npx --yes --package=node@24 npm run build"
+      - "npx --yes --package=node@24 npm run typecheck"
+      - "npx --yes --package=node@24 npm run lint"
+  security:
+    passed: true
+    command: "npx --yes --package=node@24 npm audit --audit-level=high"
+    evidence: "0 vulnerabilities."
+  blind_spots:
+    passed: true
+    command: "bash scripts/check-blind-spots.sh"
+    evidence: "0 HIGH and 0 MEDIUM findings; remaining LOW findings are stale done-story tags."
+  completeness:
+    passed: true
+    command: "bash scripts/lib/completeness-critic.sh"
+    evidence: "BLOCKER=0; WARNING=0."
+  nfr:
+    passed: true
+    command: "specs/verifications/NFR-e04.json"
+    evidence: "Reliability and operability observed pass; no fixed performance threshold is specified."
+  migration:
+    passed: true
+    command: "Node.js 24 migration compatibility smoke"
+    evidence: "An existing project with E04 tables absent reopened and recreated additive E04 schema successfully."
+manual:
+  status: passed
+  evidence: "Deterministic public API integration fixtures exercised packet publication, trusted dispositions, lifecycle/readiness, isolated adoption, retained dissent, bounded revision, and non-waivable gates."
+gaps:
+  closed: true
+next_gate: audit-code

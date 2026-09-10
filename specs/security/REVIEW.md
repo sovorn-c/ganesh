@@ -47,3 +47,12 @@ The section above records the resolved pass-2 security finding and its checks. I
 - Credential-shaped literal and unsafe-sink spot checks: passed; no secrets, network sinks, shell interpolation, unsafe deserialization, or unparameterized SQL were introduced.
 - Artifact paths use validated relative paths, canonical-parent checks, symlink rejection, temporary files, and no-clobber finalization. Recovery traverses only non-symlink entries.
 - No unresolved HIGH-confidence finding. Request-review was not run because subagents, interactive forks, and worktrees are prohibited by the project workflow.
+
+## e04 security review — local verification
+
+- Scope: E04 decision packets, owner dispositions, commitments, readiness, alternative adoption, scholarly findings, overrides, gate composition, additive SQLite schema, and public exports on `feat/e04-human-commitments`.
+- Owner actions use the trusted non-serializable capability boundary and exact project-owner matching. Forged capability-shaped objects are rejected before mutation.
+- SQL inputs are bound parameters. Dynamic `IN` clauses use placeholder counts derived only from validated artifact IDs; no shell, network, or template execution sinks were introduced.
+- Packet, decision, readiness, impact, dissent, and gate records retain references and metadata only. Tests assert restricted artifact content is not returned in decision results.
+- Additive schema creation is idempotent and includes a compatibility check for the new readiness action column. `npm audit --audit-level=high` reports 0 vulnerabilities under Node.js 24.
+- No high-confidence security finding was identified in the local spot check. A fresh independent request-review remains pending because the fork/subagent facility is unavailable in this session; this is a process limitation, not a release approval.

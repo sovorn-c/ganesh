@@ -56,4 +56,20 @@ export * from "./lifecycle-gate.js";
 export * from "./declassification-types.js";
 export * from "./declassification-store.js";
 export { FULL_ACCESS_NOTICE } from "./preflight-constants.js";
-export { migrateSchema, createE03Schema } from "./schema.js";
+export { migrateSchema, createE03Schema, createE04Schema } from "./schema.js";
+export * from "./decision-types.js";
+export * from "./decision-store.js";
+export * from "./decision-lifecycle-store.js";
+export * from "./decision-history-store.js";
+export * from "./commitment-types.js";
+export {
+  getCommitment,
+  listCommitments,
+  listCommitmentHistory
+} from "./commitment-store.js";
+export { assessReadiness, listReadiness } from "./readiness-store.js";
+export type { CommitmentHistoryItem } from "./commitment-store.js";
+export * from "./alternative-types.js";
+export * from "./alternative-store.js";
+export * from "./override-types.js";
+export * from "./override-store.js";

@@ -49,8 +49,64 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+status: in_progress
+planning_stage: complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e04s01
+  type: ADDED
+  requirement: Versioned decision packets and explicit owner dispositions
+  after: A project owner can review exact candidate and dependency versions and record one explicit approval, rejection, or deferral; forged, stale, duplicate, and partial actions cannot create a false or repeated commitment.
+- story_id: e04s02
+  type: ADDED
+  requirement: Commitment lifecycle and current readiness
+  after: Approval, rejection, deferral, revision, reopening, archival, and supersession retain historical dispositions while current dependency, availability, and policy changes mark readiness for review or block new use.
+- story_id: e04s03
+  type: ADDED
+  requirement: Isolated alternatives and transitive impact review
+  after: Alternative research branches remain independent until explicit reviewed adoption, which records exact promotion versions and direct/transitive dependent impact without mutating unrelated history.
+- story_id: e04s04
+  type: ADDED
+  requirement: Reasoned scholarly overrides and non-waivable gates
+  after: An owner can retain dissent and record one bounded reasoned scholarly override for an exact candidate, but privacy, provenance, execution safety, and required external authorization remain mandatory.
+stories:
+- id: e04s01
+  title: Versioned Decision Packets and Explicit Owner Dispositions
+  status: planned
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: []
+  spec_file: e04s01-versioned-decision-packets-and-owner-dispositions.md
+  tasks_file: e04s01-tasks.yaml
+- id: e04s02
+  title: Commitment Lifecycle and Current Readiness
+  status: planned
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on: [e04s01]
+  spec_file: e04s02-commitment-lifecycle-and-current-readiness.md
+  tasks_file: e04s02-tasks.yaml
+- id: e04s03
+  title: Isolated Alternatives and Transitive Impact Review
+  status: planned
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: [e04s01, e04s02]
+  spec_file: e04s03-isolated-alternatives-and-impact-review.md
+  tasks_file: e04s03-tasks.yaml
+- id: e04s04
+  title: Reasoned Scholarly Overrides and Non-Waivable Gates
+  status: planned
+  bcps: 4
+  risk: P0
+  delta: ADDED
+  depends_on: [e04s01, e04s02, e04s03]
+  spec_file: e04s04-reasoned-overrides-and-nonwaivable-gates.md
+  tasks_file: e04s04-tasks.yaml
 capsule_dir: epics/e04-human-commitments
+next_skill: bp-build
 sequence: 4
