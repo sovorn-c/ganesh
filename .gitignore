@@ -1,0 +1,10 @@
+# Local agent cockpit
+specs/
+CLAUDE.md
+AGENTS.md
+CONVENTIONS.md
+.codex/
+.pi/
+graphify-out/
+node_modules/
+dist/
