@@ -1,0 +1,48 @@
+story_id: e03s04
+spec: e03s04-lifecycle-revocation-and-resume.md
+title: Lifecycle Revocation and Resume Enforcement
+status: passing
+bcps: 7
+tasks:
+  - id: e03s04-t01
+    description: Define durable lifecycle operations, policy checkpoints, revocation fences, and quarantined outputs.
+    verify: "npm run build && node --test --test-name-pattern='e03s04.*(operation|checkpoint|fence|quarantine)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - lifecycle
+        - recovery
+        - Security Review
+  - id: e03s04-t02
+    description: Gate dispatch and every external effect with current policy, capability, input, and execution-protection checks.
+    verify: "npm run build && node --test --test-name-pattern='e03s04.*(dispatch|external|effect|current.policy)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - authorization
+        - lifecycle
+        - Security Review
+  - id: e03s04-t03
+    description: Implement revocation and cancellation fences with non-current late-result handling across research branches.
+    verify: "npm run build && node --test --test-name-pattern='e03s04.*(revoke|cancel|late|branch|accept)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - revocation
+        - branch-isolation
+  - id: e03s04-t04
+    description: Recheck policy on resume and candidate acceptance while preserving redacted checkpoints through restart.
+    verify: "npm run build && node --test --test-name-pattern='e03s04.*(resume|stale|restart|acceptance|checkpoint)' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - recovery
+        - integrity
