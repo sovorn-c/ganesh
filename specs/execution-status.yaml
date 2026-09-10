@@ -3,7 +3,7 @@ development_status:
   e01: done
   e02: done
   e03: done
-  e04: in_progress
+  e04: done
   e06: backlog
   e05: backlog
   e14: backlog
@@ -21,7 +21,7 @@ development_status:
 planning_level: e04_complete
 active_epic: e04
 active_story: e04s04
-note: E04 implementation completed across four stories and 16 passing task ledger entries on feat/e04-human-commitments; whole-epic review and local release remain pending.
+note: E04 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All four stories and 16 task verifications are complete; later epics remain blueprint-only and backlog.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -136,7 +136,7 @@ epics:
         tasks_failing: 0
   e04:
     title: Human commitments and research alternatives
-    status: in_progress
+    status: complete
     stories:
       e04s01:
         title: Versioned Decision Packets and Explicit Owner Dispositions

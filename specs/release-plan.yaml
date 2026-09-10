@@ -58,8 +58,8 @@ epics:
   - R03
 - id: e04
   title: Human commitments and research alternatives
-  capsule_dir: epics/e04-human-commitments
-  file: epics/e04-human-commitments/epic.yaml
+  capsule_dir: epics/archive/e04-human-commitments
+  file: epics/archive/e04-human-commitments/epic.yaml
   sequence: 4
   depends_on:
   - e02

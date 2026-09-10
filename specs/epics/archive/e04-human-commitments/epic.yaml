@@ -49,7 +49,7 @@ bcp_estimate:
   basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
     and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
     /bp-plan.
-status: in_progress
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -73,7 +73,7 @@ requirement_deltas:
 stories:
 - id: e04s01
   title: Versioned Decision Packets and Explicit Owner Dispositions
-  status: planned
+  status: done
   bcps: 6
   risk: P0
   delta: ADDED
@@ -82,7 +82,7 @@ stories:
   tasks_file: e04s01-tasks.yaml
 - id: e04s02
   title: Commitment Lifecycle and Current Readiness
-  status: planned
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
@@ -91,7 +91,7 @@ stories:
   tasks_file: e04s02-tasks.yaml
 - id: e04s03
   title: Isolated Alternatives and Transitive Impact Review
-  status: planned
+  status: done
   bcps: 6
   risk: P0
   delta: ADDED
@@ -100,13 +100,13 @@ stories:
   tasks_file: e04s03-tasks.yaml
 - id: e04s04
   title: Reasoned Scholarly Overrides and Non-Waivable Gates
-  status: planned
+  status: done
   bcps: 4
   risk: P0
   delta: ADDED
   depends_on: [e04s01, e04s02, e04s03]
   spec_file: e04s04-reasoned-overrides-and-nonwaivable-gates.md
   tasks_file: e04s04-tasks.yaml
-capsule_dir: epics/e04-human-commitments
-next_skill: bp-build
+capsule_dir: epics/archive/e04-human-commitments
+next_skill: bp-plan
 sequence: 4

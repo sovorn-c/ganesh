@@ -1,14 +1,12 @@
 ---
 workflow_mode: solo-git
-active_flow: review_complete
+active_flow: release_complete
 active_epic: e04
 active_story: e04s04
 handoff:
-  next_skill: bp-release-solo
-  next_command: "/bp-release-solo e04 ---"
-  summary: E04 whole-epic review pass 2 passed after correction of stale gate-trace
-    metadata, branch-scoped commitment history, and atomic bounded review limits;
-    all four stories and 16 task ledger entries pass. Local release is next.
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E04 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All four stories and 16 task verifications are complete; later epics remain blueprint-only.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -51,14 +49,14 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 37
+      commits: 40
     smoke:
       node_version: passed
       npm_version: passed
     blockers: []
   survey:
     phase: Release
-    rationale: E03's dependency-ordered stories, task ledgers, implementation, NFR
+    rationale: E04's dependency-ordered stories, task ledgers, implementation, NFR
       evidence, whole-epic review pass 2, and Node.js 24 release checks passed before
       the local merge to main. The pre-build Discover snapshot is retained below as
       history, not current state.
@@ -66,10 +64,10 @@ discovery:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: main
-      commits: 37
-      implementation_files: 29
+      commits: 40
+      implementation_files: 41
       package_manifests: 2
-      test_files: 14
+      test_files: 18
     baseline:
       tests: passed
       lint: passed
@@ -152,9 +150,8 @@ discovery:
   - The package-referenced scripts/sync-status-from-epics.sh is absent from this repository;
     e02 execution/planning status was synchronized by explicit YAML edits and verified
     with the Ruby blueprint gate.
-  - E04 is planned as four dependency-ordered stories with 16 failing task ledgers;
-    implementation starts at e04s01 after the plan-consistency and blueprint gates
-    pass.
+  - E04 task ledgers, NFR evidence, and whole-epic review pass 2 passed on the feature
+    branch; the branch was merged locally into main after Node.js 24 release checks.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -179,9 +176,9 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 5
-      total_seconds: 947.0
-      avg_seconds: 189.4
+      calls: 6
+      total_seconds: 1097.0
+      avg_seconds: 182.83333333333334
     plan-tests:
       calls: 1
       total_seconds: 440.0

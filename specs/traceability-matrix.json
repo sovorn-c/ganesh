@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T10:02:40Z",
+  "generated_at": "2026-09-10T10:05:36Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -468,7 +468,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e04-human-commitments/e04s01-tasks.yaml",
+          "file": "specs/epics/archive/e04-human-commitments/e04s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -522,7 +522,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e04-human-commitments/e04s02-tasks.yaml",
+          "file": "specs/epics/archive/e04-human-commitments/e04s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -558,7 +558,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e04-human-commitments/e04s03-tasks.yaml",
+          "file": "specs/epics/archive/e04-human-commitments/e04s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -594,7 +594,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e04-human-commitments/e04s04-tasks.yaml",
+          "file": "specs/epics/archive/e04-human-commitments/e04s04-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"

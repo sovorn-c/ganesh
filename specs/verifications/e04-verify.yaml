@@ -1,7 +1,7 @@
 epic_id: e04
-branch: feat/e04-human-commitments
-verified_at: "2026-09-10T08:18:00Z"
-verifier: verify-work
+branch: main
+verified_at: "2026-09-10T10:05:00Z"
+verifier: release-solo
 status: passed
 stories:
   - id: e04s01
@@ -19,30 +19,48 @@ stories:
 checks:
   runtime:
     passed: true
-    command: "npx --yes --package=node@24 node --version && npx --yes --package=node@24 npm --version"
-    evidence: "Node.js 24.x and npm 11.x."
+    command: "node --version && npm --version"
+    evidence: "Node.js v24.21.0; npm 11.19.0"
   tests:
     passed: true
-    command: "npx --yes --package=node@24 npm test"
-    evidence: "59 tests passed in one contiguous run."
+    command: "npm test"
+    evidence: "60 tests passed"
   build_typecheck_lint:
     passed: true
     commands:
-      - "npx --yes --package=node@24 npm run build"
-      - "npx --yes --package=node@24 npm run typecheck"
-      - "npx --yes --package=node@24 npm run lint"
+      - "npm run build"
+      - "npm run typecheck"
+      - "npm run lint"
+  coverage:
+    passed: true
+    command: "node --experimental-test-coverage --test dist/test/*.test.js"
+    evidence: "85.01% lines, 71.84% branches, 94.57% functions"
   security:
     passed: true
-    command: "npx --yes --package=node@24 npm audit --audit-level=high"
-    evidence: "0 vulnerabilities."
+    command: "npm audit --audit-level=high"
+    evidence: "0 vulnerabilities"
+  clean_install:
+    passed: true
+    command: "npm run preflight -- --clean-install"
+  traceability:
+    passed: true
+    command: "bash scripts/trace-stories.sh --strict"
+    evidence: "15 stories, 0 dark; all e04 stories have implementation and test tags"
   blind_spots:
     passed: true
     command: "bash scripts/check-blind-spots.sh"
-    evidence: "0 HIGH and 0 MEDIUM findings; remaining LOW findings are stale done-story tags."
+    evidence: "No HIGH findings; 15 stale done-story tags are informational"
   completeness:
     passed: true
     command: "bash scripts/lib/completeness-critic.sh"
-    evidence: "BLOCKER=0; WARNING=0."
+    evidence: "BLOCKER=0 WARNING=0"
+  plan_consistency:
+    passed: true
+    command: "bash scripts/lib/plan-consistency-check.sh specs/epics/archive/e04-human-commitments/"
+    evidence: "CRITICAL=0 HIGH=0 MED=0"
+  blueprint:
+    passed: true
+    command: "ruby specs/verifications/check-blueprint.rb"
   nfr:
     passed: true
     command: "specs/verifications/NFR-e04.json"
@@ -56,4 +74,4 @@ manual:
   evidence: "Deterministic public API integration fixtures exercised packet publication, trusted dispositions, lifecycle/readiness, isolated adoption, retained dissent, bounded revision, and non-waivable gates."
 gaps:
   closed: true
-next_gate: audit-code
+next_gate: bp-plan
