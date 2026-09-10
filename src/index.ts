@@ -47,4 +47,6 @@ export * from "./promotion-store.js";
 export * from "./recovery.js";
 export * from "./policy-types.js";
 export * from "./policy-store.js";
+export * from "./disclosure-types.js";
+export * from "./disclosure-gateway.js";
 export { migrateSchema, createE03Schema } from "./schema.js";

@@ -1,0 +1,49 @@
+story_id: e03s02
+spec: e03s02-disclosure-gateway-and-inherited-restrictions.md
+title: Disclosure Gateway and Inherited Restrictions
+status: passing
+bcps: 7
+tasks:
+  - id: e03s02-t01
+    description: Define disclosure requests, canonical destinations, transformations, inherited restrictions, and redacted decisions.
+    verify: "npm run build && node --test --test-name-pattern='e03s02.*(request|destination|restriction|decision)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - disclosure
+        - policy
+        - Security Review
+  - id: e03s02-t02
+    description: Resolve effective restrictions across exact source versions, dependencies, and research branches.
+    verify: "npm run build && node --test --test-name-pattern='e03s02.*(inherit|restrict|dependency|branch)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - provenance
+        - branch-isolation
+        - Security Review
+  - id: e03s02-t03
+    description: Route prompt, attachment, summary, compaction, snippet, embedding, telemetry, export, diagnostic, and analysis requests through the disclosure gateway.
+    verify: "npm run build && node --test --test-name-pattern='e03s02.*(prompt|attach|summary|compact|snippet|embed|telemetry|export|diagnostic|analysis)' dist/test/*.test.js"
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - disclosure
+        - integration
+  - id: e03s02-t04
+    description: Prove cross-branch revocation, no-fallback denial, redacted audit records, and offline policy decisions.
+    verify: "npm run build && node --test --test-name-pattern='e03s02.*(revoke|fallback|redact|offline)' dist/test/*.test.js"
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - recovery
+        - privacy
+        - Security Review

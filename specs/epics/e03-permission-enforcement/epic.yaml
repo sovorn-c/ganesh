@@ -83,7 +83,7 @@ stories:
   tasks_file: e03s01-tasks.yaml
 - id: e03s02
   title: Disclosure Gateway and Inherited Restrictions
-  status: in_progress
+  status: done
   bcps: 7
   risk: P0
   delta: ADDED
@@ -92,7 +92,7 @@ stories:
   tasks_file: e03s02-tasks.yaml
 - id: e03s03
   title: Trusted Capabilities and Pi Boundary
-  status: pending
+  status: in_progress
   bcps: 7
   risk: P0
   delta: ADDED
