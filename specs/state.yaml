@@ -1,12 +1,12 @@
 ---
 workflow_mode: solo-git
-active_flow: build
+active_flow: epic_review
 active_epic: e03
 active_story: e03s05
 handoff:
   next_skill: bp-review
   next_command: "/bp-review"
-  summary: E03 permission enforcement is completely implemented and verified across all five stories (e03s01 through e03s05) with all 20 tasks passing.
+  summary: E03 review pass 1 findings (execution-status note, gate_trace, and schema.ts EOF whitespace) are resolved and verified; ready for fresh whole-epic review pass 2.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
