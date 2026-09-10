@@ -8,7 +8,7 @@ handoff:
   next_command: "/skill:survey-context"
   summary: >-
     Owner-approved source and test organization refactor is implemented, verified,
-    and independently reviewed on the current refactor branch. Source modules are
+    and independently reviewed on main. Source modules are
     grouped by responsibility under src/, tests mirror those responsibilities under
     tests/, and epic prefixes were removed from test names while traceability
     comments remain. E05 remains paused until its planning workflow is explicitly
@@ -54,8 +54,8 @@ discovery:
     vcs:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
-      branch: refactor/source-test-layout
-      commits: 40
+      branch: main
+      commits: 42
     smoke:
       node_version: passed
       npm_version: passed
@@ -69,8 +69,8 @@ discovery:
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
-      branch: refactor/source-test-layout
-      commits: 40
+      branch: main
+      commits: 42
       implementation_files: 41
       package_manifests: 2
       test_files: 18

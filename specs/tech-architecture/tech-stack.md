@@ -6,7 +6,7 @@ Use [../execution-status.yaml](../execution-status.yaml) for delivery status and
 
 The current implementation uses TypeScript, Node.js 24, SQLite project state, and local artifact files. Source entrypoints remain at `src/`; implementation modules now live in responsibility folders. Tests now live under `tests/` in matching responsibility folders and use behavior-based names.
 
-The owner-approved organization refactor is implemented, verified, and reviewed on the current refactor branch. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E05 remains paused until its planning workflow is explicitly resumed.
+The owner-approved organization refactor is implemented, verified, and reviewed on `main`. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E05 remains paused until its planning workflow is explicitly resumed.
 
 ## Repository organization contract
 
