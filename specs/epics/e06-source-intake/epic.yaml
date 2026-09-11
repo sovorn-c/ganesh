@@ -47,8 +47,8 @@ bcp_estimate:
   basis: Four vertical story slices total 21 BCP after inspection of existing artifact,
     policy, authority and SQLite contracts. Parser supply-chain and hostile-input
     behavior remain implementation verification obligations.
-status: review_blocked
-planning_stage: implementation_complete_pending_review
+status: review_pending
+planning_stage: implementation_complete_correction_pending_final_review
 risk: P0
 story_planning: complete
 requirement_deltas:

@@ -1,6 +1,6 @@
 ---
 workflow_mode: solo-git
-active_flow: epic_review_blocked
+active_flow: epic_review_pending
 active_epic: e06
 active_story: none
 handoff:
@@ -16,7 +16,7 @@ handoff:
     implementation-mode audit. The owner approved this exact plan and three SUS
     dependency gates at 2026-09-11T00:55:28Z; the current request authorizes implementation.
     Node.js 24.21.0 is provisioned via nvm and .nvmrc. E01-E04 completion remains
-    authoritative in execution-status.yaml. Review is blocked by missing story verification evidence, a whitespace gate failure, and implementation/test-plan mismatches; product-code corrections are pending.
+    authoritative in execution-status.yaml. Review pass 2 findings were corrected in commits f57709e and 29212a9. Final local review gates pass on feat/e06-source-intake under Node.js 24.21.0; release remains pending.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -34,7 +34,7 @@ discovery:
   implementation_started: true
   compatibility_verified: true
   e06_build: complete
-  e06_review: blocked
+  e06_review: pending_final_review
   environment:
     status: verified_node24_target
     runtime:

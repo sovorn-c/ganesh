@@ -4,7 +4,7 @@ development_status:
   e02: done
   e03: done
   e04: done
-  e06: review_blocked
+  e06: review_pending
   e05: backlog
   e14: backlog
   e07: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e06_review_blocked
+planning_level: e06_review_pending
 active_epic: e06
 active_story: none
-note: E06 build completed across four dependency-ordered stories and 16 passing Node.js 24 task checks. Review is blocked by missing story verification evidence, a whitespace gate failure, and implementation/test-plan mismatches; local release remains pending. E01-E04 completion remains unchanged.
+note: E06 build completed across four dependency-ordered stories. Correction commits f57709e and 29212a9 close the review findings; 16 task checks and the final 88-test Node.js 24 suite pass. Final independent review and local release remain pending. E01-E04 completion remains unchanged.
 epics:
   e01:
     title: Verified development and runtime baseline
