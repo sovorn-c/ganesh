@@ -143,6 +143,42 @@ test("e06s03 structured parser persists bounded failures", async () => {
   }
 });
 
+test("e06s03 structured output limit is persisted as failure", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "too-large-output.csv");
+  writeFileSync(path, "Name,Value\nAlice,42\n");
+  let sourceVersionId = "";
+  try {
+    const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "csv", "structured-output-limit"));
+    sourceVersionId = imported.source.artifactVersionId;
+    await importStructuredSource(fixture.handle, sourceVersionId, { maxOutputBytes: 1 });
+    throw new Error("expected the output limit to fail");
+  } catch (error) {
+    strictEqual((error as { code?: string }).code, "structured-output-limit");
+    strictEqual(listSourceExtractions(fixture.handle, sourceVersionId).at(-1)?.status, "failed");
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e06s03 structured worker timeout is persisted as failure", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "timeout.csv");
+  writeFileSync(path, "Name,Value\nAlice,42\n");
+  let sourceVersionId = "";
+  try {
+    const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "csv", "structured-timeout"));
+    sourceVersionId = imported.source.artifactVersionId;
+    await importStructuredSource(fixture.handle, sourceVersionId, { maxElapsedMs: 1 });
+    throw new Error("expected the worker timeout to fail");
+  } catch (error) {
+    strictEqual((error as { code?: string }).code, "structured-timeout");
+    strictEqual(listSourceExtractions(fixture.handle, sourceVersionId).at(-1)?.status, "failed");
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
 test("e06s03 dependency license offline adapter", () => {
   strictEqual(process.versions.node.split(".")[0], "24");
   strictEqual(typeof importStructuredSource, "function");
