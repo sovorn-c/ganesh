@@ -4,7 +4,7 @@
 
 Read [state.yaml](state.yaml) for the next authorized action and [execution-status.yaml](execution-status.yaml) for delivery status. Plans and blueprint audits are not implementation or production evidence.
 
-The owner requested repository organization before E05. The approved source and test migration is implemented, verified, and reviewed on `main`; see [REFACTOR_LATEST.md](REFACTOR_LATEST.md) for scope and [../CONVENTIONS.md](../CONVENTIONS.md) for the rules. E05 remains paused until its planning workflow is explicitly resumed.
+The owner requested repository organization before E05. The approved source and test migration is implemented, verified, and reviewed on `main`; see [REFACTOR_LATEST.md](REFACTOR_LATEST.md) for scope and [../CONVENTIONS.md](../CONVENTIONS.md) for the rules. The E05 plan is owner-approved; implementation starts on `/bp-build`.
 
 ## Canonical artifacts
 

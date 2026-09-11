@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T11:24:08Z",
+  "generated_at": "2026-09-11T22:01:26Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -603,6 +603,162 @@
       "link_count": 4
     },
     {
+      "id": "e05s01",
+      "title": "Authorized Contract Admits One Least-Privilege Specialist Run",
+      "epic_id": "e05",
+      "epic_title": "Bounded autonomous work and specialist coordination",
+      "bcp": 0,
+      "wsjf": 0.852941,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/work/bounded-work.test.ts",
+          "line": 18,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/work-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/budget-ledger.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/work-runtime.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/work-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e05-bounded-work/e05s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 6
+    },
+    {
+      "id": "e05s02",
+      "title": "Specialist Roles Return Versioned Candidates and Disagreements",
+      "epic_id": "e05",
+      "epic_title": "Bounded autonomous work and specialist coordination",
+      "bcp": 0,
+      "wsjf": 0.852941,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/work/specialist-coordination.test.ts",
+          "line": 15,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/specialist-coordination.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e05-bounded-work/e05s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 3
+    },
+    {
+      "id": "e05s03",
+      "title": "Cumulative Limits, Concurrent Accounting, and Enforced Spend Caps",
+      "epic_id": "e05",
+      "epic_title": "Bounded autonomous work and specialist coordination",
+      "bcp": 0,
+      "wsjf": 0.852941,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/work/budget-accounting.test.ts",
+          "line": 13,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e05-bounded-work/e05s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e05s04",
+      "title": "Cancellation Fences Dispatch and Quarantines Late Outputs",
+      "epic_id": "e05",
+      "epic_title": "Bounded autonomous work and specialist coordination",
+      "bcp": 0,
+      "wsjf": 0.852941,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/work/cancellation-quarantine.test.ts",
+          "line": 16,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e05-bounded-work/e05s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e05s05",
+      "title": "Honest Provider Degradation and Session Rebinding",
+      "epic_id": "e05",
+      "epic_title": "Bounded autonomous work and specialist coordination",
+      "bcp": 0,
+      "wsjf": 0.852941,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/work/provider-sessions.test.ts",
+          "line": 17,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/work/session-adapter.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e05-bounded-work/e05s05-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 3
+    },
+    {
       "id": "e06s01",
       "title": "Immutable Local Text and Markdown Intake",
       "epic_id": "e06",
@@ -784,8 +940,8 @@
     }
   ],
   "summary": {
-    "total_stories": 19,
-    "tagged_stories": 19,
+    "total_stories": 24,
+    "tagged_stories": 24,
     "dark_stories": [
 
     ],
@@ -815,16 +971,21 @@
       "e04s02",
       "e04s03",
       "e04s04",
+      "e05s01",
+      "e05s02",
+      "e05s03",
+      "e05s04",
+      "e05s05",
       "e06s01",
       "e06s02",
       "e06s03",
       "e06s04"
     ],
-    "stale_count": 19,
+    "stale_count": 24,
     "oracle_stats": {
-      "high": 73,
+      "high": 84,
       "medium": 0,
-      "low": 19
+      "low": 24
     }
   }
 }

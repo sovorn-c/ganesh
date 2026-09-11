@@ -1,16 +1,13 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
-active_epic: e06
+active_flow: implementation
+active_epic: e05
 active_story: none
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E06 source intake was released locally on main after final whole-epic review
-    and Node.js 24 checks. Four stories and 16 task verifications pass, with 19 mapped
-    scenarios and a 90-test suite. The local release is complete; production release
-    readiness, remote CI, publishing, deployment, and the separate release-check gate
-    remain intentionally unclaimed.
+  next_skill: bp-review
+  next_command: "/bp-review"
+  summary: E05 correction pass 1 completed on feat/e05-bounded-work under approved plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373.
+    Five stories, 20 task checks, and 98 tests passed. Fresh epic-level review and local release remain pending; production readiness remains unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -172,18 +169,36 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e06
+  first_eligible_epic: e05
   first_tracer_bullet_epic: e05
-  selected_epic: e06
+  selected_epic: e05
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
   e06_plan_approval_source: explicit_owner_message
+  e05_plan: approved_exact_revision
+  e05_plan_revision: sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373
+  e05_plan_approved_at: '2026-09-11T20:58:00Z'
+  e05_plan_approval_source: explicit_owner_message
+  e05_plan_artifacts:
+  - specs/epics/e05-bounded-work/epic.yaml
+  - specs/epics/e05-bounded-work/e05s01-authorized-contract-and-specialist-run.md
+  - specs/epics/e05-bounded-work/e05s01-tasks.yaml
+  - specs/epics/e05-bounded-work/e05s02-specialist-roles-candidates-and-disagreements.md
+  - specs/epics/e05-bounded-work/e05s02-tasks.yaml
+  - specs/epics/e05-bounded-work/e05s03-cumulative-limits-and-spend-caps.md
+  - specs/epics/e05-bounded-work/e05s03-tasks.yaml
+  - specs/epics/e05-bounded-work/e05s04-cancellation-and-late-output-quarantine.md
+  - specs/epics/e05-bounded-work/e05s04-tasks.yaml
+  - specs/epics/e05-bounded-work/e05s05-provider-degradation-and-session-rebinding.md
+  - specs/epics/e05-bounded-work/e05s05-tasks.yaml
+  - specs/tech-architecture/e05-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
   audit_plan: READY_implementation_mode_approved
-  implementation_start: authorized_current_delivery_request
+  implementation_start: complete_bp_build
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e04_e06_complete;e05_e07_e18_deferred_to_bp_plan
+  story_planning: e01_e04_e05_e06_complete;e07_e18_deferred_to_bp_plan
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md
@@ -202,18 +217,22 @@ metrics:
       total_seconds: 1694.0
       avg_seconds: 242.0
     plan-tests:
-      calls: 1
+      calls: 2
       total_seconds: 440.0
-      avg_seconds: 440.0
+      avg_seconds: 220.0
     plan-work:
-      calls: 1
+      calls: 2
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 1
-      total_seconds: 0.0
-      avg_seconds: 0.0
+      calls: 2
+      total_seconds: 1140.0
+      avg_seconds: 570.0
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
+    slice-tasks:
+      calls: 1
+      total_seconds: 1140.0
+      avg_seconds: 1140.0

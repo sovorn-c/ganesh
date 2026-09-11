@@ -5,7 +5,7 @@ development_status:
   e03: done
   e04: done
   e06: done
-  e05: backlog
+  e05: review_pending
   e14: backlog
   e07: backlog
   e08: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e06_complete
-active_epic: e06
+planning_level: e05_review_pending
+active_epic: e05
 active_story: none
-note: E06 was released locally on main after final whole-epic review and Node.js 24 checks. All four stories, 16 task verifications, 19 mapped scenarios, and the 90-test suite pass; the preflight execution-mode warning remains non-blocking. E01-E04 completion remains unchanged; later epics remain backlog.
+note: E05 plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373 is owner-approved. E05 correction pass 1 completed on feat/e05-bounded-work with per-story evidence and 98 passing tests; fresh whole-epic review and local release remain pending. E01-E04 and E06 remain complete local releases.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -216,9 +216,63 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+  e05:
+    title: Bounded autonomous work and specialist coordination
+    status: review_pending
+    stories:
+      e05s01:
+        title: Authorized Contract Admits One Least-Privilege Specialist Run
+        status: done
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e05s01-verify.yaml
+      e05s02:
+        title: Specialist Roles Return Versioned Candidates and Disagreements
+        status: done
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e05s02-verify.yaml
+      e05s03:
+        title: Cumulative Limits, Concurrent Accounting, and Enforced Spend Caps
+        status: done
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e05s03-verify.yaml
+      e05s04:
+        title: Cancellation Fences Dispatch and Quarantines Late Outputs
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e05s04-verify.yaml
+      e05s05:
+        title: Honest Provider Degradation and Session Rebinding
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e05s05-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-11T11:21:45Z"
-  rationale: "All 19 stories are traceable with no dark stories; all four e06 stories have passing task evidence across 16 task checks, 19 mapped scenarios, and no critical blind spots. The 0.2200 heuristic ratio is below the downgrade threshold; 19 stale done-story tags are informational."
+  generated_at: "2026-09-11T21:57:33Z"
+  rationale: "All 24 stories are traceable with no dark stories; all five e05 stories have passing per-story verification evidence across 20 task checks, 98 passing tests, and no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
   heuristic_ratio: 0.22
   downgrade_applied: false

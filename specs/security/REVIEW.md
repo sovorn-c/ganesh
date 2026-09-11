@@ -66,3 +66,12 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Persistence and authorization:** Changed E06 SQL uses prepared statements with bound values; source inspection and disclosure handoff retain metadata-only behavior and current capability checks. Exact source-to-derived artifact dependencies are recorded.
 - **Credential/sink checks:** Tracked-source credential-pattern scan found no matches. Review of changed E06 modules found no shell, network, unsafe deserialization, or unparameterized user-controlled SQL sink. The `fetch`/URL strings found outside the E06 diff are existing policy regression fixtures, not executable E06 paths.
 - **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for the E06 local merge. This is a local security gate, not a production-readiness or scholarly-validity claim; remote CI and the separate release-check gate remain outside this local release.
+
+## e05 security review — local release gate
+
+- **Scope:** Current `feat/e05-bounded-work` diff from `main` at `ff40bf6`, covering work contracts, capabilities, lifecycle/disclosure checkpoints, additive schema, budget accounting, cancellation/quarantine, provider attempts, and session rebinding.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --audit-level=high --omit=dev` reported `found 0 vulnerabilities`.
+- **Authority and policy:** `src/work/work-runtime.ts` requires owner/worker capabilities, checks current dispatch and external policy immediately before each provider effect, and records denied attempts without fallback. `src/work/session-adapter.ts` rejects submissions from replaced sessions. No E05 path grants owner operations to workers.
+- **Persistence and SQL:** E05 queries in `src/work/work-runtime.ts`, `src/work/work-store.ts`, `src/work/budget-ledger.ts`, and `src/work/specialist-coordination.ts` use prepared statements with bound values; no attacker-controlled SQL interpolation was found.
+- **Execution and secrets:** E05 source imports no `child_process`, network client, dynamic code execution, or credential-shaped literal. Provider tests use injected fakes; no network or live provider is opened.
+- **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for the E05 local merge. This is a local security gate, not a production-readiness or scholarly-validity claim; remote CI and the separate `release-check` gate remain outside this local release.

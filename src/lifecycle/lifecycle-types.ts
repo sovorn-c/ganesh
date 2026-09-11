@@ -97,4 +97,6 @@ export interface LifecycleCheckOptions {
   readonly targetBranchId?: string;
   readonly expectedVersionIds?: readonly string[];
   readonly requireCanonicalWrite?: boolean;
+  /** Internal bounded-work candidate path; it still requires the caller's work capability. */
+  readonly allowCandidateSubmission?: boolean;
 }

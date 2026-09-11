@@ -10,7 +10,7 @@ import {
   type ProjectStatus,
   ProjectStoreError
 } from "./project-types.js";
-import { createE04Schema, createE06Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
+import { createE04Schema, createE05Schema, createE06Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
 import { assertIdentifier, ensureDirectory, isoNow, newId, resolveProjectRoot } from "../persistence/storage-utils.js";
 
 const STORE_DIRECTORY = ".ganesh";
@@ -181,6 +181,7 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
   if (schemaStatus === "ready" && !schemaMismatch && options.readOnly !== true && !openedReadOnlyFallback && writableDirectory(paths.store)) {
     createE04Schema(db);
     createE06Schema(db);
+    createE05Schema(db);
   }
   const mustReadOnly = options.readOnly === true || !writableDirectory(paths.store) || schemaStatus !== "ready" || schemaMismatch;
   if (mustReadOnly && options.readOnly !== true && !openedReadOnlyFallback) {
