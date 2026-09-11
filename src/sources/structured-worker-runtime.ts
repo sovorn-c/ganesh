@@ -1,7 +1,7 @@
 // story: e06s03
 import { parentPort, workerData } from "node:worker_threads";
 import { ProjectStoreError } from "../project/project-types.js";
-import { parseStructuredPayload } from "./structured-parser.js";
+import { parseStructuredPayload } from "./structured-parser-runtime.js";
 import type { StructuredParserTask } from "./structured-worker.js";
 
 if (parentPort === null) {throw new Error("structured parser worker requires a parent port");}
