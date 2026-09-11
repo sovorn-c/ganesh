@@ -48,7 +48,7 @@ checks:
   coverage:
     passed: true
     command: node --experimental-test-coverage --test dist/tests/*/*.test.js
-    evidence: 84.80% lines, 71.55% branches, 92.80% functions
+    evidence: 84.73% lines, 71.47% branches, 92.80% functions
   dependency_audit:
     passed: true
     command: npm audit --audit-level=high
