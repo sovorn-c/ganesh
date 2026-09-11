@@ -17,7 +17,7 @@ import {
 } from "../../src/index.js";
 import { disposeFixture, projectFixture } from "../support/project-fixtures.js";
 
-const XLSX_FIXTURE = Buffer.from("UEsDBBQAAAAIAIZ+K11n9Ob4wQAAAHEBAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbK2Qsa7CMAxFf6XKiojLGxhQWwZ2eMP7AZO6NGoTR4nhwd+TFsHAwMR0Zdn33CtX26sbiwvFZNnXaqVLtW2qv1ugVOSNT7XqRcIGIJmeHCbNgXzedBwdSh7jCQKaAU8EP2W5BsNeyMtSJoZqqkOGR9tS8YtR9uioVnAd4Z/jcGQedGapYvcwTbm1whBGa1ByI7j49i1xyV1nDbVszi5bdAqRsE09kbhRz6odWr+YwPAxfz5OMMvqy0Ve/GcPmJ/a3AFQSwMEFAAAAAgAhn4rXdWHkZJ1AAAAlAAAAA8AAAB4bC93b3JrYm9vay54bWw1jsEOwjAMQ3+lygeQjQOHqe2Jyz4j0ECnLe2UVILPp5rYyfazLNl/qq6PWlf3la1YgNzaPiHaM7OQXerOpTevqkKtR32j7cqULDM32fA6DDcUWgpEfzD7qyskHOBOjcAdZE4BRnA6Ld3onEbA6PEc4fkk/gBQSwMEFAAAAAgAhn4rXbi2u+uNAAAAvwAAABgAAAB4bC93b3Jrc2hlZXRzL3NoZWV0MS54bWxNjs0KwjAQhF+l5KQgblPFg6SBildP4gOEmBhp88MmtD6+SZDiZZn9dnYYtngco1EqNR87udgTk1I4A0RplBVx74Ny+aI9WpHyii+IAZV41ic7Qde2J7Di7QhnlV1FEpyhXxrsCc1UFjEUNfNjx2DmDOQPXwrW/P64bQa6o1sGutoOqw1yUp5/0bB25l9QSwECFAMUAAAACACGfitdZ/Tm+MEAAABxAQAAEwAAAAAAAAAAAAAAgAEAAAAAW0NvbnRlbnRfVHlwZXNdLnhtbFBLAQIUAxQAAAAIAIZ+K13Vh5GSdQAAAJQAAAAPAAAAAAAAAAAAAACAAfIAAAB4bC93b3JrYm9vay54bWxQSwECFAMUAAAACACGfitduLa7640AAAC/AAAAGAAAAAAAAAAAAAAAgAGUAQAAeGwvd29ya3NoZWV0cy9zaGVldDEueG1sUEsFBgAAAAADAAMAxAAAAFcCAAAAAA==", "base64");
+const XLSX_FIXTURE = Buffer.from("UEsDBBQAAAAIAFmKK10DQSW3xgAAAHcBAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbK2QsW7DMAxEf8XQWlh0OmQobGfInnboD7AyHQu2REFk0vTvIztohw6dOhHE8d4d2B5uYamulMVz7MzONubQt+9fiaQqSpTOTKrpBUDcRAHFcqJYlJFzQC1rPkNCN+OZ4Llp9uA4KkWtdWWYvn0t8OwHqt4w6wkDdQZuC3xynj+YZ1tYpjo+TGtuZzClxTvU0giucfiVWPM4ekcDu0soFispEw4yEWlY7DZtQB+fVjD8mb8dC7iLKIf6Yf3fOj8p321ge21/B1BLAwQUAAAACABZiitddfPUHY8AAADiAAAADwAAAHhsL3dvcmtib29rLnhtbI2PMQ6DMAxFrxL5ADV06ICAiaXHcME0ESSO7FTt8Yug7J3s/7/8vty+RZeHyOI+cU3WgS8lN4g2eo5kF8mctmQWjVQ2qU+0rEyTeeYSV7xW1Q0jhQQHodF/GDLPYeRBxlfkVA6I8kolSDIfskHf7g32my5R5A4GKgRud+5TBzU4bcK26H2qAfsWzyM8/+q/UEsDBBQAAAAIAFmKK124trvrjQAAAL8AAAAeAAAAeGwvd29ya3NoZWV0cy9jdXN0b20tc2hlZXQueG1sTY7NCsIwEIRfpeSkIG5TxYOkgYpXT+IDhJgYafPDJrQ+vkmQ4mWZ/XZ2GLZ4HKNRKjUfO7nYE5NSOANEaZQVce+DcvmiPVqR8ooviAGVeNYnO0HXtiew4u0IZ5VdRRKcoV8a7AnNVBYxFDXzY8dg5gzkD18K1vz+uG0GuqNbBrraDqsNclKef9GwduZfUEsDBBQAAAAIAFmKK126JvzvkQAAAPcAAAAaAAAAeGwvX3JlbHMvd29ya2Jvb2sueG1sLnJlbHONzzEOwjAMBdCrRNmpCwMDajOxdK24QJS6TdUmjmJXwO2JGFCRGBi/v/Ss3/S4Wpkpsp8Tq0dYI7fai6QLADuPwXJFCWNpRsrBSol5gmTdYieEU12fIe8NbZq9qbqh1bkbjlrdngn/sWkcZ4dXclvAKD9ewJ3ywh5RCmrzhNLqz4nBbSwUDu9UFVuDaeBrp3kBUEsBAhQDFAAAAAgAWYorXQNBJbfGAAAAdwEAABMAAAAAAAAAAAAAAIABAAAAAFtDb250ZW50X1R5cGVzXS54bWxQSwECFAMUAAAACABZiitddfPUHY8AAADiAAAADwAAAAAAAAAAAAAAgAH3AAAAeGwvd29ya2Jvb2sueG1sUEsBAhQDFAAAAAgAWYorXbi2u+uNAAAAvwAAAB4AAAAAAAAAAAAAAIABswEAAHhsL3dvcmtzaGVldHMvY3VzdG9tLXNoZWV0LnhtbFBLAQIUAxQAAAAIAFmKK126JvzvkQAAAPcAAAAaAAAAAAAAAAAAAACAAXwCAAB4bC9fcmVscy93b3JrYm9vay54bWwucmVsc1BLBQYAAAAABAAEABIBAABFAwAAAAA=", "base64");
 
 function xlsxRequest(path: string): SourceImportRequest {
   return { commandId: "structured-xlsx-1", path, logicalId: "structured-xlsx", version: "v1", format: "xlsx", mediaType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
@@ -47,16 +47,38 @@ test("e06s03 XLSX import preserves A1 and formula provenance", async () => {
 test("e06s03 bibtex entry metadata-only identifiers preserve raw fields", async () => {
   const fixture = projectFixture();
   const path = join(fixture.root, "refs.bib");
-  writeFileSync(path, "@article{smith2024, title={A Study}, author={Smith, Jane}, doi={https://doi.org/10.1234/ABC}}\n");
+  writeFileSync(path, "@article{smith2024, title={A {Nested} Title}, author={Smith, Jane}, doi={https://doi.org/10.1234/ABC}}\n");
   try {
     const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "bibtex"));
     const records = await importStructuredSource(fixture.handle, imported.source.artifactVersionId);
     strictEqual(Array.isArray(records), true);
     const bibliography = listBibliographicRecords(fixture.handle, imported.source.artifactVersionId);
     strictEqual(bibliography.length, 1);
-    strictEqual(bibliography[0]?.rawFields.title, "A Study");
+    strictEqual(bibliography[0]?.rawFields.title, "A {Nested} Title");
+    strictEqual(bibliography[0]?.normalizedIdentifiers.title, "a {nested} title");
     strictEqual(bibliography[0]?.normalizedIdentifiers.doi, "10.1234/abc");
     strictEqual(bibliography[0]?.access, "metadata-only");
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e06s03 BibTeX and RIS record limits are partial and diagnosed", async () => {
+  const fixture = projectFixture();
+  const bibPath = join(fixture.root, "limited.bib");
+  const risPath = join(fixture.root, "limited.ris");
+  writeFileSync(bibPath, "@article{one, title={One}}\n@article{two, title={Two}}\n");
+  writeFileSync(risPath, "TY  - JOUR\nID  - one\nTI  - One\nER  -\nTY  - JOUR\nID  - two\nTI  - Two\nER  -\n");
+  try {
+    const bib = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(bibPath, "bibtex", "structured-bib-record-limit"));
+    await importStructuredSource(fixture.handle, bib.source.artifactVersionId, { maxRecords: 1 });
+    strictEqual(listSourceDiagnostics(fixture.handle, bib.source.artifactVersionId).some((diagnostic) => diagnostic.code === "record-limit"), true);
+    strictEqual(listSourceExtractions(fixture.handle, bib.source.artifactVersionId).at(-1)?.status, "partial");
+
+    const ris = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(risPath, "ris", "structured-ris-record-limit"));
+    await importStructuredSource(fixture.handle, ris.source.artifactVersionId, { maxRecords: 1 });
+    strictEqual(listSourceDiagnostics(fixture.handle, ris.source.artifactVersionId).some((diagnostic) => diagnostic.code === "record-limit"), true);
+    strictEqual(listSourceExtractions(fixture.handle, ris.source.artifactVersionId).at(-1)?.status, "partial");
   } finally {
     disposeFixture(fixture);
   }

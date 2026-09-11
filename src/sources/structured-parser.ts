@@ -1,7 +1,6 @@
 // story: e06s03
 import { parse as parseCsv } from "csv-parse/sync";
 import { parse as parseBiblatex, parseRIS } from "biblatex-csl-converter";
-import readXlsxFile from "read-excel-file/node";
 import { SaxesParser } from "saxes";
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
 import { getArtifactVersion, registerArtifactVersion } from "../artifacts/artifact-store.js";
@@ -12,6 +11,11 @@ import type { BibliographicSourceRecord, StructuredImportLimits, TabularRegion, 
 import { runBoundedStructuredParser, structuredLimits, type StructuredParserTask } from "./structured-worker.js";
 
 type StoredRecord = Record<string, unknown>;
+interface BibliographyResult {
+  readonly kind: "bibliography";
+  readonly records: BibliographicSourceRecord[];
+  readonly diagnostics: readonly string[];
+}
 
 function text(value: unknown): string {
   if (typeof value === "string") {return value;}
@@ -52,22 +56,67 @@ function canonicalDoi(value: string): string | undefined {
   return /^10\.\d{4,9}\/\S+$/u.test(decoded) && !/[\s\u0000-\u001f]/u.test(decoded) ? decoded : undefined;
 }
 
+function readBibtexValue(input: string, start: number): { value: string; next: number } | undefined {
+  if (input[start] === "{") {
+    let depth = 1;
+    let escaped = false;
+    for (let index = start + 1; index < input.length; index += 1) {
+      const character = input[index];
+      if (escaped) {escaped = false; continue;}
+      if (character === "\\") {escaped = true; continue;}
+      if (character === "{") {depth += 1; continue;}
+      if (character === "}") {
+        depth -= 1;
+        if (depth === 0) {return { value: input.slice(start + 1, index).trim(), next: index + 1 };}
+      }
+    }
+    return undefined;
+  }
+  if (input[start] === '"') {
+    let escaped = false;
+    for (let index = start + 1; index < input.length; index += 1) {
+      const character = input[index];
+      if (escaped) {escaped = false; continue;}
+      if (character === "\\") {escaped = true; continue;}
+      if (character === '"') {return { value: input.slice(start + 1, index).trim(), next: index + 1 };}
+    }
+    return undefined;
+  }
+  const end = input.slice(start).search(/[,}\n]/u);
+  return { value: input.slice(start, end < 0 ? input.length : start + end).trim(), next: end < 0 ? input.length : start + end };
+}
+
 function rawBibtexFields(body: string): Record<string, string> {
   const fields: Record<string, string> = {};
-  for (const match of body.matchAll(/([A-Za-z][\w-]*)\s*=\s*(?:\{([^{}]*)\}|"([^"]*)")/gu)) {
-    fields[match[1].toLowerCase()] = (match[2] ?? match[3] ?? "").trim();
+  let index = body.indexOf(",");
+  if (index < 0) {return fields;}
+  index += 1;
+  while (index < body.length) {
+    while (/\s|,/u.test(body[index] ?? "")) {index += 1;}
+    const key = /^[A-Za-z][\w-]*/u.exec(body.slice(index));
+    if (key === null) {break;}
+    index += key[0].length;
+    while (/\s/u.test(body[index] ?? "")) {index += 1;}
+    if (body[index] !== "=") {break;}
+    index += 1;
+    while (/\s/u.test(body[index] ?? "")) {index += 1;}
+    const value = readBibtexValue(body, index);
+    if (value === undefined) {break;}
+    fields[key[0].toLowerCase()] = value.value;
+    index = value.next;
   }
   return fields;
 }
 
-function bibtexRecords(sourceVersionId: string, input: string, maximum: Required<StructuredImportLimits>): BibliographicSourceRecord[] {
+function bibtexRecords(sourceVersionId: string, input: string, maximum: Required<StructuredImportLimits>): BibliographyResult {
   const parsed = parseBiblatex(input);
   const entries = Object.values(parsed.entries) as unknown as Array<Record<string, unknown>>;
   const records: BibliographicSourceRecord[] = [];
   let recordNumber = 0;
   let totalFields = 0;
+  let truncated = false;
   for (const entry of entries) {
-    if (recordNumber >= maximum.maxRecords) {break;}
+    if (recordNumber >= maximum.maxRecords) {truncated = true; break;}
     recordNumber += 1;
     const key = text(entry.entry_key);
     const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
@@ -84,15 +133,15 @@ function bibtexRecords(sourceVersionId: string, input: string, maximum: Required
     const locator = { format: "bibtex", entryNumber: recordNumber, entryKey: key, fieldNames: Object.keys(rawFields).sort() };
     records.push({ id: `bibliography-${sourceVersionId}-${recordNumber}`, sourceVersionId, format: "bibtex", entryKey: key, recordNumber, rawFields, normalizedIdentifiers, access: "metadata-only", locator });
   }
-  return records;
+  return { kind: "bibliography", records, diagnostics: truncated ? ["record-limit"] : [] };
 }
 
-function risRecords(sourceVersionId: string, input: string, maximum: Required<StructuredImportLimits>): BibliographicSourceRecord[] {
+function risRecords(sourceVersionId: string, input: string, maximum: Required<StructuredImportLimits>): BibliographyResult {
   const parsed = parseRIS(input);
   const entries = Object.values(parsed.entries) as unknown as Array<Record<string, unknown>>;
   const groups = input.split(/(?:^|\n)ER\s*[- ]\s*/gu).filter((value) => value.trim() !== "");
   let totalFields = 0;
-  return entries.slice(0, maximum.maxRecords).map((entry, index) => {
+  const records: BibliographicSourceRecord[] = entries.slice(0, maximum.maxRecords).map((entry, index) => {
     const rawFields: Record<string, string> = {};
     for (const match of (groups[index] ?? "").matchAll(/^([A-Z0-9]{2})\s{2}-\s?(.*)$/gmu)) {
       rawFields[match[1]] = rawFields[match[1]] === undefined ? match[2].trim() : `${rawFields[match[1]]}\n${match[2].trim()}`;
@@ -102,8 +151,9 @@ function risRecords(sourceVersionId: string, input: string, maximum: Required<St
     const normalizedIdentifiers: Record<string, string> = {};
     if (doi !== undefined) {normalizedIdentifiers.doi = doi;}
     const recordNumber = index + 1;
-    return { id: `bibliography-${sourceVersionId}-${recordNumber}`, sourceVersionId, format: "ris", entryKey: text(entry.entry_key), recordNumber, rawFields, normalizedIdentifiers, access: "metadata-only", locator: { format: "ris", recordNumber, tags: Object.keys(rawFields).sort() } };
+    return { id: `bibliography-${sourceVersionId}-${recordNumber}`, sourceVersionId, format: "ris" as const, entryKey: text(entry.entry_key), recordNumber, rawFields, normalizedIdentifiers, access: "metadata-only" as const, locator: { format: "ris", recordNumber, tags: Object.keys(rawFields).sort() } };
   });
+  return { kind: "bibliography", records, diagnostics: entries.length > maximum.maxRecords ? ["record-limit"] : [] };
 }
 
 function persistBibliography(handle: ProjectHandle, sourceVersionId: string, records: readonly BibliographicSourceRecord[]): BibliographicSourceRecord[] {
@@ -112,12 +162,6 @@ function persistBibliography(handle: ProjectHandle, sourceVersionId: string, rec
     insertSourceRecord(handle, sourceVersionId, "bibliographic", { id: record.id, format: record.format, entryKey: record.entryKey, recordNumber: record.recordNumber, rawFields: record.rawFields, normalizedIdentifiers: record.normalizedIdentifiers }, record.locator);
   }
   return [...records];
-}
-
-function normalizeCell(value: unknown): string | number | boolean | null | undefined {
-  if (value === null || value === undefined) {return null;}
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {return value;}
-  return String(value);
 }
 
 function validateWorksheetXml(xml: string): void {
@@ -208,6 +252,77 @@ function sharedStringsFromXml(xml: string): string[] {
   );
 }
 
+interface WorkbookSheet {
+  readonly name: string;
+  readonly sheetId: number;
+  readonly relationshipId: string;
+}
+
+function xmlAttribute(attributes: Record<string, unknown>, name: string): string | undefined {
+  const value = attributes[name];
+  return value === undefined ? undefined : String(value);
+}
+
+function parseWorkbookSheets(xml: string): WorkbookSheet[] {
+  validateWorksheetXml(xml);
+  const sheets: WorkbookSheet[] = [];
+  const parser = new SaxesParser({ xmlns: false });
+  parser.on("opentag", (tag) => {
+    if (String(tag.name).toLowerCase() !== "sheet") {return;}
+    const attributes = tag.attributes as Record<string, unknown>;
+    const name = xmlAttribute(attributes, "name");
+    const relationshipId = xmlAttribute(attributes, "r:id") ?? xmlAttribute(attributes, "id");
+    const sheetId = Number(xmlAttribute(attributes, "sheetId"));
+    if (name !== undefined && relationshipId !== undefined && Number.isInteger(sheetId)) {
+      sheets.push({ name, sheetId, relationshipId });
+    }
+  });
+  parser.on("error", () => {
+    throw new ProjectStoreError("xml-malformed", "OOXML workbook XML is malformed");
+  });
+  parser.write(xml).close();
+  return sheets;
+}
+
+function decodeXmlAttribute(value: string): string {
+  return value.replace(/&amp;/gu, "&").replace(/&quot;/gu, '"').replace(/&apos;/gu, "'").replace(/&lt;/gu, "<").replace(/&gt;/gu, ">");
+}
+
+function parseWorkbookRelationships(xml: string): Map<string, string> {
+  validateWorksheetXml(xml);
+  const relationships = new Map<string, string>();
+  const parser = new SaxesParser({ xmlns: false });
+  parser.on("opentag", (tag) => {
+    if (String(tag.name).toLowerCase() !== "relationship") {return;}
+    const attributes = tag.attributes as Record<string, unknown>;
+    const id = xmlAttribute(attributes, "Id");
+    const target = xmlAttribute(attributes, "Target");
+    const targetMode = xmlAttribute(attributes, "TargetMode");
+    if (id !== undefined && target !== undefined && targetMode?.toLowerCase() !== "external") {
+      relationships.set(id, decodeXmlAttribute(target));
+    }
+  });
+  parser.on("error", () => {
+    throw new ProjectStoreError("xml-malformed", "OOXML relationship XML is malformed");
+  });
+  parser.write(xml).close();
+  return relationships;
+}
+
+function resolveZipTarget(baseName: string, target: string): string | undefined {
+  const parts = baseName.split("/").slice(0, -1);
+  for (const segment of target.replace(/^\/+/, "").split("/")) {
+    if (segment === "" || segment === ".") {continue;}
+    if (segment === "..") {
+      if (parts.length === 0) {return undefined;}
+      parts.pop();
+    } else {
+      parts.push(segment);
+    }
+  }
+  return parts.length === 0 ? undefined : parts.join("/");
+}
+
 async function parseXlsxValues(sourceVersionId: string, bytes: Uint8Array, maximum: Required<StructuredImportLimits>): Promise<TabularRegion> {
   const entries = await preflightZip(bytes, { maxEntries: maximum.maxArchiveEntries, maxExpandedBytes: maximum.maxExpandedBytes });
   const names = entries.map((entry) => entry.name);
@@ -225,8 +340,9 @@ async function parseXlsxValues(sourceVersionId: string, bytes: Uint8Array, maxim
   if (names.some((name) => /vbaProject|externalLink/iu.test(name))) {markersSet.add("active-content");}
   const markers = [...markersSet].sort();
   const workbook = new TextDecoder().decode(selected.get("xl/workbook.xml") ?? new Uint8Array());
+  const workbookRelationships = parseWorkbookRelationships(new TextDecoder().decode(selected.get("xl/_rels/workbook.xml.rels") ?? new Uint8Array()));
   const sharedStrings = sharedStringsFromXml(new TextDecoder().decode(selected.get("xl/sharedStrings.xml") ?? new Uint8Array()));
-  const sheetNames = Array.from(workbook.matchAll(/<sheet\b[^>]*name="([^"]+)"[^>]*sheetId="(\d+)"/gu), (match) => ({ name: match[1], id: Number(match[2]) }));
+  const sheetNames = parseWorkbookSheets(workbook);
   const values: TabularValue[] = [];
   const diagnostics: string[] = [];
   for (const sheet of sheetNames) {
@@ -234,12 +350,17 @@ async function parseXlsxValues(sourceVersionId: string, bytes: Uint8Array, maxim
       diagnostics.push("cell-limit");
       break;
     }
-    const sheetBytes = selected.get(`xl/worksheets/sheet${sheet.id}.xml`);
-    const xml = new TextDecoder().decode(sheetBytes ?? new Uint8Array());
-    const cellPattern = /<c\b([^>]*)>([\s\S]*?)<\/c>/gu;
-    if (sheetBytes !== undefined) {
-      validateWorksheetXml(xml);
+    const sheetPath = workbookRelationships.has(sheet.relationshipId)
+      ? resolveZipTarget("xl/workbook.xml", workbookRelationships.get(sheet.relationshipId) ?? "")
+      : undefined;
+    const sheetBytes = sheetPath === undefined ? undefined : selected.get(sheetPath);
+    if (sheetBytes === undefined) {
+      diagnostics.push("worksheet-relationship-missing");
+      continue;
     }
+    const xml = new TextDecoder().decode(sheetBytes);
+    const cellPattern = /<c\b([^>]*)>([\s\S]*?)<\/c>/gu;
+    validateWorksheetXml(xml);
     for (const cell of xml.matchAll(cellPattern)) {
       if (values.length >= maximum.maxCells) {
         diagnostics.push("cell-limit");
@@ -259,18 +380,6 @@ async function parseXlsxValues(sourceVersionId: string, bytes: Uint8Array, maxim
       }
       values.push({ sourceVersionId, rawValue, normalizedValue: rawValue.trim() === "" ? null : rawValue, locator: { format: "xlsx", sheetName: sheet.name, cellAddress: address }, ...(formula === undefined ? {} : { formula }), ...(cachedValue === undefined ? {} : { cachedValue }), markers });
     }
-    if (sheetBytes === undefined) {
-      const sheets = await readXlsxFile(Buffer.from(bytes));
-      const rows = sheets.find((candidate) => candidate.sheet === sheet.name)?.data ?? [];
-      for (const [rowIndex, row] of rows.entries()) {
-        for (const [columnIndex, value] of row.entries()) {
-          if (values.length >= maximum.maxCells) {break;}
-          const rawValue = String(value ?? "");
-          if (byteLength(rawValue) > maximum.maxStringBytes) { diagnostics.push("string-limit"); continue; }
-          values.push({ sourceVersionId, rawValue, normalizedValue: normalizeCell(value), locator: { format: "xlsx", sheetName: sheet.name, cellAddress: `${columnName(columnIndex)}${rowIndex + 1}` }, markers });
-        }
-      }
-    }
   }
   if (markers.includes("active-content") || markers.includes("external-relationship")) {diagnostics.push("active-content");}
   return { sourceVersionId, format: "xlsx", values, diagnostics: [...new Set(diagnostics)] };
@@ -281,7 +390,7 @@ export async function parseStructuredPayload(
   format: "bibtex" | "ris" | "csv" | "xlsx",
   bytes: Uint8Array,
   maximum: Required<StructuredImportLimits>
-): Promise<BibliographicSourceRecord[] | TabularRegion> {
+): Promise<BibliographyResult | TabularRegion> {
   if (format === "bibtex" || format === "ris") {
     const input = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     return format === "bibtex" ? bibtexRecords(sourceVersionId, input, maximum) : risRecords(sourceVersionId, input, maximum);
@@ -308,7 +417,7 @@ function structuredExtractor(format: "bibtex" | "ris" | "csv" | "xlsx"): { name:
       : { name: "read-excel-file+saxes", version: "9.3.10+6.0.0", locator: "xlsx-sheet-a1-v1" };
 }
 
-function structuredDerivedArtifact(handle: ProjectHandle, sourceVersionId: string, sourceAccess: "full-text" | "metadata-only" | "abstract-only" | "unavailable", format: "bibtex" | "ris" | "csv" | "xlsx", value: BibliographicSourceRecord[] | TabularRegion): string {
+function structuredDerivedArtifact(handle: ProjectHandle, sourceVersionId: string, sourceAccess: "full-text" | "metadata-only" | "abstract-only" | "unavailable", format: "bibtex" | "ris" | "csv" | "xlsx", value: BibliographyResult | TabularRegion): string {
   const content = JSON.stringify(value);
   const id = `derived-structured-${sha256(new TextEncoder().encode(`${sourceVersionId}:${format}:${content}`))}`;
   try {
@@ -345,7 +454,7 @@ export async function importStructuredSource(handle: ProjectHandle, sourceVersio
   const format = source.format as "bibtex" | "ris" | "csv" | "xlsx";
   const maximum = structuredLimits(provided);
   const bytes = readSourceBytes(handle, sourceVersionId);
-  let parsed: BibliographicSourceRecord[] | TabularRegion;
+  let parsed: BibliographyResult | TabularRegion;
   try {
     const task: StructuredParserTask = { kind: "structured", sourceVersionId, format, bytes, limits: maximum };
     parsed = await runBoundedStructuredParser(task);
@@ -353,15 +462,18 @@ export async function importStructuredSource(handle: ProjectHandle, sourceVersio
     return persistStructuredFailure(handle, sourceVersionId, format, error);
   }
   const extractor = structuredExtractor(format);
-  const diagnostics = "diagnostics" in parsed ? parsed.diagnostics : parsed.length === 0 ? ["malformed-record"] : [];
-  const status = diagnostics.length === 0 && (!Array.isArray(parsed) || parsed.length > 0) ? "complete" : "partial";
+  const bibliography = "kind" in parsed ? parsed : undefined;
+  const tabular = "values" in parsed ? parsed : undefined;
+  const records = bibliography?.records;
+  const diagnostics = bibliography?.diagnostics ?? tabular?.diagnostics ?? (records?.length === 0 ? ["malformed-record"] : []);
+  const status = diagnostics.length === 0 && (tabular === undefined ? (records?.length ?? 0) > 0 : tabular.values.length > 0) ? "complete" : "partial";
   const derivedId = structuredDerivedArtifact(handle, sourceVersionId, source.access, format, parsed);
   const extraction = insertExtraction(handle, sourceVersionId, derivedId, status, extractor.name, extractor.version, extractor.locator);
   updateSourceExtractionStatus(handle, sourceVersionId, status, extractor.name, extractor.version);
   for (const diagnostic of diagnostics) {
     addDiagnostic(handle, sourceVersionId, diagnostic, status === "partial" ? "warning" : "info", `structured import reported ${diagnostic}`, extraction.id);
   }
-  return Array.isArray(parsed) ? persistBibliography(handle, sourceVersionId, parsed) : persistTabular(handle, parsed);
+  return tabular === undefined ? persistBibliography(handle, sourceVersionId, records ?? []) : persistTabular(handle, tabular);
 }
 
 export function listBibliographicRecords(handle: ProjectHandle, sourceVersionId: string): readonly BibliographicSourceRecord[] {
