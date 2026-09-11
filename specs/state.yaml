@@ -5,18 +5,17 @@ active_epic: e06
 active_story: none
 handoff:
   next_skill: review-correction
-  next_command: "Correct E06 review findings, then rerun /bp-review E06"
-  summary: >-
-    Exact approved roadmap revision
-    sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
-    advanced to E06 delivery. E06 plan revision
-    sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
+  next_command: Correct E06 review findings, then rerun /bp-review E06
+  summary: Exact approved roadmap revision sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
+    advanced to E06 delivery. E06 plan revision sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
     has four dependency-ordered vertical stories totaling 21 BCP, 19 P0/P1 scenarios,
     an impact assessment, 16 runnable failing Node.js 24 task checks, and a READY
-    implementation-mode audit. The owner approved this exact plan and three SUS
-    dependency gates at 2026-09-11T00:55:28Z; the current request authorizes implementation.
+    implementation-mode audit. The owner approved this exact plan and three SUS dependency
+    gates at 2026-09-11T00:55:28Z; the current request authorizes implementation.
     Node.js 24.21.0 is provisioned via nvm and .nvmrc. E01-E04 completion remains
-    authoritative in execution-status.yaml. Review pass 2 findings were corrected in commits f57709e and 29212a9. Final local review gates pass on feat/e06-source-intake under Node.js 24.21.0; release remains pending.
+    authoritative in execution-status.yaml. Review pass 2 findings were corrected
+    in commits f57709e and 29212a9. Final local review gates pass on feat/e06-source-intake
+    under Node.js 24.21.0; release remains pending.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -174,13 +173,13 @@ blueprint:
   roadmap_approval: approved_exact_revision
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
-  roadmap_approval_recorded_at: "2026-09-10T22:58:09Z"
+  roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
   first_eligible_epic: e06
   first_tracer_bullet_epic: e05
   selected_epic: e06
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
-  e06_plan_approved_at: "2026-09-11T00:55:28Z"
+  e06_plan_approved_at: '2026-09-11T00:55:28Z'
   e06_plan_approval_source: explicit_owner_message
   audit_plan: READY_implementation_mode_approved
   implementation_start: authorized_current_delivery_request
@@ -204,6 +203,7 @@ metrics:
       calls: 6
       total_seconds: 1097.0
       avg_seconds: 182.83333333333334
+      _start: '2026-09-11T11:15:31Z'
     plan-tests:
       calls: 1
       total_seconds: 440.0

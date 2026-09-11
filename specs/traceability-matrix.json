@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T10:23:17Z",
+  "generated_at": "2026-09-11T11:16:07Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -720,6 +720,12 @@
           "method": "explicit_tag"
         },
         {
+          "file": "src/sources/structured-parser-runtime.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
           "file": "src/sources/structured-worker-runtime.ts",
           "line": 1,
           "confidence": "high",
@@ -738,7 +744,7 @@
           "method": "task_reference"
         }
       ],
-      "link_count": 6
+      "link_count": 7
     },
     {
       "id": "e06s04",
@@ -816,7 +822,7 @@
     ],
     "stale_count": 19,
     "oracle_stats": {
-      "high": 72,
+      "high": 73,
       "medium": 0,
       "low": 19
     }
