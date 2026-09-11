@@ -5,6 +5,15 @@ export type SourceExtractionStatus = "complete" | "partial" | "unsupported" | "f
 export type SourceImportStatus = "pending" | "complete" | "failed";
 export type SourceDiagnosticSeverity = "info" | "warning" | "error";
 
+export interface ExternalExtractionRequest {
+  readonly sourceVersionId: string;
+  readonly content: string | Uint8Array;
+  readonly tool: string;
+  readonly version: string;
+  readonly actor: string;
+  readonly commandId: string;
+}
+
 export interface SourceImportLimits {
   readonly maxBytes?: number;
   readonly maxDiagnosticCount?: number;

@@ -30,3 +30,28 @@ found 0 vulnerabilities
 ```
 
 This evidence verifies the exact direct versions, entry points, licenses and production advisory snapshot. It does not prove parser fidelity or make a sandbox guarantee; adapter tests must still enforce byte-only input, finite limits, inert handling and no external resource access.
+
+## Structured parser adoption
+
+- **Install command:** `npm install --save-exact --ignore-scripts biblatex-csl-converter@3.6.0 csv-parse@7.0.2 read-excel-file@9.3.10 saxes@6.0.0`
+- **Top-level resolution:** `biblatex-csl-converter@3.6.0`, `csv-parse@7.0.2`, `read-excel-file@9.3.10`, and `saxes@6.0.0` resolved exactly.
+- **Advisory result:** `npm audit --omit=dev` reported `found 0 vulnerabilities`.
+- **Supply-chain note:** npm reports `biblatex-csl-converter@3.6.0` as deprecated and recommends a renamed package. The approved E06 plan pins this exact version and requires the LGPL-3.0 notice/source obligations; no replacement was substituted during this build.
+
+| Package | Version | License | Entry/export review | Control decision |
+|---|---:|---|---|---|
+| `biblatex-csl-converter` | 3.6.0 | LGPL-3.0 | ESM/CJS exports with `lib/index.d.ts` | Use only for offline parser conversion; retain LGPL notice/source obligations and no provider/network path. |
+| `csv-parse` | 7.0.2 | MIT | ESM/CJS plus sync/stream exports | Accept for bounded local CSV records. |
+| `read-excel-file` | 9.3.10 | MIT | Explicit Node/universal/browser worker exports | Use Node buffer input only and join values with independently scanned OOXML markers. |
+| `saxes` | 6.0.0 | ISC | `saxes.js`, declarations `saxes.d.ts` | Accept for bounded known OOXML XML parts; reject DTD/entities and never evaluate expressions. |
+
+```text
+$ npm ls --depth=0 biblatex-csl-converter csv-parse read-excel-file saxes
+├── biblatex-csl-converter@3.6.0
+├── csv-parse@7.0.2
+├── read-excel-file@9.3.10
+└── saxes@6.0.0
+
+$ npm audit --omit=dev
+found 0 vulnerabilities
+```

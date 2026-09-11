@@ -184,6 +184,19 @@ function decodeText(bytes: Uint8Array): string {
   }
 }
 
+function expectedMediaType(format: SourceImportRequest["format"]): string {
+  return {
+    text: "text/plain",
+    markdown: "text/markdown",
+    pdf: "application/pdf",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    bibtex: "application/x-bibtex",
+    ris: "application/x-research-info-systems",
+    csv: "text/csv",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  }[format];
+}
+
 function diagnosticsFor(
   artifactVersionId: string,
   operationId: string,
@@ -240,20 +253,19 @@ export function importLocalSource(
   if (operation.status === "failed") {
     handle.db.prepare("UPDATE source_import_operations SET status = 'pending', error_code = NULL, updated_at = ? WHERE command_id = ?").run(new Date().toISOString(), request.commandId);
   }
-  let text: string;
-  try {
-    text = decodeText(bytes);
-  } catch (error) {
-    failSourceImport(handle, request.commandId, error instanceof ProjectStoreError ? error.code : "decode-failed");
-    throw error;
-  }
-  if (request.format !== "text" && request.format !== "markdown") {
-    failSourceImport(handle, request.commandId, "unsupported-format");
-    deny("unsupported-format", "e06s01 accepts only text and Markdown files");
-  }
-  if (request.mediaType !== "text/plain" && request.mediaType !== "text/markdown") {
+  const expected = expectedMediaType(request.format);
+  if (request.mediaType !== expected) {
     failSourceImport(handle, request.commandId, "unsupported-media");
-    deny("unsupported-media", "source media type is not a supported text type");
+    deny("unsupported-media", "source media type does not match the declared format");
+  }
+  let text = "";
+  if (request.format === "text" || request.format === "markdown") {
+    try {
+      text = decodeText(bytes);
+    } catch (error) {
+      failSourceImport(handle, request.commandId, error instanceof ProjectStoreError ? error.code : "decode-failed");
+      throw error;
+    }
   }
   let artifact;
   try {
@@ -277,13 +289,16 @@ export function importLocalSource(
     mediaType: request.mediaType,
     originalName: sourceName(request, stable.safeName),
     access: artifact.access,
-    extractionStatus: "complete",
-    parserName: request.format === "markdown" ? "markdown-text" : "utf8-text",
+    extractionStatus: request.format === "text" || request.format === "markdown" ? "complete" : "pending",
+    parserName: request.format === "markdown" ? "markdown-text" : request.format === "text" ? "utf8-text" : "pending",
     parserVersion: "1",
     createdAt: new Date().toISOString()
   };
   const diagnostics = diagnosticsFor(artifact.id, request.commandId, request, limits.maxDiagnosticDetailLength).slice(0, limits.maxDiagnosticCount);
-  completeSourceImport(handle, operation, source, lineLocators(artifact.id, text, request.format === "markdown"), diagnostics);
+  const locators = request.format === "text" || request.format === "markdown"
+    ? lineLocators(artifact.id, text, request.format === "markdown")
+    : [];
+  completeSourceImport(handle, operation, source, locators, diagnostics);
   return resultFor(handle, request.commandId, source);
 }
 

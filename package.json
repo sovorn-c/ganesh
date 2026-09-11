@@ -19,9 +19,13 @@
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",
     "@types/yauzl": "3.4.0",
+    "biblatex-csl-converter": "3.6.0",
+    "csv-parse": "7.0.2",
     "mammoth": "1.12.2",
     "parse5": "8.0.1",
     "pdfjs-dist": "6.3.289",
+    "read-excel-file": "9.3.10",
+    "saxes": "6.0.0",
     "yauzl": "3.4.0"
   },
   "devDependencies": {

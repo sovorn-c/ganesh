@@ -139,6 +139,31 @@ export function listSourceSegments(handle: ProjectHandle, sourceVersionId: strin
   }));
 }
 
+export function insertSourceRecord(handle: ProjectHandle, sourceVersionId: string, recordKind: string, data: Record<string, unknown>, locator: Record<string, unknown>, access: ArtifactAccess = "metadata-only"): string {
+  assertWritable(handle);
+  const id = newId("source-record");
+  handle.db.prepare(
+    "INSERT INTO source_records (id, source_version_id, record_kind, record_data, locator, access_level, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(id, sourceVersionId, recordKind, JSON.stringify(data), JSON.stringify(locator), access, isoNow());
+  return id;
+}
+
+export function listSourceRecords(handle: ProjectHandle, sourceVersionId: string, recordKind?: string): readonly Record<string, unknown>[] {
+  assertSourceSchema(handle);
+  const rows = recordKind === undefined
+    ? handle.db.prepare("SELECT * FROM source_records WHERE source_version_id = ? ORDER BY id").all(sourceVersionId)
+    : handle.db.prepare("SELECT * FROM source_records WHERE source_version_id = ? AND record_kind = ? ORDER BY id").all(sourceVersionId, recordKind);
+  return (rows as Array<Record<string, unknown>>).map((row) => ({
+    id: rowText(row, "id"),
+    sourceVersionId: rowText(row, "source_version_id"),
+    recordKind: rowText(row, "record_kind"),
+    data: JSON.parse(rowText(row, "record_data")) as Record<string, unknown>,
+    locator: JSON.parse(rowText(row, "locator")) as Record<string, unknown>,
+    access: rowText(row, "access_level") as ArtifactAccess,
+    createdAt: rowText(row, "created_at")
+  }));
+}
+
 export function listSourceExtractions(handle: ProjectHandle, sourceVersionId: string): readonly SourceExtractionRecord[] {
   assertSourceSchema(handle);
   const rows = handle.db.prepare(
