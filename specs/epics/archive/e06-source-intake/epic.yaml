@@ -47,8 +47,8 @@ bcp_estimate:
   basis: Four vertical story slices total 21 BCP after inspection of existing artifact,
     policy, authority and SQLite contracts. Parser supply-chain and hostile-input
     behavior remain implementation verification obligations.
-status: review_pending
-planning_stage: implementation_complete_correction_pending_final_review
+status: complete
+planning_stage: complete
 risk: P0
 story_planning: complete
 requirement_deltas:
@@ -126,9 +126,8 @@ stories:
   depends_on: [e06s01, e06s02, e06s03]
   spec_file: e06s04-reviewable-source-matching-and-permission-gated-inspection.md
   tasks_file: e06s04-tasks.yaml
-capsule_dir: epics/e06-source-intake
-next_gate: review_correction
-next_skill_after_gate: review-correction
+capsule_dir: epics/archive/e06-source-intake
+next_skill: bp-plan
 plan_approval: approved_exact_revision
 plan_approval_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
 plan_approved_at: "2026-09-11T00:55:28Z"

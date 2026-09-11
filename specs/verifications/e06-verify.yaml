@@ -1,0 +1,73 @@
+---
+epic_id: e06
+title: Local import and source inspection
+verified_at: "2026-09-11T11:21:45Z"
+verifier: local-release-gate
+branch: main
+runtime: Node.js 24.21.0
+status: passed
+stories:
+  e06s01:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e06s01-verify.yaml
+  e06s02:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e06s02-verify.yaml
+  e06s03:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e06s03-verify.yaml
+  e06s04:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e06s04-verify.yaml
+checks:
+  tests:
+    passed: true
+    command: npm test
+    evidence: 90/90 tests passed
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: Node.js 24 ready; execution mode not_configured remained a documented non-blocking warning
+  coverage:
+    passed: true
+    command: node --experimental-test-coverage --test dist/tests/*/*.test.js
+    evidence: 84.80% lines, 71.55% branches, 92.80% functions
+  dependency_audit:
+    passed: true
+    command: npm audit --audit-level=high
+    evidence: 0 vulnerabilities
+  traceability:
+    passed: true
+    command: bash scripts/trace-stories.sh --strict
+    evidence: 19 stories, 0 dark stories, 19 mapped scenarios
+  security:
+    passed: true
+    evidence: specs/security/REVIEW.md E06 local release gate
+summary:
+  task_verifications: 16
+  task_verifications_passing: 16
+  mapped_scenarios: 19
+  critical_blind_spots: 0
+  low_informational_blind_spots: 19
+  acceptance_coverage: [AC-05, AC-10, AC-20]
+  originals_immutable: true
+  metadata_only_access: true
+  parser_execution_bounded: true
+  production_readiness_claimed: false

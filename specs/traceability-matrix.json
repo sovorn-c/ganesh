@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T11:16:07Z",
+  "generated_at": "2026-09-11T11:24:08Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -636,7 +636,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e06-source-intake/e06s01-tasks.yaml",
+          "file": "specs/epics/archive/e06-source-intake/e06s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -684,7 +684,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e06-source-intake/e06s02-tasks.yaml",
+          "file": "specs/epics/archive/e06-source-intake/e06s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -738,7 +738,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e06-source-intake/e06s03-tasks.yaml",
+          "file": "specs/epics/archive/e06-source-intake/e06s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -774,7 +774,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e06-source-intake/e06s04-tasks.yaml",
+          "file": "specs/epics/archive/e06-source-intake/e06s04-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"

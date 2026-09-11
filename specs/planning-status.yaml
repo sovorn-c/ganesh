@@ -1,30 +1,11 @@
 ---
 level: epic_story_plan
 discovery: confirmed
-architecture: selected_and_approved_for_blueprint
-scope: complete_and_approved
-initialization: acknowledged_node24_baseline
-release_index: approved
-release_index_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
-roadmap_approval:
-  status: approved
-  revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
-  source: owner_requested_e06_bp_plan_after_ready_checkpoint
-  recorded_at: "2026-09-10T22:58:09Z"
-selected_epic: e06
-selection_basis: first_dependency_eligible_unfinished_epic_in_approved_release_order
-first_tracer_bullet_epic: e05
-story_slicing: complete_four_vertical_slices
-story_bcps: 21
-test_planning: complete_19_risk_ranked_scenarios
-story_planning: complete_16_runnable_failing_tasks
-audit: READY_implementation_complete_review_pending
-plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
-plan_approval: approved_exact_revision
-plan_approval_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
-plan_approved_at: "2026-09-11T00:55:28Z"
-plan_approval_source: explicit_owner_message
-implementation_authorized: true
-implementation_authorized_at: "2026-09-11T08:25:37Z"
-implementation_authorization_source: explicit_delivery_loop_request
-next_command: "/bp-review E06"
+architecture: selected_for_blueprint
+scope: complete
+release_index: complete
+audit: READY_for_bp_plan
+story_slicing: pending
+test_planning: pending
+story_planning: pending
+next_command: "/bp-plan"

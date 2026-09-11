@@ -4,7 +4,7 @@ development_status:
   e02: done
   e03: done
   e04: done
-  e06: review_pending
+  e06: done
   e05: backlog
   e14: backlog
   e07: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e06_review_pending
+planning_level: e06_complete
 active_epic: e06
 active_story: none
-note: E06 build completed across four dependency-ordered stories. Correction commits f57709e and 29212a9 close the review findings; 16 task checks and the final 88-test Node.js 24 suite pass. Final independent review and local release remain pending. E01-E04 completion remains unchanged.
+note: E06 was released locally on main after final whole-epic review and Node.js 24 checks. All four stories, 16 task verifications, 19 mapped scenarios, and the 90-test suite pass; the preflight execution-mode warning remains non-blocking. E01-E04 completion remains unchanged; later epics remain backlog.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -176,7 +176,7 @@ epics:
         tasks_failing: 0
   e06:
     title: Local import and source inspection
-    status: review_blocked
+    status: complete
     stories:
       e06s01:
         title: Immutable Local Text and Markdown Intake
@@ -218,7 +218,7 @@ epics:
         tasks_failing: 0
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-10T08:47:33Z"
-  rationale: "All four e04 stories have explicit implementation and test tags, passing task verification evidence across 16 tasks, no dark stories, no critical blind spots, and a 0.2200 heuristic ratio below the downgrade threshold; stale done-story tags are informational."
+  generated_at: "2026-09-11T11:21:45Z"
+  rationale: "All 19 stories are traceable with no dark stories; all four e06 stories have passing task evidence across 16 task checks, 19 mapped scenarios, and no critical blind spots. The 0.2200 heuristic ratio is below the downgrade threshold; 19 stale done-story tags are informational."
   heuristic_ratio: 0.22
   downgrade_applied: false

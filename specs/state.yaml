@@ -1,21 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: epic_review_pending
+active_flow: release_complete
 active_epic: e06
 active_story: none
 handoff:
-  next_skill: review-correction
-  next_command: Correct E06 review findings, then rerun /bp-review E06
-  summary: Exact approved roadmap revision sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
-    advanced to E06 delivery. E06 plan revision sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
-    has four dependency-ordered vertical stories totaling 21 BCP, 19 P0/P1 scenarios,
-    an impact assessment, 16 runnable failing Node.js 24 task checks, and a READY
-    implementation-mode audit. The owner approved this exact plan and three SUS dependency
-    gates at 2026-09-11T00:55:28Z; the current request authorizes implementation.
-    Node.js 24.21.0 is provisioned via nvm and .nvmrc. E01-E04 completion remains
-    authoritative in execution-status.yaml. Review pass 2 findings were corrected
-    in commits f57709e and 29212a9. Final local review gates pass on feat/e06-source-intake
-    under Node.js 24.21.0; release remains pending.
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: >-
+    E06 source intake was released locally on main after final whole-epic review and
+    Node.js 24 checks. Four stories and 16 task verifications pass, with 19 mapped
+    scenarios and a 90-test suite. The local release is complete; production release
+    readiness, remote CI, publishing, deployment, and the separate release-check gate
+    remain intentionally unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -33,7 +29,7 @@ discovery:
   implementation_started: true
   compatibility_verified: true
   e06_build: complete
-  e06_review: pending_final_review
+  e06_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -60,25 +56,25 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 42
+      commits: 60
     smoke:
       node_version: passed
       npm_version: passed
     blockers: []
   survey:
     phase: Release
-    rationale: E04's dependency-ordered stories, task ledgers, implementation, NFR
-      evidence, whole-epic review pass 2, and Node.js 24 release checks passed before
-      the local merge to main. The pre-build Discover snapshot is retained below as
+    rationale: E06's dependency-ordered stories, task ledgers, implementation, NFR
+      evidence, whole-epic review, and Node.js 24 release checks passed before the
+      local merge to main. The pre-build Discover snapshot is retained below as
       history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: main
-      commits: 42
-      implementation_files: 41
-      package_manifests: 2
-      test_files: 18
+      commits: 60
+      implementation_files: 56
+      package_manifests: 3
+      test_files: 22
     baseline:
       tests: passed
       lint: passed
@@ -163,6 +159,9 @@ discovery:
     with the Ruby blueprint gate.
   - E04 task ledgers, NFR evidence, and whole-epic review pass 2 passed on the feature
     branch; the branch was merged locally into main after Node.js 24 release checks.
+  - E06 task ledgers, NFR evidence, whole-epic review, and Node.js 24 release checks
+    passed on the feature branch; the branch was merged locally into main without a
+    push, tag, PR, publish, deploy, or production-readiness claim.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -185,7 +184,7 @@ blueprint:
   implementation_start: authorized_current_delivery_request
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e04_complete;e06_planned_approved_pending_implementation_start;e05_e07_e18_deferred_to_bp_plan
+  story_planning: e01_e04_e06_complete;e05_e07_e18_deferred_to_bp_plan
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md

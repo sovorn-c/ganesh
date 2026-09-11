@@ -1,0 +1,42 @@
+story_id: e06s02
+spec: e06s02-located-pdf-and-docx-extraction.md
+title: Located PDF and DOCX Extraction
+status: passing
+bcps: 6
+tasks:
+  - id: e06s02-t01
+    description: Install the exact PDF/DOCX/HTML/ZIP packages with --ignore-scripts, inspect source/exports/licenses/notices, and append command/advisory/offline findings to specs/verifications/e06-parser-dependencies.md before adapter adoption.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && test -f specs/verifications/e06-parser-dependencies.md && grep -q -- '--ignore-scripts' specs/verifications/e06-parser-dependencies.md && grep -q 'pdfjs-dist@6.3.289' specs/verifications/e06-parser-dependencies.md && npm ls --depth=0 pdfjs-dist@6.3.289 mammoth@1.12.2 parse5@8.0.1 yauzl@3.4.0 @types/yauzl@3.4.0 && npm run build && node --test --test-name-pattern='e06s02.*(dependency|license|offline|adapter)' dist/tests/*/*.test.js && npm audit --omit=dev"
+    risk: P0
+    scenarios: [SC-e06s02-P0-04, SC-e06s02-P0-05]
+    status: passing
+    allure:
+      severity: critical
+      categories: [supply-chain, parsers, Security Review]
+  - id: e06s02-t02
+    description: Extract text-based PDF content in a bounded worker, register exact derived text with source dependency and parser provenance, and persist stable one-based page locators and loss diagnostics.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e06s02.*(pdf|page|derived|provenance|loss)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s02-P0-01, SC-e06s02-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [pdf, locators, provenance]
+  - id: e06s02-t03
+    description: Extract DOCX paragraphs and table cells in a bounded worker, retain raw structure coordinates, and register externally supplied OCR as a separate derived extraction with tool/version provenance.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e06s02.*(docx|paragraph|table|ocr|provenance)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s02-P0-02, SC-e06s02-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [docx, locators, extraction]
+  - id: e06s02-t04
+    description: Fail safely on image-only, corrupt, encrypted, oversized, archive-bomb, timed-out and active-content documents without executing scripts, macros, relationships or remote resources, then run inherited regression checks.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e06s02.*(image.only|corrupt|encrypted|oversiz|archive|timeout|active|regression)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s02-P0-03, SC-e06s02-P0-04, SC-e06s02-P0-05]
+    status: passing
+    allure:
+      severity: critical
+      categories: [adversarial, resource-limits, Security Review]

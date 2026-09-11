@@ -82,8 +82,8 @@ epics:
   - R04
 - id: e06
   title: Local import and source inspection
-  capsule_dir: epics/e06-source-intake
-  file: epics/e06-source-intake/epic.yaml
+  capsule_dir: epics/archive/e06-source-intake
+  file: epics/archive/e06-source-intake/epic.yaml
   sequence: 5
   depends_on:
   - e02

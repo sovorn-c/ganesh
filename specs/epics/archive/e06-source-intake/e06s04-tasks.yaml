@@ -1,0 +1,42 @@
+story_id: e06s04
+spec: e06s04-reviewable-source-matching-and-permission-gated-inspection.md
+title: Reviewable Source Matching and Permission-Gated Inspection
+status: passing
+bcps: 4
+tasks:
+  - id: e06s04-t01
+    description: Apply versioned doi-v1 and title-author-year-v1 matching, bounded candidate scans and deterministic tie ordering, then persist reviewable exact-duplicate, related-version and possible-match proposals without merge or deletion.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e06s04.*(doi.v1|title.author.year.v1|threshold|tie|duplicate|related|preprint|correction|possible|distinct)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s04-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [source-identity, deduplication, integrity]
+  - id: e06s04-t02
+    description: Inspect source metadata, access, integrity, extraction status, diagnostics and permitted located content without treating metadata identity or unsupported extraction as full-text verification.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e06s04.*(inspect|metadata.only|unavailable|integrity|quotation|locator)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [inspection, access, research-integrity]
+  - id: e06s04-t03
+    description: Authorize local viewer descriptors through the additive inspection operation and downstream handoff through its actual operation, only after project capability, path, artifact integrity/access and current disclosure checks; return no path/content on denial and never launch or fall back remotely.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e06s04.*(viewer|handoff|capability|disclosure|withdraw|deny|fallback)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s04-P0-03, SC-e06s04-P0-04, SC-e06s04-P0-05]
+    status: passing
+    allure:
+      severity: critical
+      categories: [authority, privacy, Security Review]
+  - id: e06s04-t04
+    description: Exercise AC-05, AC-10 and AC-20 across metadata-only evidence, related versions, forged/wrong-project capabilities, corrupt sources and revoked permission, then run the full Node.js 24 quality gate.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e06s04.*(AC.05|AC.10|AC.20|forg|wrong.project|corrupt|revok)' dist/tests/*/*.test.js"
+    risk: P0
+    scenarios: [SC-e06s04-P0-01, SC-e06s04-P0-02, SC-e06s04-P0-03, SC-e06s04-P0-04, SC-e06s04-P0-05]
+    status: passing
+    allure:
+      severity: critical
+      categories: [acceptance, adversarial, regression]
