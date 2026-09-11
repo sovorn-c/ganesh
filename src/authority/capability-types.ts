@@ -7,7 +7,11 @@ export const OWNER_OPERATIONS: readonly string[] = [
   "canonical-project-write",
   "delete-project",
   "grant-policy",
-  "withdraw-policy"
+  "withdraw-policy",
+  "work:authorize-contract",
+  "work:grant-standing-permission",
+  "work:cancel",
+  "work:revise-contract"
 ];
 
 export interface WorkerCapabilityScope {

@@ -6,7 +6,7 @@ Use [../execution-status.yaml](../execution-status.yaml) for delivery status and
 
 The current implementation uses TypeScript, Node.js 24, SQLite project state, and local artifact files. Source entrypoints remain at `src/`; implementation modules now live in responsibility folders. Tests now live under `tests/` in matching responsibility folders and use behavior-based names.
 
-The owner-approved organization refactor is implemented, verified, and reviewed on `main`. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E05 remains paused until its planning workflow is explicitly resumed.
+The owner-approved organization refactor is implemented, verified, and reviewed on `main`. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. The E05 plan is owner-approved; implementation starts on `/bp-build`.
 
 ## Repository organization contract
 
@@ -20,7 +20,7 @@ Preserve public APIs, runtime behavior, stored data, authority enforcement, and 
 
 ## Planning signals
 
-- Keep E05 paused until the organization refactor passes final verification and implementation review.
+- Start E05 implementation only from `/bp-build` against the owner-approved exact plan revision.
 - Reuse the existing manifest, lockfile, and Node.js 24 commands.
 - Run applicable checks in the foreground under Node.js 24, not the host Node.js 26.
 - Keep work in the current workspace; use an authorized branch and no automatic commits or pushes.

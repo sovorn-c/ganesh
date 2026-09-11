@@ -355,7 +355,7 @@ export function checkLifecyclePolicy(
   }
 
   // 4. Capability & canonical write check for acceptance
-  if (phase === "acceptance" || options?.requireCanonicalWrite) {
+  if ((phase === "acceptance" && options?.allowCandidateSubmission !== true) || options?.requireCanonicalWrite) {
     const cap = options?.capability;
     if (!cap) {
       updateLifecycleOperationStatus(handle, op.id, "blocked");

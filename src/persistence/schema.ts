@@ -103,6 +103,7 @@ export function createSchema(db: DatabaseSync): void {
   createE03Schema(db);
   createE04Schema(db);
   createE06Schema(db);
+  createE05Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -500,6 +501,119 @@ export function createE06Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE05Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS work_contracts (
+      id TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      parent_contract_id TEXT,
+      budget_group_id TEXT NOT NULL,
+      objective TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      input_version_ids TEXT NOT NULL,
+      permitted_roles TEXT NOT NULL,
+      limits TEXT NOT NULL,
+      destination TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      execution_mode TEXT,
+      authorization_basis TEXT NOT NULL,
+      branch_id TEXT,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (id, version),
+      UNIQUE(id, version)
+    );
+    CREATE INDEX IF NOT EXISTS idx_work_contracts_budget ON work_contracts(budget_group_id);
+
+    CREATE TABLE IF NOT EXISTS standing_permissions (
+      id TEXT PRIMARY KEY,
+      owner_id TEXT NOT NULL,
+      objective_pattern TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      role TEXT NOT NULL,
+      input_version_ids TEXT NOT NULL,
+      destination TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      limits TEXT NOT NULL,
+      expires_at TEXT,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS work_runs (
+      id TEXT PRIMARY KEY,
+      contract_id TEXT NOT NULL,
+      contract_version INTEGER NOT NULL,
+      role TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      payload_hash TEXT NOT NULL,
+      operation_id TEXT NOT NULL UNIQUE REFERENCES lifecycle_operations(id),
+      input_version_ids TEXT NOT NULL,
+      reserved TEXT NOT NULL,
+      status TEXT NOT NULL,
+      session_id TEXT,
+      failure_reason TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY(contract_id, contract_version) REFERENCES work_contracts(id, version)
+    );
+    CREATE INDEX IF NOT EXISTS idx_work_runs_contract ON work_runs(contract_id, contract_version, status);
+
+    CREATE TABLE IF NOT EXISTS work_candidates (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES work_runs(id),
+      artifact_version_id TEXT,
+      diagnostics TEXT NOT NULL,
+      source_version_ids TEXT NOT NULL,
+      status TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS work_budget_ledger (
+      id TEXT PRIMARY KEY,
+      budget_group_id TEXT NOT NULL,
+      contract_id TEXT NOT NULL,
+      run_id TEXT NOT NULL,
+      dimension TEXT NOT NULL,
+      reserved REAL NOT NULL DEFAULT 0,
+      spent REAL NOT NULL DEFAULT 0,
+      uncertain INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_work_budget_group ON work_budget_ledger(budget_group_id, dimension);
+
+    CREATE TABLE IF NOT EXISTS work_disagreements (
+      id TEXT PRIMARY KEY,
+      contract_id TEXT NOT NULL,
+      question TEXT NOT NULL,
+      left_role TEXT NOT NULL,
+      right_role TEXT NOT NULL,
+      left_candidate_version_id TEXT NOT NULL,
+      right_candidate_version_id TEXT NOT NULL,
+      left_source_basis TEXT NOT NULL,
+      right_source_basis TEXT NOT NULL,
+      revision_count INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS provider_attempts (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES work_runs(id),
+      destination TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      attempt INTEGER NOT NULL,
+      outcome TEXT NOT NULL,
+      pricing TEXT NOT NULL,
+      session_id TEXT,
+      created_at TEXT NOT NULL
+    );
+  `);
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -514,6 +628,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE03Schema(db);
       createE04Schema(db);
       createE06Schema(db);
+      createE05Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY
