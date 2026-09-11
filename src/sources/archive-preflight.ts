@@ -1,3 +1,4 @@
+// story: e06s02
 import { fromBufferPromise, type Entry } from "yauzl";
 import { ProjectStoreError } from "../project/project-types.js";
 

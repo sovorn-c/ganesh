@@ -1,3 +1,4 @@
+// story: e06s03
 import type { ArtifactAccess } from "../project/project-types.js";
 
 export interface BibliographicSourceRecord {

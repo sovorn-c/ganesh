@@ -1,3 +1,4 @@
+// story: e06s04
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
 import { isOwnerCapability, isWorkerCapability } from "../authority/capability-broker.js";
 import { isoNow, newId } from "../persistence/storage-utils.js";

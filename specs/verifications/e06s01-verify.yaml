@@ -1,0 +1,44 @@
+story_id: e06s01
+verified_at: "2026-09-11T09:27:45Z"
+verifier: correction-fork-1
+branch: feat/e06-source-intake
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  typecheck:
+    passed: true
+    command: "npm run typecheck"
+  lint:
+    passed: true
+    command: "npm run lint"
+  build:
+    passed: true
+    command: "npm run build"
+  tests:
+    passed: true
+    commands:
+      - "e06s01-t01 task verify: node 24 guard, npm run build, schema/source record/reopen/migration/atomic/retry/recovery/orphan pattern"
+      - "e06s01-t02 task verify: node 24 guard, npm run build, capability/path/symlink/project/limit/mutation pattern"
+      - "e06s01-t03 task verify: node 24 guard, npm run build, text/markdown/original/locator/diagnostic pattern"
+      - "e06s01-t04 task verify: node 24 guard, typecheck, lint, build, npm test, local-only/failure/redact/regression pattern"
+    evidence: "All four e06s01 task verify commands passed; full suite passed 84 tests."
+  preflight:
+    passed: true
+    command: "npm run preflight"
+    evidence: "Exit 0; required Node, npm, dependencies, configuration, and tools ready. Execution mode remained the documented non-blocking not_configured warning."
+  security:
+    passed: true
+    command: "npm audit --omit=dev"
+    evidence: "found 0 vulnerabilities"
+manual:
+  steps:
+    - step: "Import, reopen, and inspect local text/Markdown source"
+      expected: "Immutable originals, exact hashes, stable UTF-8 locators, local-only access, diagnostics, and atomic retry state remain inspectable."
+      actual: "e06s01 integration tests passed."
+      passed: true
+    - step: "Exercise capability, path, symlink, size, mutation, failure, and redaction controls"
+      expected: "Unauthorized or hostile inputs do not produce complete source records or leak restricted values."
+      actual: "e06s01 adversarial and regression tests passed."
+      passed: true
+gaps:
+  closed: true

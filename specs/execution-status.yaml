@@ -4,7 +4,7 @@ development_status:
   e02: done
   e03: done
   e04: done
-  e06: backlog
+  e06: review_blocked
   e05: backlog
   e14: backlog
   e07: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e04_complete
-active_epic: e04
-active_story: e04s04
-note: E04 was released locally after whole-epic review pass 2 and Node.js 24 release checks. All four stories and 16 task verifications are complete; later epics remain blueprint-only and backlog.
+planning_level: e06_review_blocked
+active_epic: e06
+active_story: none
+note: E06 build completed across four dependency-ordered stories and 16 passing Node.js 24 task checks. Review is blocked by missing story verification evidence, a whitespace gate failure, and implementation/test-plan mismatches; local release remains pending. E01-E04 completion remains unchanged.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -167,6 +167,48 @@ epics:
         tasks_failing: 0
       e04s04:
         title: Reasoned Scholarly Overrides and Non-Waivable Gates
+        status: done
+        planning_status: ready
+        bcps: 4
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+  e06:
+    title: Local import and source inspection
+    status: review_blocked
+    stories:
+      e06s01:
+        title: Immutable Local Text and Markdown Intake
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        started_at: "2026-09-11T08:25:37Z"
+        completed_at: "2026-09-11T08:36:09Z"
+      e06s02:
+        title: Located PDF and DOCX Extraction
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e06s03:
+        title: Located Bibliographic and Tabular Imports
+        status: done
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e06s04:
+        title: Reviewable Source Matching and Permission-Gated Inspection
         status: done
         planning_status: ready
         bcps: 4

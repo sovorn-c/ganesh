@@ -1,0 +1,44 @@
+story_id: e06s04
+verified_at: "2026-09-11T09:27:45Z"
+verifier: correction-fork-1
+branch: feat/e06-source-intake
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  typecheck:
+    passed: true
+    command: "npm run typecheck"
+  lint:
+    passed: true
+    command: "npm run lint"
+  build:
+    passed: true
+    command: "npm run build"
+  tests:
+    passed: true
+    commands:
+      - "e06s04-t01 task verify: Node 24 guard, build, DOI/title-author-year/threshold/tie/duplicate/relationship/match pattern"
+      - "e06s04-t02 task verify: Node 24 guard, build, inspection/access/integrity/quotation/locator pattern"
+      - "e06s04-t03 task verify: Node 24 guard, build, viewer/handoff/capability/disclosure/withdraw/deny/fallback pattern"
+      - "e06s04-t04 task verify: Node 24 guard, typecheck, lint, build, npm test, AC-05/AC-10/AC-20 and adversarial pattern"
+    evidence: "All four e06s04 task verify commands passed; source matching/inspection tests passed and full suite passed 84 tests."
+  preflight:
+    passed: true
+    command: "npm run preflight"
+    evidence: "Exit 0 with Node.js 24.x ready; execution mode remained the documented non-blocking not_configured warning."
+  security:
+    passed: true
+    command: "npm audit --omit=dev"
+    evidence: "found 0 vulnerabilities"
+manual:
+  steps:
+    - step: "Propose exact and fuzzy source relationships"
+      expected: "DOI and title/author/year matches remain proposals with visible bases and distinct immutable versions."
+      actual: "e06s04 matching tests passed."
+      passed: true
+    - step: "Inspect and hand off located source content"
+      expected: "Metadata-only, unavailable, corrupt, forged-capability, wrong-project, disclosure, withdrawal, and no-fallback cases remain denied or bounded."
+      actual: "AC-05, AC-10, and AC-20 tests passed."
+      passed: true
+gaps:
+  closed: true

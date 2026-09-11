@@ -1,4 +1,11 @@
+// story: e06s02
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import mammoth from "mammoth";
+import { parseFragment, type DefaultTreeAdapterTypes } from "parse5";
+
+type ChildNode = DefaultTreeAdapterTypes.ChildNode;
+type Element = DefaultTreeAdapterTypes.Element;
+type ParentNode = DefaultTreeAdapterTypes.ParentNode;
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
 import { getArtifactVersion, registerArtifactVersion } from "../artifacts/artifact-store.js";
 import { assertWritable } from "../project/project-store.js";
@@ -15,7 +22,7 @@ import {
   updateSourceExtractionStatus
 } from "./source-store.js";
 import { preflightZip, readZipEntries } from "./archive-preflight.js";
-import { assertParserOutput, parserLimits, runBoundedParser, type ParserLimits } from "./parser-worker.js";
+import { assertParserOutput, runBoundedParser, type DocumentParserTask, type ParserLimits } from "./parser-worker.js";
 
 export interface DocumentExtractionLimits extends ParserLimits {
   readonly maxArchiveEntries?: number;
@@ -51,14 +58,6 @@ export interface DocumentExtractionResult {
   readonly segments: readonly LocatedSourceSegment[];
   readonly diagnostics: readonly ReturnType<typeof listSourceDiagnostics>[number][];
   readonly createdAt: string;
-}
-
-function decodeXml(value: string): string {
-  return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
-}
-
-function textInXml(xml: string): string {
-  return Array.from(xml.matchAll(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/gu), (match) => decodeXml(match[1])).join("");
 }
 
 function pdfString(value: string): string {
@@ -150,33 +149,77 @@ function docxDiagnostics(xml: string, names: readonly string[]): ParserDiagnosti
   return diagnostics;
 }
 
-function parseDocxXml(xml: string, diagnostics: ParserDiagnostic[]): ParsedDocument {
-  const segments: ParsedSegment[] = [];
-  const tables = Array.from(xml.matchAll(/<w:tbl\b[\s\S]*?<\/w:tbl>/gu), (match) => match[0]);
-  const withoutTables = xml.replace(/<w:tbl\b[\s\S]*?<\/w:tbl>/gu, "");
-  let paragraphNumber = 0;
-  for (const match of withoutTables.matchAll(/<w:p\b[\s\S]*?<\/w:p>/gu)) {
-    const text = textInXml(match[0]);
-    if (text !== "") {
-      paragraphNumber += 1;
-      segments.push({ text, locator: { kind: "paragraph", algorithm: "docx-structure-v1", paragraphNumber } });
-    }
+function isElement(node: ParentNode | ChildNode): node is Element {
+  return "tagName" in node;
+}
+
+function textInHtml(node: ParentNode | ChildNode): string {
+  if (node.nodeName === "#text" && "value" in node) {
+    return node.value;
   }
+  if (!("childNodes" in node)) {
+    return "";
+  }
+  return node.childNodes.map((child) => textInHtml(child)).join("");
+}
+
+function descendants(node: ParentNode | ChildNode, tagName: string): Element[] {
+  if (!("childNodes" in node)) {
+    return [];
+  }
+  const result: Element[] = [];
+  for (const child of node.childNodes) {
+    if (isElement(child) && child.tagName === tagName) {
+      result.push(child);
+    }
+    result.push(...descendants(child, tagName));
+  }
+  return result;
+}
+
+function parseDocxHtml(html: string, diagnostics: ParserDiagnostic[]): ParsedDocument {
+  const fragment = parseFragment(html);
+  const segments: ParsedSegment[] = [];
+  let paragraphNumber = 0;
   let tableNumber = 0;
-  for (const table of tables) {
-    tableNumber += 1;
-    let rowNumber = 0;
-    for (const row of table.matchAll(/<w:tr\b[\s\S]*?<\/w:tr>/gu)) {
-      rowNumber += 1;
-      let cellNumber = 0;
-      for (const cell of row[0].matchAll(/<w:tc\b[\s\S]*?<\/w:tc>/gu)) {
-        cellNumber += 1;
-        const text = textInXml(cell[0]);
-        if (text !== "") {
-          segments.push({ text, locator: { kind: "table-cell", algorithm: "docx-structure-v1", tableNumber, rowNumber, cellNumber } });
+
+  const visit = (node: ParentNode | ChildNode, inTable: boolean): void => {
+    if (!isElement(node)) {
+      if ("childNodes" in node) {
+        for (const child of node.childNodes) {
+          visit(child, inTable);
         }
       }
+      return;
     }
+    if (node.tagName === "table") {
+      tableNumber += 1;
+      const rows = descendants(node, "tr");
+      rows.forEach((row, rowIndex) => {
+        descendants(row, "td").concat(descendants(row, "th")).forEach((cell, cellIndex) => {
+          const text = textInHtml(cell).replace(/\s+/gu, " ").trim();
+          if (text !== "") {
+            segments.push({ text, locator: { kind: "table-cell", algorithm: "docx-structure-v1", tableNumber, rowNumber: rowIndex + 1, cellNumber: cellIndex + 1 } });
+          }
+        });
+      });
+      return;
+    }
+    if (node.tagName === "p" && !inTable) {
+      const text = textInHtml(node).replace(/\s+/gu, " ").trim();
+      if (text !== "") {
+        paragraphNumber += 1;
+        segments.push({ text, locator: { kind: "paragraph", algorithm: "docx-structure-v1", paragraphNumber } });
+      }
+      return;
+    }
+    for (const child of node.childNodes) {
+      visit(child, inTable || node.tagName === "table");
+    }
+  };
+
+  for (const child of fragment.childNodes) {
+    visit(child, false);
   }
   if (segments.length === 0) {
     diagnostics.push({ code: "unsupported-empty-document", severity: "warning", detail: "DOCX contained no supported paragraph or table text" });
@@ -210,7 +253,24 @@ async function parseDocx(bytes: Uint8Array, limits: DocumentExtractionLimits): P
     throw new ProjectStoreError("docx-missing-document", "DOCX does not contain word/document.xml");
   }
   const xml = new TextDecoder("utf-8", { fatal: true }).decode(document);
-  return parseDocxXml(xml, docxDiagnostics(xml, names));
+  const diagnostics = docxDiagnostics(xml, names);
+  const converted = await mammoth.convertToHtml({ buffer: Buffer.from(bytes) }, {
+    externalFileAccess: false,
+    styleMap: ["p => p:fresh"],
+    convertImage: mammoth.images.imgElement(async () => ({ src: "" }))
+  });
+  for (const message of converted.messages) {
+    diagnostics.push({ code: `mammoth-${message.type}`, severity: message.type === "error" ? "error" : "warning", detail: message.message });
+  }
+  return parseDocxHtml(converted.value, diagnostics);
+}
+
+export async function parseDocumentForWorker(
+  format: "pdf" | "docx",
+  bytes: Uint8Array,
+  limits: DocumentExtractionLimits
+): Promise<ParsedDocument> {
+  return format === "pdf" ? parsePdf(bytes, limits) : parseDocx(bytes, limits);
 }
 
 function derivedVersionId(sourceVersionId: string, text: string, extractorVersion: string): string {
@@ -280,7 +340,8 @@ export async function extractDocumentSource(
   const bytes = readSourceBytes(handle, sourceVersionId);
   let parsed: ParsedDocument;
   try {
-    parsed = await runBoundedParser(bytes.byteLength, limits, () => source.format === "pdf" ? parsePdf(bytes, limits) : parseDocx(bytes, limits));
+    const task: DocumentParserTask = { kind: "document", format: source.format, bytes, limits };
+    parsed = await runBoundedParser(bytes.byteLength, limits, task);
     assertParserOutput(new TextEncoder().encode(parsed.text).byteLength, parsed.segments.length, limits);
   } catch (error) {
     const failure: ParsedDocument = {

@@ -1,3 +1,4 @@
+// story: e06s01
 import { readFileSync } from "node:fs";
 import type { DatabaseSync } from "node:sqlite";
 import {

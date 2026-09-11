@@ -1,3 +1,5 @@
+// story: e06s02
+// scenario: SC-e06s02-P0-01, SC-e06s02-P0-02, SC-e06s02-P0-03, SC-e06s02-P0-04, SC-e06s02-P0-05
 import { strictEqual } from "node:assert";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -112,3 +114,17 @@ test("e06s02 corrupt document fails without derived output", async () => {
   }
 });
 
+test("e06s02 parser worker terminates before an expired deadline", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "timeout.pdf");
+  writeFileSync(path, "%PDF-1.7\\nBT (Hello PDF) Tj ET\\n%%EOF");
+  try {
+    const documentApi = await api();
+    const imported = documentApi.importLocalSource(fixture.handle, createOwnerCapability("owner-test"), sourceRequest(path, "pdf"));
+    const result = await documentApi.extractDocumentSource(fixture.handle, imported.source.artifactVersionId, { maxElapsedMs: 0 });
+    strictEqual(result.status, "failed");
+    strictEqual(documentApi.listSourceDiagnostics(fixture.handle, imported.source.artifactVersionId).some((diagnostic) => diagnostic.code === "parser-timeout"), true);
+  } finally {
+    disposeFixture(fixture);
+  }
+});

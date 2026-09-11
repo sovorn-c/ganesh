@@ -1,3 +1,4 @@
+// story: e06s01
 import type { ArtifactAccess, ProjectHandle } from "../project/project-types.js";
 
 export type SourceFormat = "text" | "markdown" | "pdf" | "docx" | "bibtex" | "ris" | "csv" | "xlsx";

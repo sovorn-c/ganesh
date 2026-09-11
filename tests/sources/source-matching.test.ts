@@ -1,3 +1,5 @@
+// story: e06s04
+// scenario: SC-e06s04-P0-01, SC-e06s04-P0-02, SC-e06s04-P0-03, SC-e06s04-P0-04, SC-e06s04-P0-05
 import { strictEqual } from "node:assert";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";

@@ -1,3 +1,4 @@
+// story: e06s04
 import { readFileSync } from "node:fs";
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
 import { isOwnerCapability, isWorkerCapability, readProjectPath } from "../authority/capability-broker.js";

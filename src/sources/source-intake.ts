@@ -1,3 +1,4 @@
+// story: e06s01
 import { basename, resolve } from "node:path";
 import { closeSync, fstatSync, lstatSync, openSync, readSync, realpathSync } from "node:fs";
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";

@@ -1,3 +1,5 @@
+// story: e06s01
+// scenario: SC-e06s01-P0-01, SC-e06s01-P0-02, SC-e06s01-P0-03, SC-e06s01-P1-04
 import { deepStrictEqual, match, strictEqual, throws } from "node:assert";
 import { mkdtempSync, writeFileSync, symlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
