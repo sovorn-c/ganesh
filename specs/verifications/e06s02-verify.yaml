@@ -21,7 +21,7 @@ phases:
       - "e06s02-t02 task verify: Node 24 guard, build, PDF/page/derived/provenance pattern"
       - "e06s02-t03 task verify: Node 24 guard, build, DOCX/paragraph/table/OCR/provenance pattern"
       - "e06s02-t04 task verify: Node 24 guard, typecheck, lint, build, npm test, hostile document/resource/timeout/active-content pattern"
-    evidence: "All four e06s02 task verify commands passed; document extraction tests passed 7/7 and full suite passed 84 tests."
+    evidence: "All four e06s02 task verify commands passed; document extraction tests passed 7/7 and full suite passed 86 tests."
   preflight:
     passed: true
     command: "npm run preflight"

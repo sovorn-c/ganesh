@@ -37,4 +37,7 @@ export interface StructuredImportLimits {
   readonly maxStringBytes?: number;
   readonly maxArchiveEntries?: number;
   readonly maxExpandedBytes?: number;
+  readonly maxOutputBytes?: number;
+  readonly maxElapsedMs?: number;
+  readonly maxMemoryMb?: number;
 }

@@ -242,8 +242,10 @@ export function importLocalSource(
     maxDiagnosticCount: request.limits?.maxDiagnosticCount ?? 16,
     maxDiagnosticDetailLength: request.limits?.maxDiagnosticDetailLength ?? 160
   };
-  const stable = readStableFile(request.path, limits.maxBytes);
+  // Resolve and contain the path before opening it. This prevents a parent-directory
+  // symlink or an outside realpath from being read before the boundary check.
   pathIsContained(handle, request.path);
+  const stable = readStableFile(request.path, limits.maxBytes);
   const bytes = stable.bytes;
   const hash = payloadHash(request, bytes);
   const artifactVersionId = deterministicVersionId(request.commandId, hash);

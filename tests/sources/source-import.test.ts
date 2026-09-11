@@ -117,12 +117,16 @@ test("e06s01 capability path symlink project limit mutation", async () => {
   mkdirSync(`${fixture.root}-sibling`, { recursive: true });
   writeFileSync(path, "safe");
   writeFileSync(sibling, "escape");
+  writeFileSync(join(outside, "notes.txt"), "outside");
   const link = join(fixture.root, "link.txt");
   symlinkSync(path, link);
+  const linkedParent = join(fixture.root, "linked-parent");
+  symlinkSync(outside, linkedParent, "dir");
   try {
     const api = await sourceApi();
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(sibling, "command-sibling")));
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(link, "command-link")));
+    throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(join(linkedParent, "notes.txt"), "command-parent-link")));
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, outside), request(path, "command-project")));
   } finally {
     disposeFixture(fixture);

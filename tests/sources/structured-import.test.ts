@@ -8,7 +8,10 @@ import {
   createOwnerCapability,
   importLocalSource,
   importStructuredSource,
+  inspectArtifactVersion,
   listBibliographicRecords,
+  listSourceDiagnostics,
+  listSourceExtractions,
   listTabularRegions,
   type SourceImportRequest
 } from "../../src/index.js";
@@ -20,9 +23,9 @@ function xlsxRequest(path: string): SourceImportRequest {
   return { commandId: "structured-xlsx-1", path, logicalId: "structured-xlsx", version: "v1", format: "xlsx", mediaType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
 }
 
-function request(path: string, format: "bibtex" | "ris" | "csv"): SourceImportRequest {
+function request(path: string, format: "bibtex" | "ris" | "csv", commandId = `structured-${format}-1`): SourceImportRequest {
   const mediaType = format === "bibtex" ? "application/x-bibtex" : format === "ris" ? "application/x-research-info-systems" : "text/csv";
-  return { commandId: `structured-${format}-1`, path, logicalId: `structured-${format}`, version: "v1", format, mediaType };
+  return { commandId, path, logicalId: `structured-${format}`, version: "v1", format, mediaType };
 }
 
 test("e06s03 XLSX import preserves A1 and formula provenance", async () => {
@@ -101,6 +104,40 @@ test("e06s03 malformed structured input is partial and bounded", async () => {
     const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "csv"));
     const result = await importStructuredSource(fixture.handle, imported.source.artifactVersionId, { maxCells: 1 });
     strictEqual((result as { diagnostics: readonly string[] }).diagnostics.includes("csv-malformed"), true);
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e06s03 structured output has derived container provenance", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "provenance.csv");
+  writeFileSync(path, "Name,Value\nAlice,42\n");
+  try {
+    const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "csv", "structured-provenance"));
+    await importStructuredSource(fixture.handle, imported.source.artifactVersionId);
+    const extraction = listSourceExtractions(fixture.handle, imported.source.artifactVersionId).at(-1);
+    strictEqual(typeof extraction?.derivedVersionId, "string");
+    strictEqual(inspectArtifactVersion(fixture.handle, extraction?.derivedVersionId ?? "").dependencies[0]?.dependencyVersionId, imported.source.artifactVersionId);
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e06s03 structured parser persists bounded failures", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "too-many-fields.bib");
+  writeFileSync(path, "@article{smith2024, title={A Study}, author={Smith, Jane}}\n");
+  let sourceVersionId = "";
+  try {
+    const imported = importLocalSource(fixture.handle, createOwnerCapability("owner-test"), request(path, "bibtex", "structured-limit"));
+    sourceVersionId = imported.source.artifactVersionId;
+    await importStructuredSource(fixture.handle, sourceVersionId, { maxFields: 1 });
+    throw new Error("expected the field limit to fail");
+  } catch (error) {
+    strictEqual((error as { code?: string }).code, "structured-field-limit");
+    strictEqual(listSourceExtractions(fixture.handle, sourceVersionId).at(-1)?.status, "failed");
+    strictEqual(listSourceDiagnostics(fixture.handle, sourceVersionId).some((diagnostic) => diagnostic.code === "structured-field-limit"), true);
   } finally {
     disposeFixture(fixture);
   }
