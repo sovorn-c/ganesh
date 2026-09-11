@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T09:24:17Z",
+  "generated_at": "2026-09-11T10:23:17Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -708,7 +708,19 @@
           "method": "explicit_tag"
         },
         {
+          "file": "src/sources/structured-worker.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
           "file": "src/sources/structured-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-worker-runtime.ts",
           "line": 1,
           "confidence": "high",
           "method": "explicit_tag"
@@ -726,7 +738,7 @@
           "method": "task_reference"
         }
       ],
-      "link_count": 4
+      "link_count": 6
     },
     {
       "id": "e06s04",
@@ -804,7 +816,7 @@
     ],
     "stale_count": 19,
     "oracle_stats": {
-      "high": 70,
+      "high": 72,
       "medium": 0,
       "low": 19
     }

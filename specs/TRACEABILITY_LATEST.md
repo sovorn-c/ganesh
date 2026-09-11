@@ -1,6 +1,6 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-11T09:24:17Z
+**Generated:** 2026-09-11T10:23:17Z
 **Total stories:** 19
 **Dark stories:** 0
 
@@ -25,5 +25,5 @@
 | e04s04 | Reasoned Scholarly Overrides and Non-Waivable Gates | e04 | done | 4 |
 | e06s01 | Immutable Local Text and Markdown Intake | e06 | done | 5 |
 | e06s02 | Located PDF and DOCX Extraction | e06 | done | 6 |
-| e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 4 |
+| e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 6 |
 | e06s04 | Reviewable Source Matching and Permission-Gated Inspection | e06 | done | 4 |
