@@ -1,8 +1,8 @@
 story_id: e06s03
-verified_at: "2026-09-11T10:30:00Z"
+verified_at: "2026-09-11T10:22:54Z"
 verifier: fallback-ownership-fork
 branch: feat/e06-source-intake
-commit: 0b9e64e
+commit: 6d1f2f8
 runtime: Node.js 24.21.0
 status: passed
 phases:
