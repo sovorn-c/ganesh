@@ -1,7 +1,8 @@
 story_id: e06s03
-verified_at: "2026-09-11T09:57:15Z"
-verifier: correction-fork-2
+verified_at: "2026-09-11T10:30:00Z"
+verifier: fallback-ownership-fork
 branch: feat/e06-source-intake
+commit: 0b9e64e
 runtime: Node.js 24.21.0
 status: passed
 phases:
@@ -21,7 +22,7 @@ phases:
       - "e06s03-t02 task verify: Node 24 guard, build, BibTeX/RIS/metadata-only/entry/field/identifier pattern"
       - "e06s03-t03 task verify: Node 24 guard, build, CSV/XLSX/record/column/sheet/cell/formula/link/macro pattern"
       - "e06s03-t04 task verify: Node 24 guard, typecheck, lint, build, npm test, limit/partial/malformed/Unicode/duplicate-header/regression pattern"
-    evidence: "All four e06s03 task verify commands passed; structured import tests passed, including derived container provenance, field/output limits, timeout, and bounded failure persistence; full suite passed 88 tests."
+    evidence: "All four e06s03 task verify commands passed; structured import tests passed, including nested BibTeX raw fields, BibTeX/RIS record-limit diagnostics, custom OOXML worksheet relationships, derived container provenance, field/output limits, timeout, and bounded failure persistence; full suite passed 89 tests."
   preflight:
     passed: true
     command: "npm run preflight"

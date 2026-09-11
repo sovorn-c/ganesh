@@ -254,7 +254,6 @@ function sharedStringsFromXml(xml: string): string[] {
 
 interface WorkbookSheet {
   readonly name: string;
-  readonly sheetId: number;
   readonly relationshipId: string;
 }
 
@@ -272,9 +271,8 @@ function parseWorkbookSheets(xml: string): WorkbookSheet[] {
     const attributes = tag.attributes as Record<string, unknown>;
     const name = xmlAttribute(attributes, "name");
     const relationshipId = xmlAttribute(attributes, "r:id") ?? xmlAttribute(attributes, "id");
-    const sheetId = Number(xmlAttribute(attributes, "sheetId"));
-    if (name !== undefined && relationshipId !== undefined && Number.isInteger(sheetId)) {
-      sheets.push({ name, sheetId, relationshipId });
+    if (name !== undefined && relationshipId !== undefined) {
+      sheets.push({ name, relationshipId });
     }
   });
   parser.on("error", () => {
