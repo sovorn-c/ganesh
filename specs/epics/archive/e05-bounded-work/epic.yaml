@@ -60,7 +60,7 @@ bcp_estimate:
   basis: Five vertical story slices total 34 BCP after inspection of existing lifecycle,
     capability, policy, decision and Pi session-runtime contracts. Real provider
     spend and scholarly specialist quality remain later-epic verification obligations.
-status: review_pending
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -150,12 +150,14 @@ stories:
   depends_on: [e05s01, e05s03, e05s04]
   spec_file: e05s05-provider-degradation-and-session-rebinding.md
   tasks_file: e05s05-tasks.yaml
-capsule_dir: epics/e05-bounded-work
-next_skill: bp-build
+capsule_dir: epics/archive/e05-bounded-work
+next_skill: bp-plan
 plan_approval: approved_exact_revision
 plan_revision: sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373
 plan_approval_revision: sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373
 plan_approved_at: "2026-09-11T20:58:00Z"
 plan_approval_source: explicit_owner_message
 implementation_authorized: true
+implementation_authorized_at: "2026-09-11T22:13:54Z"
+implementation_authorization_source: explicit_delivery_loop_request
 sequence: 6

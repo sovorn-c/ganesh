@@ -5,7 +5,7 @@ development_status:
   e03: done
   e04: done
   e06: done
-  e05: review_pending
+  e05: done
   e14: backlog
   e07: backlog
   e08: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e05_review_pending
+planning_level: e05_complete
 active_epic: e05
 active_story: none
-note: E05 plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373 is owner-approved. E05 correction pass 1 completed on feat/e05-bounded-work with per-story evidence and 98 passing tests; fresh whole-epic review and local release remain pending. E01-E04 and E06 remain complete local releases.
+note: E05 was released locally on main after whole-epic review PASS and Node.js 24 checks. All five stories, 20 task verifications, 19 mapped scenarios, and the 98-test suite pass; the preflight execution-mode warning remains non-blocking. E01-E04 and E06 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -218,7 +218,7 @@ epics:
         tasks_failing: 0
   e05:
     title: Bounded autonomous work and specialist coordination
-    status: review_pending
+    status: complete
     stories:
       e05s01:
         title: Authorized Contract Admits One Least-Privilege Specialist Run

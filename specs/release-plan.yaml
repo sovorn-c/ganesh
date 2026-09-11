@@ -94,8 +94,8 @@ epics:
   - R06
 - id: e05
   title: Bounded autonomous work and specialist coordination
-  capsule_dir: epics/e05-bounded-work
-  file: epics/e05-bounded-work/epic.yaml
+  capsule_dir: epics/archive/e05-bounded-work
+  file: epics/archive/e05-bounded-work/epic.yaml
   sequence: 6
   depends_on:
   - e03

@@ -1,13 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: implementation
+active_flow: release_complete
 active_epic: e05
 active_story: none
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
-  summary: E05 correction pass 1 completed on feat/e05-bounded-work under approved plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373.
-    Five stories, 20 task checks, and 98 tests passed. Fresh epic-level review and local release remain pending; production readiness remains unclaimed.
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: >-
+    E05 bounded autonomous work was released locally on main after final whole-epic
+    review PASS and Node.js 24 checks. Five stories and 20 task verifications pass,
+    with 19 mapped scenarios and a 98-test suite. The local release is complete;
+    production release readiness, remote CI, publishing, deployment, and the separate
+    release-check gate remain intentionally unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -26,6 +30,8 @@ discovery:
   compatibility_verified: true
   e06_build: complete
   e06_review: complete_local_release
+  e05_build: complete
+  e05_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -158,6 +164,10 @@ discovery:
   - E06 task ledgers, NFR evidence, whole-epic review, and Node.js 24 release checks
     passed on the feature branch; the branch was merged locally into main without
     a push, tag, PR, publish, deploy, or production-readiness claim.
+  - E05 task ledgers, per-story evidence, whole-epic review pass 2, security gate, and
+    Node.js 24 release checks passed on the feature branch; the branch was merged
+    locally into main without a push, tag, PR, publish, deploy, or production-readiness
+    claim.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -181,17 +191,17 @@ blueprint:
   e05_plan_approved_at: '2026-09-11T20:58:00Z'
   e05_plan_approval_source: explicit_owner_message
   e05_plan_artifacts:
-  - specs/epics/e05-bounded-work/epic.yaml
-  - specs/epics/e05-bounded-work/e05s01-authorized-contract-and-specialist-run.md
-  - specs/epics/e05-bounded-work/e05s01-tasks.yaml
-  - specs/epics/e05-bounded-work/e05s02-specialist-roles-candidates-and-disagreements.md
-  - specs/epics/e05-bounded-work/e05s02-tasks.yaml
-  - specs/epics/e05-bounded-work/e05s03-cumulative-limits-and-spend-caps.md
-  - specs/epics/e05-bounded-work/e05s03-tasks.yaml
-  - specs/epics/e05-bounded-work/e05s04-cancellation-and-late-output-quarantine.md
-  - specs/epics/e05-bounded-work/e05s04-tasks.yaml
-  - specs/epics/e05-bounded-work/e05s05-provider-degradation-and-session-rebinding.md
-  - specs/epics/e05-bounded-work/e05s05-tasks.yaml
+  - specs/epics/archive/e05-bounded-work/epic.yaml
+  - specs/epics/archive/e05-bounded-work/e05s01-authorized-contract-and-specialist-run.md
+  - specs/epics/archive/e05-bounded-work/e05s01-tasks.yaml
+  - specs/epics/archive/e05-bounded-work/e05s02-specialist-roles-candidates-and-disagreements.md
+  - specs/epics/archive/e05-bounded-work/e05s02-tasks.yaml
+  - specs/epics/archive/e05-bounded-work/e05s03-cumulative-limits-and-spend-caps.md
+  - specs/epics/archive/e05-bounded-work/e05s03-tasks.yaml
+  - specs/epics/archive/e05-bounded-work/e05s04-cancellation-and-late-output-quarantine.md
+  - specs/epics/archive/e05-bounded-work/e05s04-tasks.yaml
+  - specs/epics/archive/e05-bounded-work/e05s05-provider-degradation-and-session-rebinding.md
+  - specs/epics/archive/e05-bounded-work/e05s05-tasks.yaml
   - specs/tech-architecture/e05-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   audit_plan: READY_implementation_mode_approved
