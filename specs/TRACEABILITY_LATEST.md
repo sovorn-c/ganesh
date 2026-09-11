@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-11T11:24:08Z
-**Total stories:** 19
+**Generated:** 2026-09-11T22:01:26Z
+**Total stories:** 24
 **Dark stories:** 0
 
 ## Story Coverage
@@ -23,6 +23,11 @@
 | e04s02 | Commitment Lifecycle and Current Readiness | e04 | done | 7 |
 | e04s03 | Isolated Alternatives and Transitive Impact Review | e04 | done | 4 |
 | e04s04 | Reasoned Scholarly Overrides and Non-Waivable Gates | e04 | done | 4 |
+| e05s01 | Authorized Contract Admits One Least-Privilege Specialist Run | e05 | done | 6 |
+| e05s02 | Specialist Roles Return Versioned Candidates and Disagreements | e05 | done | 3 |
+| e05s03 | Cumulative Limits, Concurrent Accounting, and Enforced Spend Caps | e05 | done | 2 |
+| e05s04 | Cancellation Fences Dispatch and Quarantines Late Outputs | e05 | done | 2 |
+| e05s05 | Honest Provider Degradation and Session Rebinding | e05 | done | 3 |
 | e06s01 | Immutable Local Text and Markdown Intake | e06 | done | 5 |
 | e06s02 | Located PDF and DOCX Extraction | e06 | done | 6 |
 | e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 7 |

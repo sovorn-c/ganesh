@@ -159,18 +159,24 @@ export async function dispatchRun(handle: ProjectHandle, capability: unknown, ru
     return updateRun(handle, run.id, "blocked", checkpoint.reason);
   }
   updateLifecycleOperationStatus(handle, run.operationId, "running");
-  if (contract.destination !== "local") {
-    const disclosure = requestDisclosure(handle, { sourceVersions: run.inputVersionIds, operation: "prompt", destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator", branchId: contract.branchId });
-    if (disclosure.status !== "allow") {
-      settleBudget(handle, run.id, {}, false);
-      updateLifecycleOperationStatus(handle, run.operationId, "blocked");
-      return updateRun(handle, run.id, "blocked", disclosure.reason);
-    }
-  }
   const maxRetries = Math.max(0, Math.min(2, Number((contract.scope as { maxRetries?: unknown }).maxRetries ?? 0)));
   let started: SpecialistSessionResult = { status: "failure", errorCode: "session-port-unavailable" };
   for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
     const snapshot = snapshotFor(handle, run);
+    if (contract.destination !== "local") {
+      const disclosure = requestDisclosure(handle, { sourceVersions: run.inputVersionIds, operation: "prompt", destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator", branchId: contract.branchId });
+      if (disclosure.status !== "allow") {
+        settleBudget(handle, run.id, {}, false);
+        updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+        return updateRun(handle, run.id, "blocked", disclosure.reason);
+      }
+      const external = checkLifecyclePolicy(handle, operation, "external", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
+      if (external.status !== "passed") {
+        settleBudget(handle, run.id, {}, false);
+        updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+        return updateRun(handle, run.id, "blocked", external.reason);
+      }
+    }
     started = sessionPort.start !== undefined ? await sessionPort.start({ run, contract, snapshot }) : sessionPort.prompt !== undefined ? await sessionPort.prompt({ run, snapshot }) : { status: "ok" };
     recordProviderAttempt(handle, run.id, { destination: contract.destination, purpose: contract.purpose, attempt, outcome: started.status, pricing: { status: "unknown", reason: "provider usage is supplied by the session result" }, sessionId: started.sessionId });
     if (started.status === "ok") {break;}

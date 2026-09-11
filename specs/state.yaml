@@ -2,12 +2,12 @@
 workflow_mode: solo-git
 active_flow: implementation
 active_epic: e05
-active_story: e05s05
+active_story: none
 handoff:
   next_skill: bp-review
   next_command: "/bp-review"
-  summary: E05 implementation completed on feat/e05-bounded-work under approved plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373.
-    Five stories and 20 task checks passed. Epic-level review and local release remain pending; production readiness remains unclaimed.
+  summary: E05 correction pass 1 completed on feat/e05-bounded-work under approved plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373.
+    Five stories, 20 task checks, and 98 tests passed. Fresh epic-level review and local release remain pending; production readiness remains unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed

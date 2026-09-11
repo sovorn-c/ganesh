@@ -1,8 +1,8 @@
 ---
 epic_id: e05
 title: Bounded autonomous work and specialist coordination
-verified_at: "2026-09-11T21:27:00Z"
-verifier: local-build-flow
+verified_at: "2026-09-11T21:57:33Z"
+verifier: correction-fork-1
 branch: feat/e05-bounded-work
 runtime: Node.js 24.21.0
 status: build_passed
@@ -12,27 +12,32 @@ stories:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    evidence: specs/epics/e05-bounded-work/e05s01-tasks.yaml
+    evidence: specs/verifications/e05s01-verify.yaml
+    task_evidence: specs/epics/e05-bounded-work/e05s01-tasks.yaml
   e05s02:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    evidence: specs/epics/e05-bounded-work/e05s02-tasks.yaml
+    evidence: specs/verifications/e05s02-verify.yaml
+    task_evidence: specs/epics/e05-bounded-work/e05s02-tasks.yaml
   e05s03:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    evidence: specs/epics/e05-bounded-work/e05s03-tasks.yaml
+    evidence: specs/verifications/e05s03-verify.yaml
+    task_evidence: specs/epics/e05-bounded-work/e05s03-tasks.yaml
   e05s04:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    evidence: specs/epics/e05-bounded-work/e05s04-tasks.yaml
+    evidence: specs/verifications/e05s04-verify.yaml
+    task_evidence: specs/epics/e05-bounded-work/e05s04-tasks.yaml
   e05s05:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    evidence: specs/epics/e05-bounded-work/e05s05-tasks.yaml
+    evidence: specs/verifications/e05s05-verify.yaml
+    task_evidence: specs/epics/e05-bounded-work/e05s05-tasks.yaml
 checks:
   task_verifications:
     passed: true
@@ -57,7 +62,7 @@ checks:
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 97
+  tests_passing: 98
   review_started: false
   release_started: false
   production_readiness_claimed: false

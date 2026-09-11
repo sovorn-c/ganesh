@@ -21,7 +21,7 @@ development_status:
 planning_level: e05_review_pending
 active_epic: e05
 active_story: none
-note: E05 plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373 is owner-approved. E05 build completed on feat/e05-bounded-work; whole-epic review and local release remain pending. E01-E04 and E06 remain complete local releases.
+note: E05 plan revision sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373 is owner-approved. E05 correction pass 1 completed on feat/e05-bounded-work with per-story evidence and 98 passing tests; fresh whole-epic review and local release remain pending. E01-E04 and E06 remain complete local releases.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -229,6 +229,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e05s01-verify.yaml
       e05s02:
         title: Specialist Roles Return Versioned Candidates and Disagreements
         status: done
@@ -238,6 +239,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e05s02-verify.yaml
       e05s03:
         title: Cumulative Limits, Concurrent Accounting, and Enforced Spend Caps
         status: done
@@ -247,6 +249,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e05s03-verify.yaml
       e05s04:
         title: Cancellation Fences Dispatch and Quarantines Late Outputs
         status: done
@@ -256,6 +259,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e05s04-verify.yaml
       e05s05:
         title: Honest Provider Degradation and Session Rebinding
         status: done
@@ -265,9 +269,10 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e05s05-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-11T11:21:45Z"
-  rationale: "All 19 stories are traceable with no dark stories; all four e06 stories have passing task evidence across 16 task checks, 19 mapped scenarios, and no critical blind spots. The 0.2200 heuristic ratio is below the downgrade threshold; 19 stale done-story tags are informational."
+  generated_at: "2026-09-11T21:57:33Z"
+  rationale: "All 24 stories are traceable with no dark stories; all five e05 stories have passing per-story verification evidence across 20 task checks, 98 passing tests, and no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
   heuristic_ratio: 0.22
   downgrade_applied: false
