@@ -23,6 +23,15 @@ const DEFAULT_LIMITS: Required<ArchiveLimits> = {
   maxEntryBytes: 32 * 1024 * 1024
 };
 
+function effectiveLimits(provided: ArchiveLimits): Required<ArchiveLimits> {
+  return {
+    maxEntries: provided.maxEntries ?? DEFAULT_LIMITS.maxEntries,
+    maxExpandedBytes: provided.maxExpandedBytes ?? DEFAULT_LIMITS.maxExpandedBytes,
+    maxCompressionRatio: provided.maxCompressionRatio ?? DEFAULT_LIMITS.maxCompressionRatio,
+    maxEntryBytes: provided.maxEntryBytes ?? DEFAULT_LIMITS.maxEntryBytes
+  };
+}
+
 function unsafeName(name: string): boolean {
   return name.startsWith("/") || name.split(/[\\/]/u).some((part) => part === "..");
 }
@@ -37,7 +46,9 @@ function entryInfo(entry: Entry, limits: Required<ArchiveLimits>): ArchiveEntryI
   if (entry.uncompressedSize > limits.maxEntryBytes) {
     throw new ProjectStoreError("archive-entry-too-large", "archive entry exceeds the expanded byte limit");
   }
-  const ratio = entry.compressedSize === 0 ? Number.POSITIVE_INFINITY : entry.uncompressedSize / entry.compressedSize;
+  const ratio = entry.compressedSize === 0
+    ? entry.uncompressedSize === 0 ? 0 : Number.POSITIVE_INFINITY
+    : entry.uncompressedSize / entry.compressedSize;
   if (ratio > limits.maxCompressionRatio) {
     throw new ProjectStoreError("archive-compression-ratio", "archive entry exceeds the compression ratio limit");
   }
@@ -53,7 +64,7 @@ export async function preflightZip(
   bytes: Uint8Array,
   provided: ArchiveLimits = {}
 ): Promise<readonly ArchiveEntryInfo[]> {
-  const limits = { ...DEFAULT_LIMITS, ...provided };
+  const limits = effectiveLimits(provided);
   let zip;
   try {
     zip = await fromBufferPromise(Buffer.from(bytes), { lazyEntries: true, validateEntrySizes: true });

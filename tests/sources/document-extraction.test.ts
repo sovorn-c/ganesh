@@ -1,6 +1,7 @@
 // story: e06s02
 // scenario: SC-e06s02-P0-01, SC-e06s02-P0-02, SC-e06s02-P0-03, SC-e06s02-P0-04, SC-e06s02-P0-05
 import { strictEqual } from "node:assert";
+import { deflateRawSync } from "node:zlib";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -8,6 +9,53 @@ import { type ProjectHandle, type SourceImportRequest, createOwnerCapability } f
 import { disposeFixture, projectFixture } from "../support/project-fixtures.js";
 
 const DOCX_FIXTURE = Buffer.from("UEsDBAoAAAAAAMV8K10AAAAAAAAAAAAAAAAFABwAd29yZC9VVAkAA/K9o2ryvaNqdXgLAAEE9QEAAAQUAAAAUEsDBBQAAAAIAMV8K119sJbEkQAAAOoAAAARABwAd29yZC9kb2N1bWVudC54bWxVVAkAA/K9o2ryvaNqdXgLAAEE9QEAAAQUAAAAbY+9DsIwDIRfpeoD4IqBIQpdysDGypomoa2UxJETFHh78gNCQizf6eQ7y+aJKZR3q13sHta4wNKxX2P0DCDIVVsRdui1y7MbkhUxW1ogISlPKHUIm1usgf0wHMCKzfUjT2xG9SzqC6ggjmdtDHany3TlUHwhVdZUnE2Vlpa/7Sm3//SgZaEV4b0GPhfA97vxBVBLAQIeAwoAAAAAAMV8K10AAAAAAAAAAAAAAAAFABgAAAAAAAAAEADtQQAAAAB3b3JkL1VUBQAD8r2janV4CwABBPUBAAAEFAAAAFBLAQIeAxQAAAAIAMV8K119sJbEkQAAAOoAAAARABgAAAAAAAEAAACkgT8AAAB3b3JkL2RvY3VtZW50LnhtbFVUBQAD8r2janV4CwABBPUBAAAEFAAAAFBLBQYAAAAAAgACAKIAAAAbAQAAAAA=", "base64");
+
+function crc32(bytes: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ ((crc & 1) === 1 ? 0xedb88320 : 0);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function compressedDocxFixture(): Buffer {
+  const name = Buffer.from("word/document.xml");
+  const content = Buffer.alloc(64 * 1024, 65);
+  const compressed = deflateRawSync(content);
+  const checksum = crc32(content);
+  const local = Buffer.alloc(30 + name.length + compressed.length);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(20, 4);
+  local.writeUInt16LE(8, 8);
+  local.writeUInt32LE(checksum, 14);
+  local.writeUInt32LE(compressed.length, 18);
+  local.writeUInt32LE(content.length, 22);
+  local.writeUInt16LE(name.length, 26);
+  name.copy(local, 30);
+  compressed.copy(local, 30 + name.length);
+
+  const central = Buffer.alloc(46 + name.length);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(20, 4);
+  central.writeUInt16LE(20, 6);
+  central.writeUInt16LE(8, 10);
+  central.writeUInt32LE(checksum, 16);
+  central.writeUInt32LE(compressed.length, 20);
+  central.writeUInt32LE(content.length, 24);
+  central.writeUInt16LE(name.length, 28);
+  name.copy(central, 46);
+
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(central.length, 12);
+  end.writeUInt32LE(local.length, 16);
+  return Buffer.concat([local, central, end]);
+}
 
 type DocumentSegment = { readonly locator: Record<string, unknown> };
 type DocumentApi = {
@@ -109,6 +157,21 @@ test("e06s02 corrupt document fails without derived output", async () => {
     const imported = documentApi.importLocalSource(fixture.handle, createOwnerCapability("owner-test"), sourceRequest(path, "docx"));
     const result = await documentApi.extractDocumentSource(fixture.handle, imported.source.artifactVersionId);
     strictEqual(result.status, "failed");
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e06s02 default DOCX archive limits remain active", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "compressed.docx");
+  writeFileSync(path, compressedDocxFixture());
+  try {
+    const documentApi = await api();
+    const imported = documentApi.importLocalSource(fixture.handle, createOwnerCapability("owner-test"), sourceRequest(path, "docx"));
+    const result = await documentApi.extractDocumentSource(fixture.handle, imported.source.artifactVersionId);
+    strictEqual(result.status, "failed");
+    strictEqual(documentApi.listSourceDiagnostics(fixture.handle, imported.source.artifactVersionId).some((diagnostic) => diagnostic.code === "archive-compression-ratio"), true);
   } finally {
     disposeFixture(fixture);
   }
