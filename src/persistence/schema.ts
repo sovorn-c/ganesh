@@ -102,6 +102,7 @@ export function createSchema(db: DatabaseSync): void {
   );
   createE03Schema(db);
   createE04Schema(db);
+  createE06Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -405,6 +406,100 @@ export function createE04Schema(db: DatabaseSync): void {
   }
 }
 
+export function createE06Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS source_import_operations (
+      command_id TEXT PRIMARY KEY,
+      payload_hash TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL,
+      status TEXT NOT NULL,
+      error_code TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_versions (
+      artifact_version_id TEXT PRIMARY KEY REFERENCES artifact_versions(id),
+      format TEXT NOT NULL,
+      media_type TEXT NOT NULL,
+      original_name TEXT NOT NULL,
+      access_level TEXT NOT NULL,
+      extraction_status TEXT NOT NULL,
+      parser_name TEXT NOT NULL,
+      parser_version TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_locators (
+      id TEXT PRIMARY KEY,
+      artifact_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      kind TEXT NOT NULL,
+      algorithm TEXT NOT NULL,
+      start_byte INTEGER NOT NULL,
+      end_byte INTEGER NOT NULL,
+      coordinates TEXT NOT NULL,
+      raw_value TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_source_locators_version ON source_locators(artifact_version_id, start_byte, id);
+    CREATE TABLE IF NOT EXISTS source_diagnostics (
+      id TEXT PRIMARY KEY,
+      artifact_version_id TEXT REFERENCES source_versions(artifact_version_id),
+      operation_id TEXT REFERENCES source_import_operations(command_id),
+      code TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      detail TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_extractions (
+      id TEXT PRIMARY KEY,
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      derived_version_id TEXT REFERENCES artifact_versions(id),
+      status TEXT NOT NULL,
+      extractor TEXT NOT NULL,
+      extractor_version TEXT NOT NULL,
+      locator_algorithm TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_segments (
+      id TEXT PRIMARY KEY,
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      derived_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      locator TEXT NOT NULL,
+      text TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_records (
+      id TEXT PRIMARY KEY,
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      record_kind TEXT NOT NULL,
+      record_data TEXT NOT NULL,
+      locator TEXT NOT NULL,
+      access_level TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS source_match_proposals (
+      id TEXT PRIMARY KEY,
+      left_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      right_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      relation TEXT NOT NULL,
+      basis TEXT NOT NULL,
+      score REAL NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(left_version_id, right_version_id, basis)
+    );
+    CREATE TABLE IF NOT EXISTS source_relationships (
+      id TEXT PRIMARY KEY,
+      left_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      right_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      relation TEXT NOT NULL,
+      basis TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(left_version_id, right_version_id, relation)
+    );
+  `);
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -418,6 +513,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
     transaction(db, () => {
       createE03Schema(db);
       createE04Schema(db);
+      createE06Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

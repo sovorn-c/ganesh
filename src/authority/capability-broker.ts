@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { ProjectStoreError } from "../project/project-types.js";
 import { FULL_ACCESS_NOTICE } from "../runtime/preflight-constants.js";
+import { pathInside } from "../persistence/storage-utils.js";
 import type { ExecutionMode } from "../runtime/preflight-types.js";
 import {
   OWNER_OPERATIONS,
@@ -66,7 +67,7 @@ export class WorkerCapability {
 
   isPathAllowed(targetPath: string): boolean {
     const resolved = resolve(targetPath);
-    return this.allowedPaths.some((p) => resolved.startsWith(p));
+    return this.allowedPaths.some((allowed) => pathInside(allowed, resolved));
   }
 }
 
@@ -130,7 +131,7 @@ export function readProjectPath(capability: unknown, targetPath: string, project
     }
     return resolved;
   }
-  if (projectRoot && !resolved.startsWith(resolve(projectRoot))) {
+  if (projectRoot && !pathInside(resolve(projectRoot), resolved)) {
     throw new ProjectStoreError("forbidden", `cross-project path access is forbidden: ${targetPath}`);
   }
   throw new ProjectStoreError("forbidden", "untrusted caller cannot read project paths");

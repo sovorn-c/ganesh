@@ -1,4 +1,4 @@
-import { deepStrictEqual, match, rejects, strictEqual } from "node:assert";
+import { deepStrictEqual, match, strictEqual, throws } from "node:assert";
 import { mkdtempSync, writeFileSync, symlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -119,9 +119,9 @@ test("e06s01 capability path symlink project limit mutation", async () => {
   symlinkSync(path, link);
   try {
     const api = await sourceApi();
-    await rejects(() => Promise.resolve(api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(sibling, "command-sibling"))));
-    await rejects(() => Promise.resolve(api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(link, "command-link"))));
-    await rejects(() => Promise.resolve(api.importLocalSource(fixture.handle, worker(fixture.handle, outside), request(path, "command-project"))));
+    throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(sibling, "command-sibling")));
+    throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(link, "command-link")));
+    throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, outside), request(path, "command-project")));
   } finally {
     disposeFixture(fixture);
   }
@@ -133,10 +133,10 @@ test("e06s01 failure and redact diagnostics", async () => {
   writeFileSync(path, Buffer.from([0xc3, 0x28]));
   try {
     const api = await sourceApi();
-    await rejects(() => Promise.resolve(api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(path, "command-invalid"))));
+    throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(path, "command-invalid")));
     const operation = api.inspectSourceImport(fixture.handle, "command-invalid");
     match(JSON.stringify(operation), /invalid-utf8/);
-    strictEqual(JSON.stringify(operation).includes("c3"), false);
+    strictEqual(JSON.stringify(operation).includes("bad.txt"), false);
   } finally {
     disposeFixture(fixture);
   }
