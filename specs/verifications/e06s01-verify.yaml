@@ -1,5 +1,5 @@
 story_id: e06s01
-verified_at: "2026-09-11T09:51:45Z"
+verified_at: "2026-09-11T09:57:15Z"
 verifier: correction-fork-2
 branch: feat/e06-source-intake
 runtime: Node.js 24.21.0
@@ -21,7 +21,7 @@ phases:
       - "e06s01-t02 task verify: node 24 guard, npm run build, capability/path/symlink/project/limit/mutation pattern; parent-directory symlink regression passed"
       - "e06s01-t03 task verify: node 24 guard, npm run build, text/markdown/original/locator/diagnostic pattern"
       - "e06s01-t04 task verify: node 24 guard, typecheck, lint, build, npm test, local-only/failure/redact/regression pattern"
-    evidence: "All four e06s01 task verify commands passed; full suite passed 86 tests."
+    evidence: "All four e06s01 task verify commands passed; full suite passed 88 tests."
   preflight:
     passed: true
     command: "npm run preflight"

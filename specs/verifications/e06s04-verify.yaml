@@ -1,6 +1,6 @@
 story_id: e06s04
-verified_at: "2026-09-11T09:27:45Z"
-verifier: correction-fork-1
+verified_at: "2026-09-11T09:57:15Z"
+verifier: correction-fork-2
 branch: feat/e06-source-intake
 runtime: Node.js 24.21.0
 status: passed
@@ -21,7 +21,7 @@ phases:
       - "e06s04-t02 task verify: Node 24 guard, build, inspection/access/integrity/quotation/locator pattern"
       - "e06s04-t03 task verify: Node 24 guard, build, viewer/handoff/capability/disclosure/withdraw/deny/fallback pattern"
       - "e06s04-t04 task verify: Node 24 guard, typecheck, lint, build, npm test, AC-05/AC-10/AC-20 and adversarial pattern"
-    evidence: "All four e06s04 task verify commands passed; source matching/inspection tests passed and full suite passed 86 tests."
+    evidence: "All four e06s04 task verify commands passed; source matching/inspection tests passed and full suite passed 88 tests."
   preflight:
     passed: true
     command: "npm run preflight"
