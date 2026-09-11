@@ -6,9 +6,8 @@ active_story: none
 handoff:
   next_skill: bp-plan
   next_command: "/bp-plan"
-  summary: >-
-    E06 source intake was released locally on main after final whole-epic review and
-    Node.js 24 checks. Four stories and 16 task verifications pass, with 19 mapped
+  summary: E06 source intake was released locally on main after final whole-epic review
+    and Node.js 24 checks. Four stories and 16 task verifications pass, with 19 mapped
     scenarios and a 90-test suite. The local release is complete; production release
     readiness, remote CI, publishing, deployment, and the separate release-check gate
     remain intentionally unclaimed.
@@ -65,8 +64,8 @@ discovery:
     phase: Release
     rationale: E06's dependency-ordered stories, task ledgers, implementation, NFR
       evidence, whole-epic review, and Node.js 24 release checks passed before the
-      local merge to main. The pre-build Discover snapshot is retained below as
-      history, not current state.
+      local merge to main. The pre-build Discover snapshot is retained below as history,
+      not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
@@ -160,8 +159,8 @@ discovery:
   - E04 task ledgers, NFR evidence, and whole-epic review pass 2 passed on the feature
     branch; the branch was merged locally into main after Node.js 24 release checks.
   - E06 task ledgers, NFR evidence, whole-epic review, and Node.js 24 release checks
-    passed on the feature branch; the branch was merged locally into main without a
-    push, tag, PR, publish, deploy, or production-readiness claim.
+    passed on the feature branch; the branch was merged locally into main without
+    a push, tag, PR, publish, deploy, or production-readiness claim.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -199,10 +198,9 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 6
-      total_seconds: 1097.0
-      avg_seconds: 182.83333333333334
-      _start: '2026-09-11T11:15:31Z'
+      calls: 7
+      total_seconds: 1694.0
+      avg_seconds: 242.0
     plan-tests:
       calls: 1
       total_seconds: 440.0
