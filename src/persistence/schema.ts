@@ -443,7 +443,7 @@ export function createE06Schema(db: DatabaseSync): void {
     CREATE TABLE IF NOT EXISTS source_diagnostics (
       id TEXT PRIMARY KEY,
       artifact_version_id TEXT REFERENCES source_versions(artifact_version_id),
-      operation_id TEXT REFERENCES source_import_operations(command_id),
+      operation_id TEXT,
       code TEXT NOT NULL,
       severity TEXT NOT NULL,
       detail TEXT NOT NULL,

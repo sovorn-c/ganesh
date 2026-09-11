@@ -234,6 +234,13 @@ export function sourceRecordExists(handle: ProjectHandle, artifactVersionId: str
   return handle.db.prepare("SELECT 1 AS present FROM source_versions WHERE artifact_version_id = ?").get(artifactVersionId) !== undefined;
 }
 
+export function updateSourceExtractionStatus(handle: ProjectHandle, sourceVersionId: string, status: SourceExtractionStatus, parserName: string, parserVersion: string): void {
+  assertWritable(handle);
+  handle.db.prepare(
+    "UPDATE source_versions SET extraction_status = ?, parser_name = ?, parser_version = ? WHERE artifact_version_id = ?"
+  ).run(status, parserName, parserVersion, sourceVersionId);
+}
+
 export function insertExtraction(
   handle: ProjectHandle,
   sourceVersionId: string,
