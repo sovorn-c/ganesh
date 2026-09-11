@@ -1,0 +1,46 @@
+story_id: e05s04
+spec: e05s04-cancellation-and-late-output-quarantine.md
+title: Cancellation Fences Dispatch and Quarantines Late Outputs
+status: passing
+bcps: 6
+tasks:
+  - id: e05s04-t01
+    description: Owner cancel fences queued dispatch and in-flight acceptance on the contract or run in one transaction.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s04.*(cancel|fence|dispatch|acceptance)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e05s04-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [work, cancellation, Security Review]
+  - id: e05s04-t02
+    description: Late submissions after cancel and after reopen stay quarantined and never become the current candidate.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s04.*(late|quarantine|reopen|current)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e05s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [work, quarantine, recovery, Security Review]
+  - id: e05s04-t03
+    description: Record best-effort remote session-stop success and failure without lifting the local fence, with no new security findings in affected paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s04.*(remote|best-effort|session stop)' dist/tests/*/*.test.js"
+    risk: P1
+    security: high
+    scenarios: [SC-e05s04-P1-03]
+    status: passing
+    allure:
+      severity: high
+      categories: [work, sessions, Security Review]
+  - id: e05s04-t04
+    description: Prove spent budget is not reset by cancel, pause is distinct from cancel, and released regressions pass.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e05s04.*(budget|pause|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: medium
+    scenarios: [SC-e05s04-P0-01, SC-e05s04-P0-02]
+    status: passing
+    allure:
+      severity: high
+      categories: [budget, regression]

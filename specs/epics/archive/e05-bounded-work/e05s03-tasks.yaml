@@ -1,0 +1,46 @@
+story_id: e05s03
+spec: e05s03-cumulative-limits-and-spend-caps.md
+title: Cumulative Limits, Concurrent Accounting, and Enforced Spend Caps
+status: passing
+bcps: 7
+tasks:
+  - id: e05s03-t01
+    description: Persist per-dimension budget ledgers and reject concurrent over-admission in one transaction.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s03.*(ledger|concurrent|over-admission|reserv)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e05s03-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [work, budget, concurrency]
+  - id: e05s03-t02
+    description: Preserve spent and reserved token, call and time across terminal retry, authorized revision and project reopen.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s03.*(retry|revision|reopen|spent)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e05s03-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [work, budget, recovery]
+  - id: e05s03-t03
+    description: Enforce known-price spend caps reserved before dispatch and deny unknown pricing when a monetary guarantee is required, with no new security findings in affected paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e05s03.*(spend|known|unknown|guarantee)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e05s03-P0-03, SC-e05s03-P0-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [work, spend, Security Review]
+  - id: e05s03-t04
+    description: Keep uncertain outcomes reserved rather than zero-cost, and prove released E01-E04/E06 plus prior E05 regressions pass.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e05s03.*(uncertain|zero|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: high
+    scenarios: [SC-e05s03-P0-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [honesty, regression, Security Review]
