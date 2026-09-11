@@ -1,0 +1,48 @@
+story_id: e06s02
+verified_at: "2026-09-11T09:57:15Z"
+verifier: correction-fork-2
+branch: feat/e06-source-intake
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  typecheck:
+    passed: true
+    command: "npm run typecheck"
+  lint:
+    passed: true
+    command: "npm run lint"
+  build:
+    passed: true
+    command: "npm run build"
+  tests:
+    passed: true
+    commands:
+      - "e06s02-t01 task verify: Node 24 guard, parser dependency evidence, exact package resolution, build, dependency/license/offline adapter pattern, npm audit"
+      - "e06s02-t02 task verify: Node 24 guard, build, PDF/page/derived/provenance pattern"
+      - "e06s02-t03 task verify: Node 24 guard, build, DOCX/paragraph/table/OCR/provenance pattern"
+      - "e06s02-t04 task verify: Node 24 guard, typecheck, lint, build, npm test, hostile document/resource/timeout/active-content pattern"
+    evidence: "All four e06s02 task verify commands passed; document extraction tests passed 7/7 and full suite passed 88 tests."
+  preflight:
+    passed: true
+    command: "npm run preflight"
+    evidence: "Exit 0 with Node.js 24.x ready; execution mode remained the documented non-blocking not_configured warning."
+  security:
+    passed: true
+    command: "npm audit --omit=dev"
+    evidence: "found 0 vulnerabilities"
+  whitespace:
+    passed: true
+    command: "git diff --check"
+    evidence: "No whitespace errors in the corrected working tree; merge-base check is verified after the correction commit."
+manual:
+  steps:
+    - step: "Extract PDF and DOCX text"
+      expected: "Original bytes remain separate from bounded derived text, parser versions and stable page/paragraph/table locators are recorded."
+      actual: "PDF and DOCX extraction tests passed; DOCX uses Mammoth Buffer-to-HTML, inert parse5 traversal, images disabled, and external file access false."
+      passed: true
+    - step: "Exercise corrupt, encrypted, active-content, image-only, archive-limit, and timeout inputs"
+      expected: "Inputs fail or remain unsupported with bounded diagnostics; parser work is terminable and resource-limited."
+      actual: "Adversarial tests passed, including deterministic parser-timeout coverage."
+      passed: true
+gaps:
+  closed: true

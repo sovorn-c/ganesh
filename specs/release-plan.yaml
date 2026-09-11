@@ -10,6 +10,18 @@ release:
   planning_level: epic_only
   shipping_rule: All 18 epics and all scope outcomes are required; intermediate epic
     completion is not the production release.
+  first_tracer_bullet:
+    epic_id: e05
+    sequence: 6
+    rationale: >-
+      E05 is the first epic that exercises the core end-to-end research-work path:
+      an exact owner-authorized contract admits a least-privilege specialist run,
+      enforces current policy and cumulative limits, and returns a versioned candidate
+      rather than a human commitment. It crosses the riskiest remaining integration
+      between durable state, owner authority, Pi specialist sessions, provider effects,
+      cancellation, and result acceptance. E01-E04 establish required runtime,
+      persistence, policy, and decision prerequisites; E06 remains earlier because
+      dependency-eligible WSJF ordering prioritizes source intake before E05.
 estimation:
   wsjf_formula: "(business_value + time_criticality + risk_reduction + security_boost)
     / job_size"

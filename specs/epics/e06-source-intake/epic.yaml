@@ -15,7 +15,8 @@ boundaries:
     them; document/viewer handoff enforces current permissions.
   excludes:
   - Product outcomes owned by other epics; shared integration remains required.
-  - Story specifications and implementation tasks at blueprint stage.
+  - Built-in OCR, evidence/claim assessment, terminal viewer launching, export, deletion,
+    provider retrieval, and unrestricted parser execution.
 depends_on:
 - e02
 - e03
@@ -40,14 +41,98 @@ wsjf_inputs:
 total_bcps: 21
 bcp_estimate:
   range:
-  - 13
+  - 21
   - 34
-  confidence: low
-  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
-    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
-    /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+  confidence: medium
+  basis: Four vertical story slices total 21 BCP after inspection of existing artifact,
+    policy, authority and SQLite contracts. Parser supply-chain and hostile-input
+    behavior remain implementation verification obligations.
+status: review_pending
+planning_stage: implementation_complete_correction_pending_final_review
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e06s01
+  type: ADDED
+  requirement: Immutable local text and Markdown intake
+  after: A capability-scoped import preserves exact text or Markdown bytes as an immutable
+    acquired source version, records stable locators and diagnostics, and remains denied
+    for external disclosure until classified and authorized.
+- story_id: e06s01
+  type: MODIFIED
+  requirement: Ready-project feature schema and worker path authorization
+  before: Writable ready open ensured E04 tables and worker paths used lexical prefix checks.
+  after: Writable ready open also idempotently ensures additive E06 tables while read-only
+    and future-schema opens never mutate; E06 requires matching project/operation plus
+    segment-aware, realpath-contained, no-symlink regular-file access.
+- story_id: e06s02
+  type: ADDED
+  requirement: Located PDF and DOCX extraction
+  after: Text-based PDF and DOCX imports retain originals and bounded page, paragraph and
+    cell extraction with honest loss diagnostics, while image-only, corrupt, oversized,
+    encrypted and active-content inputs cannot fabricate or execute content.
+- story_id: e06s03
+  type: ADDED
+  requirement: Located bibliographic and tabular imports
+  after: BibTeX, RIS, CSV and XLSX imports preserve originals, raw and normalized values,
+    record and cell locators, metadata-only access limits and safe partial-failure
+    diagnostics without evaluating formulas or external links.
+- story_id: e06s04
+  type: ADDED
+  requirement: Reviewable source matching and permission-gated inspection
+  after: Exact duplicates and related or possible versions remain distinct with visible
+    match bases, and local viewer or downstream handoff returns content references only
+    after current integrity, access, project capability and disclosure checks pass.
+- story_id: e06s04
+  type: MODIFIED
+  requirement: Disclosure operation vocabulary
+  before: The E03 disclosure operation union had no precise local source-inspection operation.
+  after: The additive inspection operation identifies local viewer descriptors while downstream
+    callers supply the actual existing disclosure operation; all prior semantics remain unchanged.
+stories:
+- id: e06s01
+  title: Immutable Local Text and Markdown Intake
+  status: done
+  bcps: 6
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: []
+  spec_file: e06s01-immutable-local-text-and-markdown-intake.md
+  tasks_file: e06s01-tasks.yaml
+- id: e06s02
+  title: Located PDF and DOCX Extraction
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: [e06s01]
+  spec_file: e06s02-located-pdf-and-docx-extraction.md
+  tasks_file: e06s02-tasks.yaml
+- id: e06s03
+  title: Located Bibliographic and Tabular Imports
+  status: done
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on: [e06s01, e06s02]
+  spec_file: e06s03-located-bibliographic-and-tabular-imports.md
+  tasks_file: e06s03-tasks.yaml
+- id: e06s04
+  title: Reviewable Source Matching and Permission-Gated Inspection
+  status: done
+  bcps: 4
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: [e06s01, e06s02, e06s03]
+  spec_file: e06s04-reviewable-source-matching-and-permission-gated-inspection.md
+  tasks_file: e06s04-tasks.yaml
 capsule_dir: epics/e06-source-intake
+next_gate: review_correction
+next_skill_after_gate: review-correction
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
+plan_approved_at: "2026-09-11T00:55:28Z"
+implementation_authorized: true
+implementation_authorized_at: "2026-09-11T08:25:37Z"
+implementation_authorization_source: explicit_delivery_loop_request
 sequence: 5

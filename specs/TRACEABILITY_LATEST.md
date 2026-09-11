@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-10T12:58:58Z
-**Total stories:** 15
+**Generated:** 2026-09-11T11:16:07Z
+**Total stories:** 19
 **Dark stories:** 0
 
 ## Story Coverage
@@ -23,3 +23,7 @@
 | e04s02 | Commitment Lifecycle and Current Readiness | e04 | done | 7 |
 | e04s03 | Isolated Alternatives and Transitive Impact Review | e04 | done | 4 |
 | e04s04 | Reasoned Scholarly Overrides and Non-Waivable Gates | e04 | done | 4 |
+| e06s01 | Immutable Local Text and Markdown Intake | e06 | done | 5 |
+| e06s02 | Located PDF and DOCX Extraction | e06 | done | 6 |
+| e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 7 |
+| e06s04 | Reviewable Source Matching and Permission-Gated Inspection | e06 | done | 4 |

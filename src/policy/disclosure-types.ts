@@ -9,7 +9,8 @@ export type DisclosureOperationKind =
   | "telemetry"
   | "export"
   | "diagnostic"
-  | "analysis";
+  | "analysis"
+  | "inspection";
 
 export const DISCLOSURE_OPERATIONS: readonly DisclosureOperationKind[] = [
   "prompt",
@@ -21,7 +22,8 @@ export const DISCLOSURE_OPERATIONS: readonly DisclosureOperationKind[] = [
   "telemetry",
   "export",
   "diagnostic",
-  "analysis"
+  "analysis",
+  "inspection"
 ];
 
 export interface DisclosureRequest {

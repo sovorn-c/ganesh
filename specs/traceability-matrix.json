@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T12:58:58Z",
+  "generated_at": "2026-09-11T11:16:07Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -601,11 +601,191 @@
         }
       ],
       "link_count": 4
+    },
+    {
+      "id": "e06s01",
+      "title": "Immutable Local Text and Markdown Intake",
+      "epic_id": "e06",
+      "epic_title": "Local import and source inspection",
+      "bcp": 0,
+      "wsjf": 1.095238,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/sources/source-import.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/source-intake.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/source-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/source-store.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e06-source-intake/e06s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 5
+    },
+    {
+      "id": "e06s02",
+      "title": "Located PDF and DOCX Extraction",
+      "epic_id": "e06",
+      "epic_title": "Local import and source inspection",
+      "bcp": 0,
+      "wsjf": 1.095238,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/sources/document-extraction.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/document-parser.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/parser-worker-runtime.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/archive-preflight.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/parser-worker.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e06-source-intake/e06s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 6
+    },
+    {
+      "id": "e06s03",
+      "title": "Located Bibliographic and Tabular Imports",
+      "epic_id": "e06",
+      "epic_title": "Local import and source inspection",
+      "bcp": 0,
+      "wsjf": 1.095238,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/sources/structured-import.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-worker.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-types.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-parser-runtime.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-worker-runtime.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/structured-parser.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e06-source-intake/e06s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 7
+    },
+    {
+      "id": "e06s04",
+      "title": "Reviewable Source Matching and Permission-Gated Inspection",
+      "epic_id": "e06",
+      "epic_title": "Local import and source inspection",
+      "bcp": 0,
+      "wsjf": 1.095238,
+      "status": "done",
+      "links": [
+        {
+          "file": "tests/sources/source-matching.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/source-matching.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/sources/source-access.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e06-source-intake/e06s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 4
     }
   ],
   "summary": {
-    "total_stories": 15,
-    "tagged_stories": 15,
+    "total_stories": 19,
+    "tagged_stories": 19,
     "dark_stories": [
 
     ],
@@ -634,13 +814,17 @@
       "e04s01",
       "e04s02",
       "e04s03",
-      "e04s04"
+      "e04s04",
+      "e06s01",
+      "e06s02",
+      "e06s03",
+      "e06s04"
     ],
-    "stale_count": 15,
+    "stale_count": 19,
     "oracle_stats": {
-      "high": 55,
+      "high": 73,
       "medium": 0,
-      "low": 15
+      "low": 19
     }
   }
 }
