@@ -17,7 +17,12 @@
     "preflight": "npm run build && node dist/src/preflight-cli.js"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "0.85.1"
+    "@earendil-works/pi-coding-agent": "0.85.1",
+    "@types/yauzl": "3.4.0",
+    "mammoth": "1.12.2",
+    "parse5": "8.0.1",
+    "pdfjs-dist": "6.3.289",
+    "yauzl": "3.4.0"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
