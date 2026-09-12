@@ -9,7 +9,8 @@ handoff:
   summary: >-
     E07 build complete on feat/e07-evidence-claims under approved plan revision
     sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a.
-    All four stories and 16 task checks passed; whole-epic review is next.
+    All four stories and 16 task checks passed; local self-audit is complete and
+    independent pi-fork review is pending because that facility is unavailable.
     Production readiness, remote CI, publishing and deployment remain unclaimed.
 discovery:
   seed_conventions: confirmed

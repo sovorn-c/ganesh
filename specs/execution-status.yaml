@@ -21,7 +21,7 @@ development_status:
 planning_level: e07_story_plan
 active_epic: e07
 active_story: e07s04
-note: E07 build completed on feat/e07-evidence-claims under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; whole-epic review is next. E14 remains a complete local release. Production readiness, remote CI, publishing and deployment remain unclaimed.
+note: E07 build completed on feat/e07-evidence-claims under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; local self-audit is complete and independent pi-fork review is pending because that facility is unavailable. E14 remains a complete local release. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
