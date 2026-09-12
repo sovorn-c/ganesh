@@ -40,7 +40,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 191/191 tests passed
+    evidence: 194/194 tests passed
   typecheck:
     passed: true
     command: npm run typecheck
@@ -67,11 +67,11 @@ checks:
   review:
     status: pending_review
     passed: false
-    evidence: Correction passes resolved all review blockers (symlink traversal, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking with deterministic synchronized barrier concurrency, transitive dependency deletion, atomic DB/artifact rollback, isolated test command IDs); ready for fresh whole-epic review
+    evidence: Correction passes resolved all review blockers (strict symlink containment on packet/restore/deletion with no-follow realpath validation, project-owned cache filtering preserving unrelated caches, stale destination artifact cleanup on replace without artifacts, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking with deterministic synchronized barrier concurrency, transitive dependency deletion, atomic DB/artifact rollback, isolated test command IDs); ready for fresh whole-epic review
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 191
+  tests_passing: 194
   review_started: true
   review_passed: false
   release_started: false

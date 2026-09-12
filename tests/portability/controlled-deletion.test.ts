@@ -1,7 +1,7 @@
 // story: e15s04 — Controlled Deletion of Derived Content and Caches
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync, symlinkSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import {
   deleteArtifactContent,
@@ -280,5 +280,98 @@ describe("E15s04 controlled deletion of derived content and caches", () => {
     // Child disclosure must be reported as not recalled
     assert.ok(res.notRecalledDisclosures.length > 0, "disclosures on cascaded artifacts must be reported as not recalled");
     assert.ok(res.notRecalledDisclosures.some(d => d.destination === "external-partner"));
+  });
+
+  it("e15s04 adversarial symlink escape in deletion skips unlinking and never removes external files", () => {
+    const externalDir = join(fix.root, "..", `external-victim-dir-${Date.now()}`);
+    mkdirSync(externalDir, { recursive: true });
+    const externalFile1 = join(externalDir, "secret-victim-1.txt");
+    const externalFile2 = join(externalDir, "secret-victim-2.txt");
+    writeFileSync(externalFile1, "external sensitive data 1");
+    writeFileSync(externalFile2, "external sensitive data 2");
+
+    try {
+      // Case A: Intermediate directory is a symlink pointing outside
+      const escapedDirLink = join(fix.root, ".ganesh", "artifacts", "symlink-dir-escape");
+      if (!existsSync(escapedDirLink)) {
+        symlinkSync(externalDir, escapedDirLink);
+      }
+      const artEscaped = registerArtifactVersion(fix.handle, {
+        logicalId: "doc-escape-intermediate",
+        version: "v1",
+        versionId: "doc-escape-intermediate-v1",
+        content: "placeholder content"
+      });
+      fix.handle.db.prepare(
+        "UPDATE artifact_versions SET storage_path = ? WHERE id = ?"
+      ).run("symlink-dir-escape/secret-victim-1.txt", artEscaped.id);
+
+      // Case B: Leaf file is a symlink pointing outside
+      const escapedFileLink = join(fix.root, ".ganesh", "artifacts", "symlink-file-escape.txt");
+      if (!existsSync(escapedFileLink)) {
+        symlinkSync(externalFile2, escapedFileLink);
+      }
+      const artLeaf = registerArtifactVersion(fix.handle, {
+        logicalId: "doc-escape-leaf",
+        version: "v1",
+        versionId: "doc-escape-leaf-v1",
+        content: "placeholder content"
+      });
+      fix.handle.db.prepare(
+        "UPDATE artifact_versions SET storage_path = ? WHERE id = ?"
+      ).run("symlink-file-escape.txt", artLeaf.id);
+
+      // Execute deletion for both
+      deleteArtifactContent(fix.handle, fix.ownerCap, {
+        artifactVersionId: artEscaped.id,
+        reason: "adversarial deletion test 1",
+        commandId: "del-adv-1",
+        payloadHash: packetPayloadHash({ a: "1" })
+      });
+
+      deleteArtifactContent(fix.handle, fix.ownerCap, {
+        artifactVersionId: artLeaf.id,
+        reason: "adversarial deletion test 2",
+        commandId: "del-adv-2",
+        payloadHash: packetPayloadHash({ a: "2" })
+      });
+
+      // Assert external files were NEVER deleted
+      assert.equal(existsSync(externalFile1), true, "externalFile1 must NOT be deleted via intermediate symlink traversal");
+      assert.equal(existsSync(externalFile2), true, "externalFile2 must NOT be deleted via leaf symlink escape");
+    } finally {
+      rmSync(externalDir, { recursive: true, force: true });
+    }
+  });
+
+  it("e15s04 deletion restricts cache removal to affected versions and preserves unrelated caches", () => {
+    const artTarget = registerPublicArtifact(fix.handle, "doc-cache-target", "v1", "cache target content");
+    const cacheDir = join(fix.root, ".ganesh", "artifacts", "cache");
+    mkdirSync(cacheDir, { recursive: true });
+
+    const targetCache = join(cacheDir, `${artTarget.id}.cache`);
+    const unrelatedCache1 = join(cacheDir, "unrelated-research-data.cache");
+    const unrelatedCache2 = join(cacheDir, "shared-indexes.cache");
+
+    writeFileSync(targetCache, "target cache bytes");
+    writeFileSync(unrelatedCache1, "unrelated cache bytes 1");
+    writeFileSync(unrelatedCache2, "unrelated cache bytes 2");
+
+    assert.equal(existsSync(targetCache), true);
+    assert.equal(existsSync(unrelatedCache1), true);
+    assert.equal(existsSync(unrelatedCache2), true);
+
+    deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: artTarget.id,
+      reason: "targeted cache deletion",
+      commandId: "del-cache-target-cmd",
+      payloadHash: packetPayloadHash({ c: "1" })
+    });
+
+    // Target cache must be unlinked
+    assert.equal(existsSync(targetCache), false, "target artifact cache must be unlinked");
+    // Unrelated caches must be PRESERVED
+    assert.equal(existsSync(unrelatedCache1), true, "unrelated cache 1 must be preserved");
+    assert.equal(existsSync(unrelatedCache2), true, "unrelated cache 2 must be preserved");
   });
 });

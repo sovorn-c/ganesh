@@ -655,6 +655,8 @@ function replaceRestore(
             copyDirRecursive(stageArtifacts, tmpDestArtifacts);
             rmSync(destArtifacts, { recursive: true, force: true });
             renameSync(tmpDestArtifacts, destArtifacts);
+          } else {
+            rmSync(destArtifacts, { recursive: true, force: true });
           }
           try { rmSync(bakDbPath, { force: true }); } catch { /* best effort */ }
           try { rmSync(bakArtifactsDir, { recursive: true, force: true }); } catch { /* best effort */ }

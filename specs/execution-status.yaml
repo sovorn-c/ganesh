@@ -407,7 +407,7 @@ epics:
     verification_evidence: specs/verifications/e08-verify.yaml
   e15:
     title: Recovery portability and controlled deletion
-    status: done
+    status: in_progress
     stories:
       e15s01:
         title: Versioned Project Export with Integrity and Current Permissions
@@ -463,6 +463,6 @@ epics:
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-12T15:00:00Z"
-  rationale: "All 41 stories are traceable with no dark stories; E15 has passing per-story verification evidence across 20 task checks and 185 passing tests, with no HIGH or MEDIUM blind spots. Completeness critic: BLOCKER=0 WARNING=0."
+  rationale: "All 41 stories are traceable with no dark stories; E15 has passing per-story verification evidence across 20 task checks and 194 passing tests, with no HIGH or MEDIUM blind spots. Completeness critic: BLOCKER=0 WARNING=0."
   heuristic_ratio: 0.27
   downgrade_applied: false

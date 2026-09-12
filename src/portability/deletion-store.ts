@@ -1,6 +1,6 @@
 // story: e15s04
-import { existsSync, rmSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, rmSync, readdirSync, lstatSync, realpathSync, unlinkSync } from "node:fs";
+import { join, resolve, relative, isAbsolute } from "node:path";
 import { type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
@@ -10,6 +10,79 @@ import { dependentVersions } from "../branches/dependency-store.js";
 import type {
   DeletionRequest, DeletionResult, EvidenceTombstone, DeletionEvent, NotRecalledDisclosure
 } from "./portability-types.js";
+
+function safeContainedPath(baseDir: string, relativeOrFullPath: string): string | null {
+  const resolvedBase = resolve(baseDir);
+  if (!existsSync(resolvedBase)) {
+    return null;
+  }
+  let realBase: string;
+  try {
+    realBase = realpathSync(resolvedBase);
+  } catch {
+    return null;
+  }
+
+  const target = isAbsolute(relativeOrFullPath)
+    ? resolve(relativeOrFullPath)
+    : resolve(resolvedBase, relativeOrFullPath);
+
+  const rel = relative(resolvedBase, target);
+  if (rel.startsWith("..") || isAbsolute(rel) || rel === "") {
+    return null;
+  }
+
+  const segments = rel.split(/[\\/]+/).filter(Boolean);
+  let cur = resolvedBase;
+
+  for (let i = 0; i < segments.length; i++) {
+    cur = join(cur, segments[i]);
+    let st;
+    try {
+      st = lstatSync(cur);
+    } catch {
+      return null;
+    }
+
+    const isLeaf = i === segments.length - 1;
+
+    if (!isLeaf) {
+      if (st.isSymbolicLink()) {
+        return null;
+      }
+      try {
+        const realCur = realpathSync(cur);
+        if (!pathInside(realBase, realCur)) {
+          return null;
+        }
+      } catch {
+        return null;
+      }
+    } else {
+      if (st.isSymbolicLink()) {
+        try {
+          const realCur = realpathSync(cur);
+          if (!pathInside(realBase, realCur)) {
+            return null;
+          }
+        } catch {
+          return null;
+        }
+      } else {
+        try {
+          const realCur = realpathSync(cur);
+          if (!pathInside(realBase, realCur)) {
+            return null;
+          }
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+
+  return cur;
+}
 
 export function deleteArtifactContent(
   handle: ProjectHandle,
@@ -78,18 +151,35 @@ export function deleteArtifactContent(
     const tombstoneMap = new Map<string, string>();
     tombstoneMap.set(versionId, tombstoneId);
 
-    // 2. Unlink files and app backups for all affected versions
+    // Collect affected tokens for targeted cache matching
+    const affectedTokens = new Set<string>();
+
+    // 2. Unlink files and app backups for all affected versions with strict containment
     for (const vId of allAffectedVersionIds) {
+      affectedTokens.add(vId);
       const vRow = handle.db.prepare(
         "SELECT id, content_hash, storage_path FROM artifact_versions WHERE id = ?"
       ).get(vId) as Record<string, unknown> | undefined;
       const vStoragePath = vRow?.storage_path ? String(vRow.storage_path) : null;
+      if (vRow?.content_hash) {
+        affectedTokens.add(String(vRow.content_hash));
+      }
 
       if (vStoragePath) {
-        const fullPath = join(handle.project.artifactRoot, vStoragePath);
-        if (existsSync(fullPath) && pathInside(storeRoot, fullPath)) {
-          rmSync(fullPath, { force: true });
-          unlinkedPaths.push(fullPath);
+        const baseName = vStoragePath.split(/[\\/]+/).pop();
+        if (baseName) {
+          affectedTokens.add(baseName);
+        }
+
+        const safePath = safeContainedPath(handle.project.artifactRoot, vStoragePath);
+        if (safePath) {
+          const st = lstatSync(safePath);
+          if (st.isSymbolicLink()) {
+            unlinkSync(safePath);
+          } else {
+            rmSync(safePath, { force: true, recursive: true });
+          }
+          unlinkedPaths.push(safePath);
         }
 
         // Unlink from app backups if requested
@@ -98,11 +188,17 @@ export function deleteArtifactContent(
           if (existsSync(backupsDir)) {
             try {
               for (const entry of readdirSync(backupsDir, { withFileTypes: true })) {
-                if (entry.isDirectory()) {
+                if (entry.isDirectory() && !entry.isSymbolicLink()) {
                   const backupFile = join(backupsDir, entry.name, "artifacts", vStoragePath);
-                  if (existsSync(backupFile) && pathInside(storeRoot, backupFile)) {
-                    rmSync(backupFile, { force: true });
-                    unlinkedPaths.push(backupFile);
+                  const safeBackupPath = safeContainedPath(storeRoot, backupFile);
+                  if (safeBackupPath) {
+                    const bSt = lstatSync(safeBackupPath);
+                    if (bSt.isSymbolicLink()) {
+                      unlinkSync(safeBackupPath);
+                    } else {
+                      rmSync(safeBackupPath, { force: true, recursive: true });
+                    }
+                    unlinkedPaths.push(safeBackupPath);
                   }
                 }
               }
@@ -116,18 +212,37 @@ export function deleteArtifactContent(
       }
     }
 
-    // 3. Unlink caches (temp files)
+    // 3. Unlink project-owned/derived/cache paths for affected versions (preserving unrelated caches)
     const artifactRoot = handle.project.artifactRoot;
     if (existsSync(artifactRoot)) {
       const scanForCache = (dir: string) => {
         try {
           for (const entry of readdirSync(dir, { withFileTypes: true })) {
             const p = join(dir, entry.name);
-            if (entry.isDirectory()) {
-              scanForCache(p);
-            } else if (entry.name.includes(".cache") && pathInside(storeRoot, p)) {
-              rmSync(p, { force: true });
-              unlinkedPaths.push(p);
+            let st;
+            try {
+              st = lstatSync(p);
+            } catch {
+              continue;
+            }
+            if (st.isSymbolicLink()) {
+              // Strict no-follow: do not follow symbolic links during traversal
+              continue;
+            }
+            if (st.isDirectory()) {
+              const safeDir = safeContainedPath(storeRoot, p);
+              if (safeDir) {
+                scanForCache(safeDir);
+              }
+            } else if (entry.name.includes(".cache")) {
+              const matchesAffected = Array.from(affectedTokens).some(tok => entry.name.includes(tok));
+              if (matchesAffected) {
+                const safeCachePath = safeContainedPath(storeRoot, p);
+                if (safeCachePath) {
+                  rmSync(safeCachePath, { force: true });
+                  unlinkedPaths.push(safeCachePath);
+                }
+              }
             }
           }
         } catch { /* permission or race */ }

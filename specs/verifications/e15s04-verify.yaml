@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "191/191 tests passed, including E15 controlled deletion unlinking, tombstone recording, execution blocking, and external not-recalled reporting."
+    evidence: "194/194 tests passed, including E15 controlled deletion unlinking with strict no-follow realpath containment, targeted cache deletion preserving unrelated caches, tombstone recording, execution blocking, and external not-recalled reporting."
   typecheck:
     passed: true
     command: npm run typecheck

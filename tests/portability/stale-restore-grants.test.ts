@@ -1,7 +1,7 @@
 // story: e15s05 — Monotonic Grant Persistence Across Stale Restores
 import { describe, it, afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { rmSync } from "node:fs";
+import { rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import {
   exportProject,
@@ -243,5 +243,48 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     } finally {
       postReplace.close();
     }
+  });
+
+  it("e15s05 replace removes stale destination artifacts when replacement packet has no artifacts directory", () => {
+    // Register artifact in destination project
+    const art = registerPublicArtifact(fix.handle, "dest-artifact-stale", "v1", "stale destination bytes");
+    const destArtPath = art.storagePath!;
+    assert.equal(existsSync(destArtPath), true, "destination artifact must exist before replace");
+    fix.handle.close();
+
+    // Export a packet with no artifacts from an empty project with the same owner
+    const emptySourceDir = newTempDir();
+    const emptyProjFix = portabilityFixture(fix.ownerId);
+    cleanDirs.push(emptyProjFix.root);
+    try {
+      exportProject(emptyProjFix.handle, emptyProjFix.ownerCap, {
+        commandId: `export-empty-${emptyProjFix.handle.project.id}`,
+        destinationPath: emptySourceDir,
+        destination: "local",
+        purpose: "backup",
+        payloadHash: packetPayloadHash({ empty: "true" })
+      });
+    } finally {
+      emptyProjFix.handle.close();
+    }
+
+    // Verify replacement packet has NO artifacts directory
+    const packetArtifactsDir = join(emptySourceDir, "artifacts");
+    rmSync(packetArtifactsDir, { recursive: true, force: true });
+    assert.equal(existsSync(packetArtifactsDir), false, "replacement packet has no artifacts directory");
+
+    // Replace destination with the artifact-free packet
+    restoreProject(fix.ownerCap, {
+      commandId: `replace-no-artifacts-${fix.handle.project.id}`,
+      sourcePath: emptySourceDir,
+      destinationPath: fix.root,
+      mode: "replace",
+      payloadHash: packetPayloadHash({ dest: fix.root })
+    });
+
+    // Stale destination artifact must be gone
+    assert.equal(existsSync(destArtPath), false, "stale destination artifact must be removed after replace");
+    const destArtifactsDir = join(fix.root, ".ganesh", "artifacts");
+    assert.equal(existsSync(destArtifactsDir), false, "stale destination artifacts directory must be removed");
   });
 });
