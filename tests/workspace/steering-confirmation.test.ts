@@ -5,7 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, it } from "node:test";
-import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import {
   createBranch,
   createDecisionPacket,
@@ -98,6 +98,22 @@ describe("E14 steering and confirmation", () => {
       "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel"
     ]);
     assert.deepEqual(shortcuts, ["?", "a", "y", "n", "d", "i", "v", "c", "s", "x"]);
+    const shortcutHandlers = new Map<string, (ctx: ExtensionContext) => void | Promise<void>>();
+    registerWorkspaceCommands({
+      registerCommand: () => undefined,
+      registerShortcut: (shortcut, options) => shortcutHandlers.set(shortcut, options.handler)
+    }, session);
+    const shortcutNotifications: string[] = [];
+    const shortcutContext = {
+      ui: {
+        input: async () => "",
+        notify: (message: string) => { shortcutNotifications.push(message); }
+      }
+    } as unknown as ExtensionContext;
+    await shortcutHandlers.get("?")?.(shortcutContext);
+    await shortcutHandlers.get("s")?.(shortcutContext);
+    assert.ok(shortcutNotifications.some((message) => /ganesh-help/.test(message)));
+    assert.ok(shortcutNotifications.some((message) => /Status: no-selection/.test(message)));
     assert.equal(listCommitments(session.handle).length, 0);
     session.handle.close();
   });

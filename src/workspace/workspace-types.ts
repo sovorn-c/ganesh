@@ -12,10 +12,12 @@ export interface WorkspaceRuntimeOptions {
 
 export interface WorkspaceRuntimePort {
   create(options: WorkspaceRuntimeOptions): object | Promise<object>;
+  dispose?(runtime: object): void | Promise<void>;
 }
 
 export interface WorkspaceTuiOptions {
   readonly projectRoot: string;
+  readonly agentDir: string;
   readonly ownerId: string;
 }
 

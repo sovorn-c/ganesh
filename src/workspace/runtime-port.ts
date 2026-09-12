@@ -33,17 +33,31 @@ export class PiWorkspaceRuntimePort {
       sessionManager: SessionManager.create(options.cwd, join(options.agentDir, "sessions"))
     });
   }
+
+  async dispose(runtime: object): Promise<void> {
+    await (runtime as AgentSessionRuntime).dispose();
+  }
 }
 
 export class PiWorkspaceTuiPort implements TuiPort {
-  async run(runtime: object, options: { readonly projectRoot: string; readonly ownerId: string }): Promise<void> {
-    const mode = new InteractiveMode(runtime as AgentSessionRuntime, {
-      migratedProviders: [],
-      initialImages: [],
-      initialMessages: [],
-      autoTrustOnReloadCwd: options.projectRoot
-    });
-    await mode.run();
+  async run(runtime: object, options: { readonly projectRoot: string; readonly agentDir: string; readonly ownerId: string }): Promise<void> {
+    const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
+    process.env.PI_CODING_AGENT_DIR = options.agentDir;
+    try {
+      const mode = new InteractiveMode(runtime as AgentSessionRuntime, {
+        migratedProviders: [],
+        initialImages: [],
+        initialMessages: [],
+        autoTrustOnReloadCwd: options.projectRoot
+      });
+      await mode.run();
+    } finally {
+      if (previousAgentDir === undefined) {
+        delete process.env.PI_CODING_AGENT_DIR;
+      } else {
+        process.env.PI_CODING_AGENT_DIR = previousAgentDir;
+      }
+    }
   }
 
   confirm(): Promise<boolean> {

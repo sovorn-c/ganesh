@@ -22,7 +22,7 @@ export interface DisplayedConfirmation {
 }
 
 export interface ConfirmationResult {
-  readonly status: "committed" | "rejected" | "stale" | "duplicate" | "cancelled";
+  readonly status: "committed" | "rejected" | "deferred" | "stale" | "duplicate" | "cancelled";
   readonly displayed: DisplayedConfirmation;
   readonly decision?: OwnerDecisionResult;
   readonly refreshedPacket?: DecisionPacket;
@@ -49,7 +49,7 @@ function display(packet: DecisionPacket, request: ExactVersionConfirmationReques
 
 function statusFor(result: OwnerDecisionResult): ConfirmationResult["status"] {
   if (result.status === "approved" || result.status === "rejected" || result.status === "deferred") {
-    return result.status === "approved" ? "committed" : "rejected";
+    return result.status === "approved" ? "committed" : result.status;
   }
   return result.status;
 }

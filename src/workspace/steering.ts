@@ -48,8 +48,7 @@ export function presentHelp(_session: WorkspaceSession): HelpView {
   const text = [
     ...HELP_ACTIONS.map((action) => `${action.command}: ${action.description}`),
     "Keyboard shortcuts:",
-    keyboardMapText(),
-    "Tab/Shift+Tab: Pi editor focus traversal"
+    keyboardMapText()
   ].join("\n");
   return { title: "Ganesh workspace help", actions: HELP_ACTIONS, text };
 }

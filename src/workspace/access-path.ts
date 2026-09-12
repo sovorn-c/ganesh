@@ -43,7 +43,7 @@ export function qualifyAccessPath(input: AccessPathInput): AccessPathResult {
     reason = "missing-keyboard-map";
   } else if (input.pointerOnly !== false) {
     reason = "pointer-only";
-  } else if (input.screenReader !== undefined && input.terminal !== undefined && !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`)) {
+  } else if (input.screenReader !== undefined && (input.terminal === undefined || !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`))) {
     reason = "unsupported-screen-reader-pairing";
   }
   return {

@@ -42,6 +42,19 @@ function statusText(view: Omit<StatusView, "text">): string {
   ].join("\n");
 }
 
+function latestRun(runs: readonly WorkRunRecord[]): WorkRunRecord | undefined {
+  return runs.reduce<WorkRunRecord | undefined>((latest, run) => latest === undefined || run.updatedAt >= latest.updatedAt ? run : latest, undefined);
+}
+
+function selectedRun(session: WorkspaceSession, request: WorkStatusRequest): WorkRunRecord | undefined {
+  if (request.runId !== undefined) {
+    return getRun(session.handle, request.runId) ?? undefined;
+  }
+  const runs = listRuns(session.handle, request.contractId);
+  const active = runs.filter((run) => run.status === "queued" || run.status === "running" || run.status === "waiting-for-human" || run.status === "blocked");
+  return latestRun(active.length > 0 ? active : runs);
+}
+
 function viewFor(run: WorkRunRecord | undefined, budget: BudgetInspection | undefined, cancellation?: string): StatusView {
   const view: Omit<StatusView, "text"> = {
     ...(run === undefined ? {} : { runId: run.id, contractId: run.contractId }),
@@ -54,9 +67,7 @@ function viewFor(run: WorkRunRecord | undefined, budget: BudgetInspection | unde
 }
 
 export function presentWorkStatus(session: WorkspaceSession, request: WorkStatusRequest = {}): StatusView {
-  const run = request.runId === undefined
-    ? (request.contractId === undefined ? undefined : listRuns(session.handle, request.contractId)[0])
-    : getRun(session.handle, request.runId) ?? undefined;
+  const run = selectedRun(session, request);
   const contractId = request.contractId ?? run?.contractId;
   const budget = contractId === undefined ? undefined : inspectBudget(session.handle, contractId, request.contractVersion ?? run?.contractVersion);
   return viewFor(run, budget);
@@ -73,7 +84,7 @@ export function cancelFromWorkspace(
   }
   if (request.contractId !== undefined) {
     const runs = cancelContract(session.handle, session.ownerCapability, { contractId: request.contractId, version: request.contractVersion, reason, sessionPort: request.sessionPort });
-    const run = runs[0];
+    const run = latestRun(runs);
     const budget = inspectBudget(session.handle, request.contractId, request.contractVersion);
     return viewFor(run, budget, "contract fenced; late output is quarantined");
   }

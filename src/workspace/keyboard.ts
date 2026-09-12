@@ -5,7 +5,6 @@ export interface KeyboardBinding {
 }
 
 const BINDINGS: readonly KeyboardBinding[] = [
-  { action: "intake.continue", keys: ["Enter"], label: "Continue project intake" },
   { action: "help", keys: ["?"], label: "Open contextual help" },
   { action: "alternatives", keys: ["a"], label: "Inspect alternatives" },
   { action: "confirm", keys: ["y"], label: "Confirm exact displayed versions" },
@@ -16,8 +15,6 @@ const BINDINGS: readonly KeyboardBinding[] = [
   { action: "cancel-run", keys: ["c"], label: "Cancel run or contract" },
   { action: "status", keys: ["s"], label: "Show live work status" },
   { action: "access-path", keys: ["x"], label: "Qualify terminal access path" },
-  { action: "focus-next", keys: ["Tab"], label: "Focus next control" },
-  { action: "focus-previous", keys: ["Shift+Tab"], label: "Focus previous control" }
 ];
 
 export function keyboardMap(): readonly KeyboardBinding[] {

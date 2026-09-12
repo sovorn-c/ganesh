@@ -87,11 +87,13 @@ describe("E14 live work state and access paths", () => {
     const owner = createOwnerCapability("owner-test");
     const input = classifiedInput(fixture.handle);
     const authorized = contract(fixture.handle, owner, [input.id]);
-    queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-contract-1", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
-    queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-contract-2", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const first = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-contract-1", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const second = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-contract-2", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
     const session = workspaceSession(fixture.handle);
     const cancelled = cancelFromWorkspace(session, { contractId: authorized.id, reason: "owner contract stop" });
     assert.equal(cancelled.cancellation, "contract fenced; late output is quarantined");
+    assert.equal(cancelled.runId, second.id);
+    assert.notEqual(cancelled.runId, first.id);
     assert.equal(listRuns(fixture.handle, authorized.id).every((run) => run.status === "cancelled"), true);
     const budget = inspectBudget(fixture.handle, authorized.id);
     assert.equal(budget.reserved.tokens, 2);
@@ -101,13 +103,29 @@ describe("E14 live work state and access paths", () => {
 
   it("e14s04 keyboard map and non-colour access paths qualify without hardware claims", () => {
     const bindings = keyboardMap();
-    assert.ok(bindings.some((binding) => binding.keys.includes("Tab")));
-    assert.ok(bindings.some((binding) => binding.keys.includes("Shift+Tab")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("?")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("s")));
     assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver", terminal: "Terminal.app" }).status, "supported");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: false, utf8: true }).reason, "colour-only-status");
     assert.deepEqual(qualifyAccessPath({ keyboard: false, textStatus: true, utf8: true }).reason, "no-keyboard");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: false }).reason, "non-utf8-terminal");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "Other", terminal: "Terminal.app" }).reason, "unsupported-screen-reader-pairing");
+    assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver" }).reason, "unsupported-screen-reader-pairing");
+  });
+
+  it("e14s04 empty status selects the latest live work item", () => {
+    const fixture = projectFixture();
+    fixtures.push(fixture);
+    const owner = createOwnerCapability("owner-test");
+    const input = classifiedInput(fixture.handle);
+    const authorized = contract(fixture.handle, owner, [input.id]);
+    const first = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-latest-1", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const second = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "workspace-latest-2", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const session = workspaceSession(fixture.handle);
+    const status = presentWorkStatus(session);
+    assert.equal(status.runId, second.id);
+    assert.notEqual(status.runId, first.id);
+    assert.equal(status.status, "queued");
   });
 
   it("e14s04 unknown access evidence is blocked instead of assumed supported", () => {

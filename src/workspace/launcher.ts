@@ -90,10 +90,22 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
       ...runtimeOptions,
       extensionFactories: createWorkspaceExtensions(session)
     });
-    const closeOnProcessExit = (): void => handle?.close();
+    let disposed = false;
+    const disposeRuntime = async (): Promise<void> => {
+      if (disposed) {
+        return;
+      }
+      disposed = true;
+      await ports.runtime.dispose?.(runtime);
+    };
+    const closeOnProcessExit = (): void => {
+      handle?.close();
+      void disposeRuntime();
+    };
     process.once("exit", closeOnProcessExit);
+    process.once("beforeExit", closeOnProcessExit);
     try {
-      await ports.tui.run(runtime, { projectRoot: root, ownerId: handle.project.ownerId });
+      await ports.tui.run(runtime, { projectRoot: root, agentDir, ownerId: handle.project.ownerId });
       return {
         status,
         message: status === "created" ? "Ganesh workspace created; current records are ready" : "Ganesh workspace reopened; current records are ready",
@@ -101,6 +113,8 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
       };
     } finally {
       process.removeListener("exit", closeOnProcessExit);
+      process.removeListener("beforeExit", closeOnProcessExit);
+      await disposeRuntime();
     }
   } catch (error) {
     try { handle?.close(); } catch { /* preserve the bounded launch error */ }

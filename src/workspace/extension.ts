@@ -14,11 +14,11 @@ function workRequest(identifier: string): { readonly runId: string } | { readonl
 }
 
 function terminalAccessPath() {
-  const locale = `${process.env.LC_ALL ?? ""} ${process.env.LANG ?? ""}`;
+  const locale = process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG || "";
   return qualifyAccessPath({
     keyboard: process.stdin.isTTY === true,
     textStatus: true,
-    utf8: locale === "" || /utf-?8/i.test(locale),
+    utf8: /utf-?8/i.test(locale),
     keyboardMapComplete: true,
     textTerminal: process.stdout.isTTY === true,
     pointerOnly: false,

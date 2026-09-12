@@ -24,10 +24,15 @@ afterEach(() => {
 
 class FakeRuntimePort implements WorkspaceRuntimePort {
   readonly options: WorkspaceRuntimeOptions[] = [];
+  disposed = 0;
 
   create(options: WorkspaceRuntimeOptions): object {
     this.options.push(options);
     return { cwd: options.cwd };
+  }
+
+  dispose(): void {
+    this.disposed += 1;
   }
 }
 
@@ -122,8 +127,10 @@ describe("E14 workspace launcher", () => {
 
   it("e14s01 normal workspace return leaves the project handle available to the caller", async () => {
     const root = fixtureRoot();
-    const result = await runWorkspace(request(root));
+    const runtime = new FakeRuntimePort();
+    const result = await runWorkspace(request(root, runtime));
     assert.ok(result.session?.handle.db);
+    assert.equal(runtime.disposed, 1);
     result.session?.handle.close();
   });
 
