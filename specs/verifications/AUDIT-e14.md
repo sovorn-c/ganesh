@@ -9,6 +9,7 @@
 
 - 16/16 E14 task command patterns passed under Node.js 24.21.0; current correction gates also passed.
 - `npm test`: 122/122 passed.
+- Dual independent iteration-4 review: PASS/PASS; no must-fix, should-fix, or consider findings remained.
 - `npm run build`: passed.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
@@ -38,8 +39,8 @@
 
 ## Independent review correction cycle
 
-The initial self-audit PASS was superseded by two independent read-only reviews. They blocked the release for project-extension trust, Pi process-exit cleanup, unreachable live status and access/keyboard paths, duplicate registered confirmation command IDs, symlinked-parent containment, contract cancellation reachability, and stale verification targets. The authorized correction cycle addresses those findings on `feat/e14-terminal-workspace`; independent iteration-3 review is pending.
+The initial self-audit PASS was superseded by two independent read-only reviews. They blocked the release for project-extension trust, Pi process-exit cleanup, unreachable live status and access/keyboard paths, duplicate registered confirmation command IDs, symlinked-parent containment, contract cancellation reachability, and stale verification targets. The authorized correction cycle addresses those findings on `feat/e14-terminal-workspace`; dual independent iteration-4 review passed with no remaining findings.
 
 ## Verdict
 
-**INDEPENDENT REVIEW PENDING.** Current local validation is complete; final release remains gated on both independent iteration-3 reviewers. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.
+**PASS — LOCAL RELEASE.** Current local validation and dual independent review are complete. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.

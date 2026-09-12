@@ -1,16 +1,16 @@
 ---
 workflow_mode: solo-git
-active_flow: review_correction
-active_epic: e14
+active_flow: release
+active_epic: none
 active_story: none
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: bp-plan
+  next_command: "/bp-plan"
   summary: >-
-    Independent review blocked the E14 local release with correction findings in runtime
-    extension trust, launch lifecycle, reachable status/access keyboard paths, duplicate
-    confirmation commands and symlinked-parent containment. Corrections are in progress
-    on the authorized E14 branch; the prior main merge is not treated as final.
+    E14 local release completed after dual independent iteration-4 review PASS. The
+    correction cycle closed runtime extension trust, lifecycle, status/access keyboard,
+    duplicate confirmation, and symlinked-parent containment findings. Production
+    readiness, remote CI, publishing and deployment remain unclaimed.
 
 discovery:
   seed_conventions: confirmed
@@ -33,7 +33,7 @@ discovery:
   e05_build: complete
   e05_review: complete_local_release
   e14_build: complete
-  e14_review: correction_required
+  e14_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -170,8 +170,9 @@ discovery:
     locally into main without a push, tag, PR, publish, deploy, or production-readiness
     claim.
   - E14 first implementation review passed on feat/e14-terminal-workspace, then
-    independent review blocked final release with correction findings. Work is continuing
-    on the authorized E14 branch without treating the prior main merge as final.
+    dual independent review iterations blocked and verified the authorized correction
+    cycle. Iteration 4 passed; E14 is now a complete local release without a
+    production-readiness, remote-CI, publishing or deployment claim.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded

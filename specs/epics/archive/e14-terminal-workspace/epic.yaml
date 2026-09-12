@@ -56,7 +56,7 @@ bcp_estimate:
     extension command/custom UI APIs, E02-E06 domain commands and existing owner-capability
     seams. Live screen-reader hardware, distribution packaging and scholarly steering
     quality remain later-epic verification obligations.
-status: review_pending
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete

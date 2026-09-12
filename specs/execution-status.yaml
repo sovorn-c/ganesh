@@ -6,7 +6,7 @@ development_status:
   e04: done
   e06: done
   e05: done
-  e14: review_pending
+  e14: done
   e07: backlog
   e08: backlog
   e15: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e14_review_pending
+planning_level: e14_complete
 active_epic: e14
 active_story: none
-note: Independent review found E14 correction items in runtime extension trust, launch lifecycle, reachable status/access keyboard paths, duplicate confirmation commands, and symlinked-parent containment. Corrections are being implemented on the authorized E14 branch; the prior local release is not treated as final until the review reruns. Production readiness, remote CI, publishing and deployment remain unclaimed.
+note: E14 correction cycle completed and dual independent iteration-4 review passed on the authorized branch. Local validation and archive/merge are complete; production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -272,7 +272,7 @@ epics:
         verification_evidence: specs/verifications/e05s05-verify.yaml
   e14:
     title: Accessible terminal research workspace
-    status: review_pending
+    status: complete
     stories:
       e14s01:
         title: Product Launcher and Late-Entry Project Intake
@@ -317,7 +317,7 @@ epics:
     verification_evidence: specs/verifications/e14-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T01:24:03Z"
-  rationale: "All 28 stories are traceable with no dark stories; E14 has passing per-story verification evidence across 16 task checks and 114 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
+  generated_at: "2026-09-12T03:23:11Z"
+  rationale: "All 28 stories are traceable with no dark stories; E14 has passing per-story verification evidence across 16 task checks and 122 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
   heuristic_ratio: 0.22
   downgrade_applied: false
