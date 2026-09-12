@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-12T11:01:49Z
-**Total stories:** 36
+**Generated:** 2026-09-12T15:00:57Z
+**Total stories:** 41
 **Dark stories:** 0
 
 ## Story Coverage
@@ -36,11 +36,16 @@
 | e07s02 | Claim Records and Citation Verification | e07 | done | 2 |
 | e07s03 | Evidence Matrix and Source-Notice Reassessment | e07 | done | 2 |
 | e07s04 | Method-Appropriate Appraisal and Qualified Synthesis | e07 | done | 2 |
-| e08s01 | Review Protocol, Query Versions and Landscape Map | e08 | passing | 2 |
-| e08s02 | Authorized Retrieval, Citation Exploration and Honest Coverage | e08 | passing | 2 |
-| e08s03 | Screening, Eligibility Amendments and Uncertainty Queue | e08 | passing | 2 |
-| e08s04 | Gap and Contribution Challenge with Counter-Search | e08 | passing | 2 |
+| e08s01 | Review Protocol, Query Versions and Landscape Map | e08 | done | 2 |
+| e08s02 | Authorized Retrieval, Citation Exploration and Honest Coverage | e08 | done | 2 |
+| e08s03 | Screening, Eligibility Amendments and Uncertainty Queue | e08 | done | 2 |
+| e08s04 | Gap and Contribution Challenge with Counter-Search | e08 | done | 2 |
 | e14s01 | Product Launcher and Late-Entry Project Intake | e14 | done | 2 |
 | e14s02 | Contextual Help, Alternatives and Exact-Version Confirmation | e14 | done | 2 |
 | e14s03 | Evidence Inspection, Native Viewers and Offline Inspection | e14 | done | 2 |
 | e14s04 | Accessible Live Work State and Access-Path Qualification | e14 | done | 2 |
+| e15s01 | Versioned Project Export with Integrity and Current Permissions | e15 | done | 4 |
+| e15s02 | Backup, Restore, Migrations and Restore Drills | e15 | done | 4 |
+| e15s03 | Crash, Disk-Full, Corruption and Concurrent-Launch Hardening | e15 | done | 3 |
+| e15s04 | Controlled Deletion of Derived Content and Caches | e15 | done | 3 |
+| e15s05 | Stale Restore Cannot Reinstate Withdrawn Grants | e15 | done | 2 |

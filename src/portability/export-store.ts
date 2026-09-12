@@ -1,6 +1,6 @@
 // story: e15s01
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from "node:fs";
-import { basename, join, relative } from "node:path";
+import { basename, isAbsolute, join, relative, resolve } from "node:path";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, isWorkerCapability, type OwnerCapability, protectCanonicalWrite } from "../authority/capability-broker.js";
@@ -184,6 +184,22 @@ export function exportProject(
   });
 }
 
+export function assertContainedRelativePath(basePath: string, relativePath: string): string {
+  if (typeof relativePath !== "string" || !relativePath.trim()) {
+    throw new ProjectStoreError("path-escape", "relative path must be a non-empty string");
+  }
+  if (isAbsolute(relativePath)) {
+    throw new ProjectStoreError("path-escape", `path must not be absolute: ${relativePath}`);
+  }
+  const resolvedBase = resolve(basePath);
+  const resolvedTarget = resolve(resolvedBase, relativePath);
+  const rel = relative(resolvedBase, resolvedTarget);
+  if (rel.startsWith("..") || isAbsolute(rel) || resolvedTarget === resolvedBase) {
+    throw new ProjectStoreError("path-escape", `path escapes packet directory: ${relativePath}`);
+  }
+  return resolvedTarget;
+}
+
 export function inspectProjectPacket(packetPath: string): ProjectPacketInspection {
   const manifestPath = join(packetPath, "ganesh-project-packet.json");
   if (!existsSync(manifestPath)) {
@@ -193,7 +209,7 @@ export function inspectProjectPacket(packetPath: string): ProjectPacketInspectio
   const hashResults: PacketHashResult[] = [];
 
   for (const file of manifest.files) {
-    const filePath = join(packetPath, file.relativePath);
+    const filePath = assertContainedRelativePath(packetPath, file.relativePath);
     if (!existsSync(filePath)) {
       hashResults.push({ relativePath: file.relativePath, expected: file.sha256, actual: null, match: false });
       continue;

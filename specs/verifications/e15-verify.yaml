@@ -1,0 +1,77 @@
+---
+epic_id: e15
+title: Recovery portability and controlled deletion
+verified_at: "2026-09-12T15:00:00Z"
+verifier: bp-release-solo
+branch: feat/e15-recovery-portability
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
+stories:
+  e15s01:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e15-recovery-portability/e15s01-tasks.yaml
+  e15s02:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e15-recovery-portability/e15s02-tasks.yaml
+  e15s03:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e15-recovery-portability/e15s03-tasks.yaml
+  e15s04:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e15-recovery-portability/e15s04-tasks.yaml
+  e15s05:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e15-recovery-portability/e15s05-tasks.yaml
+checks:
+  task_verifications:
+    passed: true
+    evidence: 20/20 E15 task commands passed under Node.js 24.21.0
+  tests:
+    passed: true
+    command: npm test
+    evidence: 185/185 tests passed
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: exit 0 with execution-mode not_configured warning
+  audit:
+    passed: true
+    command: npm audit --omit=dev --audit-level=high
+    evidence: 0 vulnerabilities
+  security_scope:
+    passed: true
+    evidence: Strict path containment enforced; owner matching and destination locking verified; restore schema/kind/idempotency enforced; transactional stage/swap with rollback safety verified.
+  traceability:
+    passed: true
+    evidence: 41 stories, 0 dark stories, 20 E15 scenarios mapped; 0 HIGH/MEDIUM blind spots
+  review:
+    passed: true
+    evidence: Review pass 1 findings resolved and verified
+summary:
+  task_verifications: 20
+  task_verifications_passing: 20
+  tests_passing: 185
+  review_passed: true
+  release_started: true
+  production_readiness_claimed: false
+next_skill: /bp-review

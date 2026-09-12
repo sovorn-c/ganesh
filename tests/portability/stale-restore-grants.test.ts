@@ -1,5 +1,5 @@
 // story: e15s05 — Monotonic Grant Persistence Across Stale Restores
-import { describe, it, after, before } from "node:test";
+import { describe, it, afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
 import { join } from "node:path";
@@ -28,15 +28,16 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
   let fix: PortabilityFixture;
   let cleanDirs: string[] = [];
 
-  before(() => {
+  beforeEach(() => {
     fix = portabilityFixture("owner-stale-test");
   });
 
-  after(() => {
+  afterEach(() => {
     disposePortabilityFixture(fix);
     for (const d of cleanDirs) {
       rmSync(d, { recursive: true, force: true });
     }
+    cleanDirs = [];
   });
 
   function newTempDir(): string {

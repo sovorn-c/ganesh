@@ -407,56 +407,62 @@ epics:
     verification_evidence: specs/verifications/e08-verify.yaml
   e15:
     title: Recovery portability and controlled deletion
-    status: in_progress
+    status: done
     stories:
       e15s01:
         title: Versioned Project Export with Integrity and Current Permissions
-        status: passing
+        status: done
         planning_status: ready
         bcps: 8
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e15s01-verify.yaml
       e15s03:
         title: Crash, Disk-Full, Corruption and Concurrent-Launch Hardening
-        status: passing
+        status: done
         planning_status: ready
         bcps: 7
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e15s03-verify.yaml
       e15s02:
         title: Backup, Restore, Migrations and Restore Drills
-        status: passing
+        status: done
         planning_status: ready
         bcps: 7
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e15s02-verify.yaml
       e15s04:
         title: Controlled Deletion of Derived Content and Caches
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e15s04-verify.yaml
       e15s05:
         title: Stale Restore Cannot Reinstate Withdrawn Grants
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e15s05-verify.yaml
+    verification_evidence: specs/verifications/e15-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T11:04:00Z"
-  rationale: "All 36 stories are traceable with no dark stories; E08 has passing per-story verification evidence across 16 task checks and 146 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags and six orphan tags remain informational. Completeness critic: BLOCKER=0 WARNING=0."
+  generated_at: "2026-09-12T15:00:00Z"
+  rationale: "All 41 stories are traceable with no dark stories; E15 has passing per-story verification evidence across 20 task checks and 185 passing tests, with no HIGH or MEDIUM blind spots. Completeness critic: BLOCKER=0 WARNING=0."
   heuristic_ratio: 0.27
   downgrade_applied: false

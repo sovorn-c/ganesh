@@ -31,9 +31,12 @@ export function backupProject(
   return protectCanonicalWrite(capability, () => {
     // Check idempotency
     const existing = handle.db.prepare(
-      "SELECT id, backup_path FROM backup_records WHERE command_id = ?"
+      "SELECT id, backup_path, payload_hash FROM backup_records WHERE command_id = ?"
     ).get(request.commandId) as Record<string, unknown> | undefined;
     if (existing) {
+      if (existing.payload_hash && request.payloadHash && String(existing.payload_hash) !== request.payloadHash) {
+        throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
+      }
       const bp = String(existing.backup_path);
       const manifest = JSON.parse(readFileSync(join(bp, "ganesh-project-packet.json"), "utf-8")) as PacketManifest;
       return { backupId: String(existing.id), backupPath: bp, manifest, operationId: String(existing.id) };

@@ -1,7 +1,7 @@
 // story: e15s01 — Versioned Project Export with Integrity and Current Permissions
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -11,7 +11,8 @@ import {
   createOwnerCapability,
   createWorkerCapabilities,
   createE15Schema,
-  PROJECT_SCHEMA_VERSION
+  PROJECT_SCHEMA_VERSION,
+  ProjectStoreError
 } from "../../src/index.js";
 import { withdrawDataUse } from "../../src/policy/policy-store.js";
 import {
@@ -231,5 +232,34 @@ describe("E15s01 versioned project export", () => {
     assert.ok(op, "operation should exist");
     assert.equal(op!.status, "complete");
     assert.equal(op!.kind, "export");
+  });
+
+  it("e15s01 adversarial: inspectProjectPacket rejects path traversal in manifest", () => {
+    const maliciousDir = emptyDestination();
+    try {
+      mkdirSync(maliciousDir, { recursive: true });
+      const maliciousManifest = {
+        kind: "project",
+        schemaVersion: PROJECT_SCHEMA_VERSION,
+        projectId: "test-proj",
+        createdAt: new Date().toISOString(),
+        destination: "local",
+        purpose: "test",
+        files: [
+          { relativePath: "../outside.txt", sha256: "fakehash" }
+        ],
+        omissions: [],
+        commitmentIds: [],
+        evidenceLocatorIds: []
+      };
+      writeFileSync(join(maliciousDir, "ganesh-project-packet.json"), JSON.stringify(maliciousManifest, null, 2));
+
+      assert.throws(
+        () => inspectProjectPacket(maliciousDir),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "path-escape"
+      );
+    } finally {
+      rmSync(maliciousDir, { recursive: true, force: true });
+    }
   });
 });
