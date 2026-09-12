@@ -1,0 +1,72 @@
+---
+epic_id: e08
+title: Literature discovery and contribution challenge
+verified_at: "2026-09-12T11:02:52Z"
+verifier: bp-release-solo
+branch: feat/e08-literature-contribution
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50
+stories:
+  e08s01:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e08-literature-contribution/e08s01-tasks.yaml
+  e08s02:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e08-literature-contribution/e08s02-tasks.yaml
+  e08s03:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e08-literature-contribution/e08s03-tasks.yaml
+  e08s04:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e08-literature-contribution/e08s04-tasks.yaml
+checks:
+  task_verifications:
+    passed: true
+    evidence: 16/16 E08 task commands passed under Node.js 24.21.0
+  tests:
+    passed: true
+    command: npm test
+    evidence: 146/146 tests passed
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: exit 0 with execution-mode not_configured warning
+  audit:
+    passed: true
+    command: npm audit --omit=dev --audit-level=high
+    evidence: 0 vulnerabilities
+  security_scope:
+    passed: true
+    evidence: No unresolved HIGH-confidence finding; no network imports in src/literature; no commitment or scholarly-finding writes
+  traceability:
+    passed: true
+    evidence: 36 stories, 0 dark stories, 16 E08 scenarios mapped; 0 HIGH/MEDIUM blind spots
+  review:
+    passed: true
+    evidence: Review pass 2 passed after one correction commit 78c0f61
+summary:
+  task_verifications: 16
+  task_verifications_passing: 16
+  tests_passing: 146
+  review_passed: true
+  release_started: true
+  production_readiness_claimed: false
+next_skill: /bp-plan

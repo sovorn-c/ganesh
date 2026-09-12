@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T05:17:42Z",
+  "generated_at": "2026-09-12T11:01:49Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -945,7 +945,7 @@
       "epic_title": "Located evidence and accountable claims",
       "bcp": 0,
       "wsjf": 1.190476,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "tests/evidence/evidence-items.test.ts",
@@ -954,7 +954,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e07-evidence-claims/e07s01-tasks.yaml",
+          "file": "specs/epics/archive/e07-evidence-claims/e07s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -969,7 +969,7 @@
       "epic_title": "Located evidence and accountable claims",
       "bcp": 0,
       "wsjf": 1.190476,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "tests/evidence/claim-verification.test.ts",
@@ -978,7 +978,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e07-evidence-claims/e07s02-tasks.yaml",
+          "file": "specs/epics/archive/e07-evidence-claims/e07s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -993,7 +993,7 @@
       "epic_title": "Located evidence and accountable claims",
       "bcp": 0,
       "wsjf": 1.190476,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "tests/evidence/evidence-matrix.test.ts",
@@ -1002,7 +1002,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e07-evidence-claims/e07s03-tasks.yaml",
+          "file": "specs/epics/archive/e07-evidence-claims/e07s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -1017,7 +1017,7 @@
       "epic_title": "Located evidence and accountable claims",
       "bcp": 0,
       "wsjf": 1.190476,
-      "status": "passing",
+      "status": "done",
       "links": [
         {
           "file": "tests/evidence/appraisal-synthesis.test.ts",
@@ -1026,7 +1026,103 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e07-evidence-claims/e07s04-tasks.yaml",
+          "file": "specs/epics/archive/e07-evidence-claims/e07s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e08s01",
+      "title": "Review Protocol, Query Versions and Landscape Map",
+      "epic_id": "e08",
+      "epic_title": "Literature discovery and contribution challenge",
+      "bcp": 0,
+      "wsjf": 1.0,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/literature/protocol-query-landscape.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e08-literature-contribution/e08s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e08s02",
+      "title": "Authorized Retrieval, Citation Exploration and Honest Coverage",
+      "epic_id": "e08",
+      "epic_title": "Literature discovery and contribution challenge",
+      "bcp": 0,
+      "wsjf": 1.0,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/literature/retrieval-citation.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e08-literature-contribution/e08s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e08s03",
+      "title": "Screening, Eligibility Amendments and Uncertainty Queue",
+      "epic_id": "e08",
+      "epic_title": "Literature discovery and contribution challenge",
+      "bcp": 0,
+      "wsjf": 1.0,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/literature/screening-uncertainty.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e08-literature-contribution/e08s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e08s04",
+      "title": "Gap and Contribution Challenge with Counter-Search",
+      "epic_id": "e08",
+      "epic_title": "Literature discovery and contribution challenge",
+      "bcp": 0,
+      "wsjf": 1.0,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/literature/gap-contribution-counter-search.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e08-literature-contribution/e08s04-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -1132,8 +1228,8 @@
     }
   ],
   "summary": {
-    "total_stories": 32,
-    "tagged_stories": 32,
+    "total_stories": 36,
+    "tagged_stories": 36,
     "dark_stories": [
 
     ],
@@ -1172,16 +1268,20 @@
       "e06s02",
       "e06s03",
       "e06s04",
+      "e07s01",
+      "e07s02",
+      "e07s03",
+      "e07s04",
       "e14s01",
       "e14s02",
       "e14s03",
       "e14s04"
     ],
-    "stale_count": 28,
+    "stale_count": 32,
     "oracle_stats": {
-      "high": 92,
+      "high": 96,
       "medium": 0,
-      "low": 32
+      "low": 36
     }
   }
 }

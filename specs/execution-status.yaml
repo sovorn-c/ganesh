@@ -402,7 +402,7 @@ epics:
         tasks_failing: 0
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T07:03:26Z"
-  rationale: "All 32 stories are traceable with no dark stories; E07 has passing per-story verification evidence across 16 task checks and 134 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
-  heuristic_ratio: 0.22
+  generated_at: "2026-09-12T11:04:00Z"
+  rationale: "All 36 stories are traceable with no dark stories; E08 has passing per-story verification evidence across 16 task checks and 146 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags and six orphan tags remain informational. Completeness critic: BLOCKER=0 WARNING=0."
+  heuristic_ratio: 0.27
   downgrade_applied: false

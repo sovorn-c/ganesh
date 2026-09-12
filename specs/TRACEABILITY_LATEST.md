@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-12T05:17:42Z
-**Total stories:** 32
+**Generated:** 2026-09-12T11:01:49Z
+**Total stories:** 36
 **Dark stories:** 0
 
 ## Story Coverage
@@ -32,10 +32,14 @@
 | e06s02 | Located PDF and DOCX Extraction | e06 | done | 6 |
 | e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 7 |
 | e06s04 | Reviewable Source Matching and Permission-Gated Inspection | e06 | done | 4 |
-| e07s01 | Located Evidence Items and Statement Kinds | e07 | passing | 2 |
-| e07s02 | Claim Records and Citation Verification | e07 | passing | 2 |
-| e07s03 | Evidence Matrix and Source-Notice Reassessment | e07 | passing | 2 |
-| e07s04 | Method-Appropriate Appraisal and Qualified Synthesis | e07 | passing | 2 |
+| e07s01 | Located Evidence Items and Statement Kinds | e07 | done | 2 |
+| e07s02 | Claim Records and Citation Verification | e07 | done | 2 |
+| e07s03 | Evidence Matrix and Source-Notice Reassessment | e07 | done | 2 |
+| e07s04 | Method-Appropriate Appraisal and Qualified Synthesis | e07 | done | 2 |
+| e08s01 | Review Protocol, Query Versions and Landscape Map | e08 | passing | 2 |
+| e08s02 | Authorized Retrieval, Citation Exploration and Honest Coverage | e08 | passing | 2 |
+| e08s03 | Screening, Eligibility Amendments and Uncertainty Queue | e08 | passing | 2 |
+| e08s04 | Gap and Contribution Challenge with Counter-Search | e08 | passing | 2 |
 | e14s01 | Product Launcher and Late-Entry Project Intake | e14 | done | 2 |
 | e14s02 | Contextual Help, Alternatives and Exact-Version Confirmation | e14 | done | 2 |
 | e14s03 | Evidence Inspection, Native Viewers and Offline Inspection | e14 | done | 2 |
