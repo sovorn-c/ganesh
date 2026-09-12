@@ -14,6 +14,16 @@ function workRequest(identifier: string): { readonly runId: string } | { readonl
   return identifier.startsWith("run-") ? { runId: identifier } : { contractId: identifier };
 }
 
+const focusOrder = ["intake.continue", "help", "alternatives", "confirm", "reject", "defer", "inspect", "viewer", "cancel-run", "status", "access-path"] as const;
+const focusIndexes = new WeakMap<WorkspaceSession, number>();
+
+function moveFocus(session: WorkspaceSession, direction: 1 | -1): string {
+  const current = focusIndexes.get(session) ?? 0;
+  const next = (current + direction + focusOrder.length) % focusOrder.length;
+  focusIndexes.set(session, next);
+  return `Focused workspace control: ${focusOrder[next]}`;
+}
+
 function terminalAccessPath() {
   const locale = process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG || "";
   return qualifyAccessPath({
@@ -133,16 +143,18 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
 
   const shortcuts = [
     ["ctrl+enter", "intake"],
-    ["ctrl+h", "help"],
-    ["ctrl+a", "alternatives"],
-    ["ctrl+y", "approved"],
-    ["ctrl+n", "rejected"],
-    ["ctrl+d", "deferred"],
-    ["ctrl+i", "inspect"],
-    ["ctrl+v", "viewer"],
-    ["ctrl+x", "cancel"],
-    ["ctrl+s", "status"],
-    ["ctrl+shift+x", "access"]
+    ["alt+h", "help"],
+    ["alt+a", "alternatives"],
+    ["alt+y", "approved"],
+    ["alt+n", "rejected"],
+    ["alt+d", "deferred"],
+    ["alt+i", "inspect"],
+    ["alt+v", "viewer"],
+    ["alt+c", "cancel"],
+    ["alt+s", "status"],
+    ["alt+x", "access"],
+    ["ctrl+alt+right", "focus-next"],
+    ["ctrl+alt+left", "focus-previous"]
   ] as const;
   for (const [shortcut, action] of shortcuts) {
     pi.registerShortcut(shortcut, {
@@ -150,6 +162,10 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
       handler: async (ctx) => {
         if (action === "intake") {
           ctx.ui.notify("Current project records are ready; no stage pipeline is required.", "info");
+          return;
+        }
+        if (action === "focus-next" || action === "focus-previous") {
+          ctx.ui.notify(moveFocus(session, action === "focus-next" ? 1 : -1), "info");
           return;
         }
         if (action === "help") {
