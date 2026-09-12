@@ -60,21 +60,21 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 80
+      commits: 93
     smoke:
       node_version: passed
       npm_version: passed
     blockers: []
   survey:
     phase: Release
-    rationale: E14's first whole-epic review passed self-audit but independent review
-      found correction items after the local merge. The pre-build Discover snapshot is
-      retained below as history, not current state; E01-E06 remain complete local releases.
+    rationale: E14 correction review completed with dual independent PASS and local
+      merge to main. The pre-build Discover snapshot is retained below as history;
+      E01-E06 and E14 are complete local releases.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: main
-      commits: 80
+      commits: 93
       implementation_files: 73
       package_manifests: 3
       test_files: 32
