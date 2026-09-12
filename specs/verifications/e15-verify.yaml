@@ -40,7 +40,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 197/197 tests passed
+    evidence: 200/200 tests passed
   typecheck:
     passed: true
     command: npm run typecheck
@@ -60,18 +60,18 @@ checks:
     evidence: 0 vulnerabilities
   security_scope:
     passed: true
-    evidence: Strict path containment enforced; owner matching and destination locking verified; restore schema/kind/idempotency enforced; tombstone artifact unlinks strictly contained; transactional stage/swap with rollback safety verified; exact parsed JSON membership eliminates overlapping ID deletion.
+    evidence: Strict path containment enforced; owner matching and destination locking verified; restore schema/kind/idempotency enforced; canonical hashed SQLite and DB artifact reference validation enforced before drill/restore; safe export replacement with staging and discard purging stale restricted bytes; ownership-aware concurrent create cleanup; tombstone artifact unlinks strictly contained; transactional stage/swap with rollback safety verified; exact parsed JSON membership eliminates overlapping ID deletion.
   traceability:
     passed: true
     evidence: 41 stories, 0 dark stories, 20 E15 scenarios mapped; 0 HIGH/MEDIUM blind spots
   review:
     status: pending_review
     passed: false
-    evidence: Correction passes resolved all review blockers (exact parsed JSON membership on overlapping IDs for derived content and disclosures, exact stem cache matching preserving unrelated overlapping caches, project-lock unknown narrowing removing explicit any, CONVENTIONS.md documented module size exceptions for restore-store and deletion-store, strict symlink containment on packet/restore/deletion with no-follow realpath validation, tombstone unlink containment during replace restore preserving external victims, stale destination artifact cleanup on replace without artifacts, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking with deterministic synchronized barrier concurrency, transitive dependency deletion, atomic DB/artifact rollback, isolated test command IDs); ready for fresh whole-epic review
+    evidence: Correction passes resolved all review blockers (safe export replacement with atomic swap purging stale restricted bytes, fail-closed packet validation requiring canonical hashed project.sqlite and DB-referenced artifact verification before drill/restore, ownership-aware atomic createProject cleanup protecting winner's store, exact parsed JSON membership on overlapping IDs for derived content and disclosures, exact stem cache matching preserving unrelated overlapping caches, project-lock unknown narrowing, CONVENTIONS.md documented module size exceptions); ready for fresh whole-epic review
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 197
+  tests_passing: 200
   review_started: true
   review_passed: false
   release_started: false

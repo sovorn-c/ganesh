@@ -1,8 +1,9 @@
 // story: e15s03 — Crash, Disk-Full, Corruption and Concurrent-Launch Hardening
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, readFileSync, rmSync, mkdirSync, readdirSync } from "node:fs";
+import { writeFileSync, readFileSync, rmSync, mkdirSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import {
   openProject,
@@ -276,6 +277,100 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
 
       assert.equal(successes, 1, "exactly one concurrent process should acquire the lock");
       assert.equal(locked, 2, "other processes should receive project-locked exit code");
+    } finally {
+      rmSync(freshRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("e15s03 concurrent createProject preserves winner's store and rejects loser without store deletion", async () => {
+    const freshRoot = join(tmpdir(), `ganesh-concur-create-${Date.now()}`);
+    mkdirSync(freshRoot, { recursive: true });
+
+    try {
+      const barrierDir = join(freshRoot, "barrier");
+      mkdirSync(barrierDir, { recursive: true });
+
+      const script = `
+        import { createProject } from "./dist/src/project/project-store.js";
+        import { ProjectStoreError } from "./dist/src/project/project-types.js";
+        import { existsSync, writeFileSync, readdirSync } from "node:fs";
+        import { join } from "node:path";
+
+        const rootPath = process.argv[1];
+        const barrierDir = process.argv[2];
+        const pid = process.pid;
+
+        // 1. Signal ready
+        writeFileSync(join(barrierDir, "ready-" + pid), "");
+
+        // 2. Synchronize before acquisition: wait for start gate
+        const startGate = join(barrierDir, "start.gate");
+        while (!existsSync(startGate)) {
+          await new Promise((r) => setTimeout(r, 10));
+        }
+
+        // 3. Race to create project
+        try {
+          const handle = createProject({ rootPath, ownerId: "owner-race-" + pid });
+          writeFileSync(join(barrierDir, "winner-" + pid), "");
+
+          // Hold winning project open until loser completes
+          const deadline = Date.now() + 10000;
+          while (Date.now() < deadline) {
+            const entries = readdirSync(barrierDir);
+            if (entries.some((e) => e.startsWith("rejected-") || e.startsWith("locked-"))) {
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 10));
+          }
+
+          handle.close();
+          process.exit(0);
+        } catch (err) {
+          if (err instanceof ProjectStoreError && (err.code === "project-exists" || err.code === "project-locked" || err.code === "lock-timeout")) {
+            writeFileSync(join(barrierDir, (err.code === "project-exists" ? "rejected-" : "locked-") + pid), "");
+            process.exit(42);
+          }
+          writeFileSync(join(barrierDir, "error-" + pid), String(err));
+          process.exit(1);
+        }
+      `;
+
+      const runners = Array.from({ length: 2 }, () => {
+        return new Promise<number>((resolve) => {
+          const child = spawn(process.argv[0], ["--input-type=module", "-e", script, freshRoot, barrierDir]);
+          child.on("close", (code) => resolve(code ?? 1));
+        });
+      });
+
+      // Wait until both children are ready
+      const readyDeadline = Date.now() + 10000;
+      while (Date.now() < readyDeadline) {
+        const readyCount = readdirSync(barrierDir).filter((e) => e.startsWith("ready-")).length;
+        if (readyCount >= 2) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 10));
+      }
+
+      // Release both children simultaneously
+      writeFileSync(join(barrierDir, "start.gate"), "");
+
+      const exitCodes = await Promise.all(runners);
+      const successes = exitCodes.filter((c) => c === 0).length;
+      const rejected = exitCodes.filter((c) => c === 42).length;
+
+      assert.equal(successes, 1, "exactly one creator should succeed");
+      assert.equal(rejected, 1, "losing creator should be rejected with project-exists or lock error");
+
+      // Verify the winner's store and database were NEVER deleted by the losing creator's error cleanup
+      assert.equal(existsSync(join(freshRoot, ".ganesh", "project.sqlite")), true, "winner's database must survive intact");
+      const reopened = openProject(freshRoot);
+      try {
+        assert.equal(reopened.status, "ready", "winner's project must be readable and ready");
+      } finally {
+        reopened.close();
+      }
     } finally {
       rmSync(freshRoot, { recursive: true, force: true });
     }

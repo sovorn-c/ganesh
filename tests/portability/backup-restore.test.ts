@@ -1,7 +1,7 @@
 // story: e15s02 — Backup, Restore, Migrations and Restore Drills
 import { describe, it, afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync } from "node:fs";
+import { writeFileSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
@@ -11,6 +11,7 @@ import {
   migrateWithBackup,
   migrateSchema,
   openProject,
+  createProject,
   inspectArtifactVersion,
   PROJECT_SCHEMA_VERSION,
   createBranch,
@@ -678,5 +679,109 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
     assert.deepEqual(currentDbBytes, origDbBytes, "database bytes must be identical after rollback");
     assert.equal(existsSync(origArtifactFile), true, "original artifact file must be untouched after rollback");
     assert.equal(readFileSync(origArtifactFile, "utf-8"), "original surviving content");
+  });
+
+  it("e15s02 fail-closed validation: manifest missing hashed sqlite or referenced artifact fails before drill or restore", () => {
+    const art = registerPublicArtifact(fix.handle, "doc-ref-val", "v1", "artifact validation data");
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-for-art-ref-validation",
+      payloadHash: packetPayloadHash({ cmd: "art-ref-val" })
+    });
+    const manifestPath = join(backup.backupPath, "ganesh-project-packet.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+
+    // 1. Manifest missing project.sqlite entry entirely
+    const noSqliteDir = newTempDir();
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(noSqliteDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    const noSqliteManifest = {
+      ...manifest,
+      files: manifest.files.filter((f: { relativePath: string }) => f.relativePath !== "project.sqlite")
+    };
+    writeFileSync(join(noSqliteDir, "ganesh-project-packet.json"), JSON.stringify(noSqliteManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "cmd-no-sqlite-drill",
+        sourcePath: noSqliteDir,
+        destinationPath: fix.root,
+        mode: "drill",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // 2. Referenced artifact missing from manifest.files
+    const missingManifestArtDir = newTempDir();
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(missingManifestArtDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    const missingManifestArtManifest = {
+      ...manifest,
+      files: manifest.files.filter((f: { relativePath: string }) => f.relativePath === "project.sqlite")
+    };
+    writeFileSync(join(missingManifestArtDir, "ganesh-project-packet.json"), JSON.stringify(missingManifestArtManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "cmd-missing-manifest-art",
+        sourcePath: missingManifestArtDir,
+        destinationPath: fix.root,
+        mode: "drill",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // 3. Referenced artifact missing from disk in packet
+    const missingDiskArtDir = newTempDir();
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(missingDiskArtDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    const artFileEntry = manifest.files.find((f: { relativePath: string }) => f.relativePath !== "project.sqlite");
+    if (artFileEntry) {
+      unlinkSync(join(missingDiskArtDir, artFileEntry.relativePath));
+    }
+    writeFileSync(join(missingDiskArtDir, "ganesh-project-packet.json"), JSON.stringify(manifest, null, 2));
+
+    const drillMissingDisk = restoreProject(fix.ownerCap, {
+      commandId: "cmd-missing-disk-art",
+      sourcePath: missingDiskArtDir,
+      destinationPath: fix.root,
+      mode: "drill",
+      payloadHash: "hash"
+    });
+    assert.equal(drillMissingDisk.valid, false, "drill must detect missing disk artifact and return valid: false");
+
+    // 4. Empty-artifact project passes validation and drill cleanly
+    const emptyProjDir = newTempDir();
+    const emptyHandle = createProject({ rootPath: emptyProjDir, ownerId: fix.ownerId });
+    try {
+      const emptyBackup = backupProject(emptyHandle, fix.ownerCap, {
+        commandId: "backup-empty-proj",
+        payloadHash: packetPayloadHash({ cmd: "empty" })
+      });
+      const emptyDrill = restoreProject(fix.ownerCap, {
+        commandId: "drill-empty-proj",
+        sourcePath: emptyBackup.backupPath,
+        destinationPath: emptyProjDir,
+        mode: "drill",
+        payloadHash: packetPayloadHash({ cmd: "empty" })
+      });
+      assert.equal(emptyDrill.valid, true, "empty-artifact project must pass drill validation");
+    } finally {
+      emptyHandle.close();
+      rmSync(emptyProjDir, { recursive: true, force: true });
+    }
   });
 });

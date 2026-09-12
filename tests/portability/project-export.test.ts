@@ -301,4 +301,56 @@ describe("E15s01 versioned project export", () => {
       rmSync(outsideTarget, { recursive: true, force: true });
     }
   });
+
+  it("e15s01 export replacement safely purges stale restricted bytes on destination reuse", () => {
+    const pubArt = registerPublicArtifact(fix.handle, "doc-reuse-pub", "v1", "public reusable content");
+    const restrArt = registerPublicArtifact(fix.handle, "doc-reuse-restr", "v1", "restricted sensitive content");
+
+    classifyAndGrant(fix.handle, pubArt.id, "external-cloud", "analysis");
+    const restrGrant = classifyAndGrant(fix.handle, restrArt.id, "external-cloud", "analysis");
+
+    const reuseDest = join(destDir, "packet-reuse-stale");
+
+    const export1 = exportProject(fix.handle, fix.ownerCap, {
+      commandId: "export-reuse-cmd-1",
+      destinationPath: reuseDest,
+      destination: "external-cloud",
+      purpose: "analysis",
+      payloadHash: packetPayloadHash({ cmd: "export-1" })
+    });
+
+    assert.equal(export1.manifest.omissions.some(o => o.artifactVersionId === restrArt.id), false, "restricted artifact must not be omitted initially");
+    const pubEntry = export1.manifest.files.find(f => f.relativePath.includes(pubArt.id));
+    const restrEntry = export1.manifest.files.find(f => f.relativePath.includes(restrArt.id));
+    assert.ok(pubEntry, "public file must be in export1 manifest files");
+    assert.ok(restrEntry, "restricted file must be in export1 manifest files");
+
+    const pubPath = join(reuseDest, pubEntry.relativePath);
+    const restrPath = join(reuseDest, restrEntry.relativePath);
+    assert.equal(existsSync(pubPath), true, "public artifact must exist after first export");
+    assert.equal(existsSync(restrPath), true, "restricted artifact must exist after first export");
+
+    withdrawDataUse(fix.handle, restrGrant.id, "withdrawn consent for sensitive doc");
+
+    const export2 = exportProject(fix.handle, fix.ownerCap, {
+      commandId: "export-reuse-cmd-2",
+      destinationPath: reuseDest,
+      destination: "external-cloud",
+      purpose: "analysis",
+      payloadHash: packetPayloadHash({ cmd: "export-2" })
+    });
+
+    assert.equal(
+      export2.manifest.omissions.some(o => o.artifactVersionId === restrArt.id && o.reason.includes("withdrawn")),
+      true,
+      "restricted artifact must be omitted with withdrawn reason"
+    );
+
+    assert.equal(existsSync(restrPath), false, "stale restricted artifact MUST NOT survive export replacement");
+    assert.equal(existsSync(pubPath), true, "public artifact must still be present");
+
+    const inspection = inspectProjectPacket(reuseDest);
+    assert.equal(inspection.valid, true, "re-exported packet must be valid");
+  });
 });
+

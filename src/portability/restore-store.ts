@@ -250,6 +250,97 @@ function copyDirRecursive(src: string, dest: string): void {
   }
 }
 
+function validatePacketArtifactReferences(packetPath: string, manifest: PacketManifest): void {
+  const sqlitePath = join(packetPath, "project.sqlite");
+  const packetArtifactsDir = join(packetPath, "artifacts");
+  const omittedIds = new Set((manifest.omissions ?? []).map((o) => String(o.artifactVersionId)));
+
+  const manifestFileMap = new Map<string, string>();
+  for (const f of manifest.files) {
+    manifestFileMap.set(f.relativePath, f.sha256);
+  }
+
+  let db: DatabaseSync;
+  try {
+    db = new DatabaseSync(sqlitePath, { readOnly: true });
+    configureDatabase(db);
+  } catch (err) {
+    throw new ProjectStoreError("corrupt-packet", `packet database is unreadable: ${(err as Error).message}`);
+  }
+
+  try {
+    const tableExists = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='artifact_versions'"
+    ).get();
+    if (!tableExists) {
+      return;
+    }
+
+    const rows = db.prepare(
+      "SELECT id, storage_path, content_hash, content_status, access_level FROM artifact_versions WHERE storage_path IS NOT NULL"
+    ).all() as Array<{
+      id: string;
+      storage_path: string;
+      content_hash: string | null;
+      content_status: string;
+      access_level: string;
+    }>;
+
+    for (const row of rows) {
+      const vId = String(row.id);
+      if (
+        row.content_status === "unavailable" ||
+        row.access_level === "unavailable" ||
+        omittedIds.has(vId)
+      ) {
+        continue;
+      }
+
+      const storagePath = row.storage_path;
+      assertContainedArtifactPath(packetArtifactsDir, storagePath);
+
+      const relPath = `artifacts/${storagePath}`;
+      const expectedHash = manifestFileMap.get(relPath);
+      if (!expectedHash) {
+        throw new ProjectStoreError(
+          "corrupt-packet",
+          `packet manifest is missing entry for referenced artifact: ${storagePath}`
+        );
+      }
+
+      const fullDiskPath = join(packetPath, relPath);
+      if (!existsSync(fullDiskPath)) {
+        throw new ProjectStoreError(
+          "corrupt-packet",
+          `packet is missing referenced artifact file: ${storagePath}`
+        );
+      }
+
+      const bytes = readFileSync(fullDiskPath);
+      const actualHash = computeSha256(bytes);
+      if (actualHash !== expectedHash) {
+        throw new ProjectStoreError(
+          "corrupt-packet",
+          `packet artifact hash mismatch for referenced artifact: ${storagePath}`
+        );
+      }
+      if (row.content_hash && actualHash !== row.content_hash) {
+        throw new ProjectStoreError(
+          "corrupt-packet",
+          `packet artifact content hash does not match database record: ${storagePath}`
+        );
+      }
+    }
+  } catch (err) {
+    if (err instanceof ProjectStoreError) {
+      throw err;
+    }
+    throw new ProjectStoreError("corrupt-packet", `packet artifact validation failed: ${(err as Error).message}`);
+  } finally {
+    try { db.close(); } catch { /* ignore */ }
+  }
+}
+
 export function restoreProject(
   capability: unknown,
   request: RestoreRequest
@@ -282,6 +373,12 @@ export function restoreProject(
       "invalid-packet-kind",
       `invalid-packet-kind: unrecognized packet kind "${inspection.manifest.kind}"`
     );
+  }
+
+  // Require canonical hashed project.sqlite entry in manifest
+  const sqliteFile = inspection.manifest.files?.find((f) => f.relativePath === "project.sqlite");
+  if (!sqliteFile || typeof sqliteFile.sha256 !== "string" || !sqliteFile.sha256.trim()) {
+    throw new ProjectStoreError("corrupt-packet", "packet manifest is missing canonical hashed project.sqlite entry");
   }
 
   // If packet file hashes do not match manifest, reject immediately before DB inspection or destination modification
@@ -321,6 +418,9 @@ export function restoreProject(
   if (ownerCap.ownerId !== packetOwnerId) {
     throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match packet owner");
   }
+
+  // Enforce checking every DB artifact reference has a safe, present, hash-valid packet artifact
+  validatePacketArtifactReferences(request.sourcePath, inspection.manifest);
 
   // Enforce global command idempotency and payload conflict (for materialize and replace)
   if (request.mode === "materialize" || request.mode === "replace") {

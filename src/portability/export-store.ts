@@ -1,5 +1,5 @@
 // story: e15s01
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, writeFileSync, rmSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { assertWritable } from "../project/project-store.js";
@@ -16,13 +16,12 @@ function getPortabilityOp(handle: ProjectHandle, commandId: string): Portability
   const row = handle.db.prepare(
     "SELECT id, command_id, kind, payload_hash, status, packet_path, created_at, updated_at FROM portability_operations WHERE command_id = ?"
   ).get(commandId) as Record<string, unknown> | undefined;
-  if (!row) {return undefined;}
-  return {
+  return row ? {
     id: String(row.id), commandId: String(row.command_id), kind: String(row.kind),
     payloadHash: String(row.payload_hash), status: String(row.status) as PortabilityOperation["status"],
     packetPath: row.packet_path ? String(row.packet_path) : null,
     createdAt: String(row.created_at), updatedAt: String(row.updated_at)
-  };
+  } : undefined;
 }
 
 export function getPortabilityOperation(handle: ProjectHandle, commandId: string): PortabilityOperation | undefined {
@@ -71,13 +70,24 @@ export function exportProject(
       });
     }
 
-    const packetDir = request.destinationPath;
+    const packetDir = resolve(request.destinationPath);
+    if (existsSync(packetDir) && lstatSync(packetDir).isSymbolicLink()) {
+      throw new ProjectStoreError("path-escape", "export destination cannot be a symlink");
+    }
+
+    const parentDir = dirname(packetDir);
+    mkdirSync(parentDir, { recursive: true });
+
+    const stageId = newId("export-stage");
+    const stagingDir = join(parentDir, `.${basename(packetDir)}.staging-${stageId}`);
+    const discardDir = join(parentDir, `.${basename(packetDir)}.discard-${stageId}`);
+
     try {
-      mkdirSync(packetDir, { recursive: true });
+      mkdirSync(stagingDir, { recursive: true });
 
       // Copy SQLite
       const dbSrc = handle.project.databasePath;
-      const dbDest = join(packetDir, "project.sqlite");
+      const dbDest = join(stagingDir, "project.sqlite");
       copyFileSync(dbSrc, dbDest);
       const dbBytes = readFileSync(dbDest);
       const dbHash = computeSha256(dbBytes);
@@ -90,7 +100,7 @@ export function exportProject(
         "SELECT id, logical_id, storage_path, content_hash, access_level, content_status FROM artifact_versions ORDER BY logical_id"
       ).all() as Array<Record<string, unknown>>;
 
-      const artifactsDir = join(packetDir, "artifacts");
+      const artifactsDir = join(stagingDir, "artifacts");
       mkdirSync(artifactsDir, { recursive: true });
 
       for (const row of artifactRows) {
@@ -138,18 +148,16 @@ export function exportProject(
         files.push({ relativePath: `artifacts/${storagePath}`, sha256: artifactHash });
       }
 
-      // Collect commitment ids (read-only, no new decisions)
       const commitmentIds: string[] = [];
       try {
-        const commitmentRows = handle.db.prepare("SELECT id FROM commitments ORDER BY created_at").all() as Array<Record<string, unknown>>;
-        for (const r of commitmentRows) {commitmentIds.push(String(r.id));}
-      } catch { /* table may not exist in very old schemas */ }
+        const rows = handle.db.prepare("SELECT id FROM commitments ORDER BY created_at").all() as Array<{ id: string }>;
+        for (const r of rows) { commitmentIds.push(String(r.id)); }
+      } catch { /* table may not exist */ }
 
-      // Collect evidence locator ids
       const evidenceLocatorIds: string[] = [];
       try {
-        const locatorRows = handle.db.prepare("SELECT id FROM source_locators ORDER BY id").all() as Array<Record<string, unknown>>;
-        for (const r of locatorRows) {evidenceLocatorIds.push(String(r.id));}
+        const rows = handle.db.prepare("SELECT id FROM source_locators ORDER BY id").all() as Array<{ id: string }>;
+        for (const r of rows) { evidenceLocatorIds.push(String(r.id)); }
       } catch { /* table may not exist */ }
 
       const manifest: PacketManifest = {
@@ -165,7 +173,25 @@ export function exportProject(
         evidenceLocatorIds
       };
 
-      writeFileSync(join(packetDir, "ganesh-project-packet.json"), JSON.stringify(manifest, null, 2));
+      writeFileSync(join(stagingDir, "ganesh-project-packet.json"), JSON.stringify(manifest, null, 2));
+
+      // Atomic swap stagingDir into packetDir, replacing stale files safely
+      let movedOld = false;
+      if (existsSync(packetDir)) {
+        renameSync(packetDir, discardDir);
+        movedOld = true;
+      }
+      try {
+        renameSync(stagingDir, packetDir);
+        if (movedOld) {
+          try { rmSync(discardDir, { recursive: true, force: true }); } catch { /* ignore */ }
+        }
+      } catch (swapErr) {
+        if (movedOld) {
+          try { renameSync(discardDir, packetDir); } catch { /* rollback */ }
+        }
+        throw swapErr;
+      }
 
       // Mark complete
       transaction(handle.db, () => {
@@ -184,7 +210,8 @@ export function exportProject(
           ).run("failed", isoNow(), operationId);
         });
       } catch { /* preserve original error */ }
-      try { rmSync(packetDir, { recursive: true, force: true }); } catch { /* best effort */ }
+      if (existsSync(stagingDir)) { try { rmSync(stagingDir, { recursive: true, force: true }); } catch { /* ignore */ } }
+      if (existsSync(discardDir)) { try { rmSync(discardDir, { recursive: true, force: true }); } catch { /* ignore */ } }
       throw error;
     }
   });

@@ -21,8 +21,8 @@ Preserve public APIs, runtime behavior, stored data, authority enforcement, and 
 ### Source file size exceptions
 
 Per `CONVENTIONS.md`, source files should remain below 300 lines unless a documented exception applies. Two cohesive E15 portability stores have approved exceptions:
-- `src/portability/restore-store.ts` (~830 lines): Retained as a cohesive transactional restore engine to preserve fail-closed atomic staging, capability protection, and monotonic grant/tombstone re-application without cross-module failure gaps.
-- `src/portability/deletion-store.ts` (~360 lines): Retained as a cohesive cascading deletion engine to ensure atomic tombstoning, reachable dependency unlinking, derived material cleanup, and strict root containment operate within a single coordinated transaction.
+- `src/portability/restore-store.ts` (~930 lines): Retained as a cohesive transactional restore engine to preserve fail-closed atomic staging, capability protection, and monotonic grant/tombstone re-application without cross-module failure gaps.
+- `src/portability/deletion-store.ts` (~380 lines): Retained as a cohesive cascading deletion engine to ensure atomic tombstoning, reachable dependency unlinking, derived material cleanup, and strict root containment operate within a single coordinated transaction.
 
 ## Planning signals
 

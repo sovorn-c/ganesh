@@ -124,16 +124,25 @@ export function createProject(input: ProjectInput): ProjectHandle {
   const paths = pathsFor(input.rootPath);
   assertIdentifier(input.ownerId, "ownerId");
   const projectId = input.projectId === undefined ? newId("project") : assertIdentifier(input.projectId, "projectId");
-  const createdStore = !existsSync(paths.store);
-  ensureDirectory(paths.artifacts);
+
   if (existsSync(paths.database)) {
     throw new ProjectStoreError("project-exists", "a project already exists at this root");
   }
 
   let db: DatabaseSync | undefined;
   let lock: ProjectLock | undefined;
+  let storeExistedBefore = false;
+
   try {
     lock = acquireProjectWriteLock(paths.root);
+
+    if (existsSync(paths.database)) {
+      throw new ProjectStoreError("project-exists", "a project already exists at this root");
+    }
+
+    storeExistedBefore = existsSync(paths.store);
+    ensureDirectory(paths.artifacts);
+
     db = openDatabase(paths.database, false);
     createSchema(db);
     const createdAt = isoNow();
@@ -154,8 +163,32 @@ export function createProject(input: ProjectInput): ProjectHandle {
   } catch (error) {
     lock?.release();
     db?.close();
-    if (createdStore) {
-      rmSync(paths.store, { recursive: true, force: true });
+    // Ownership-aware cleanup: NEVER remove paths.store if the project exists
+    // or belongs to another creator, or if the failure was project-exists.
+    if (error instanceof ProjectStoreError && error.code === "project-exists") {
+      // A winner's store or existing project is present: never delete it!
+    } else if (!storeExistedBefore) {
+      if (!existsSync(paths.database)) {
+        try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+      } else {
+        try {
+          const checkDb = new DatabaseSync(paths.database, { readOnly: true });
+          let otherWinner = false;
+          try {
+            const row = checkDb.prepare("SELECT id FROM projects LIMIT 1").get() as { id?: string } | undefined;
+            if (row && row.id !== projectId) {
+              otherWinner = true;
+            }
+          } finally {
+            checkDb.close();
+          }
+          if (!otherWinner) {
+            rmSync(paths.store, { recursive: true, force: true });
+          }
+        } catch {
+          try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+        }
+      }
     }
     throw error;
   }
