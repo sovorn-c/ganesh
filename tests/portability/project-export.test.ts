@@ -1,8 +1,8 @@
 // story: e15s01 — Versioned Project Export with Integrity and Current Permissions
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync, symlinkSync } from "node:fs";
-import { join } from "node:path";
+import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync, symlinkSync, readdirSync } from "node:fs";
+import { join, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
 import {
   exportProject,
@@ -351,6 +351,30 @@ describe("E15s01 versioned project export", () => {
 
     const inspection = inspectProjectPacket(reuseDest);
     assert.equal(inspection.valid, true, "re-exported packet must be valid");
+
+    // Verify parent directory contains no discard or staging residue
+    const parentEntries = readdirSync(dirname(reuseDest));
+    assert.equal(
+      parentEntries.some((e) => e.includes(".discard-") || e.includes(".staging-")),
+      false,
+      "export replacement must not leave discard or staging residue in parent directory"
+    );
+
+    // Verify pre-existing discard residue is purged on destination reuse
+    const fakeDiscardResidue = join(dirname(reuseDest), `.${basename(reuseDest)}.discard-stale-999`);
+    mkdirSync(fakeDiscardResidue, { recursive: true });
+    writeFileSync(join(fakeDiscardResidue, "stale-secret.txt"), "leftover discard bytes");
+    assert.equal(existsSync(fakeDiscardResidue), true);
+
+    exportProject(fix.handle, fix.ownerCap, {
+      commandId: "export-reuse-cmd-3",
+      destinationPath: reuseDest,
+      destination: "external-cloud",
+      purpose: "analysis",
+      payloadHash: packetPayloadHash({ cmd: "export-3" })
+    });
+
+    assert.equal(existsSync(fakeDiscardResidue), false, "pre-existing discard residue must be purged on export");
   });
 });
 

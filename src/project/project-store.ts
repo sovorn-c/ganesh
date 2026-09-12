@@ -161,33 +161,37 @@ export function createProject(input: ProjectInput): ProjectHandle {
     const project = readProject(db, paths);
     return new ProjectHandle(db, project, "ready", true, undefined, lock);
   } catch (error) {
-    lock?.release();
-    db?.close();
+    try { lock?.release(); } catch { /* ignore */ }
+    try { db?.close(); } catch { /* ignore */ }
     // Ownership-aware cleanup: NEVER remove paths.store if the project exists
     // or belongs to another creator, or if the failure was project-exists.
     if (error instanceof ProjectStoreError && error.code === "project-exists") {
       // A winner's store or existing project is present: never delete it!
     } else if (!storeExistedBefore) {
-      if (!existsSync(paths.database)) {
-        try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
-      } else {
+      if (!db) {
+        if (!existsSync(paths.database)) {
+          try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+        }
+      } else if (existsSync(paths.database)) {
+        let canDelete = false;
         try {
           const checkDb = new DatabaseSync(paths.database, { readOnly: true });
-          let otherWinner = false;
           try {
             const row = checkDb.prepare("SELECT id FROM projects LIMIT 1").get() as { id?: string } | undefined;
-            if (row && row.id !== projectId) {
-              otherWinner = true;
+            if (!row || row.id === projectId) {
+              canDelete = true;
             }
           } finally {
             checkDb.close();
           }
-          if (!otherWinner) {
-            rmSync(paths.store, { recursive: true, force: true });
-          }
         } catch {
+          canDelete = false;
+        }
+        if (canDelete) {
           try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
         }
+      } else {
+        try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
       }
     }
     throw error;

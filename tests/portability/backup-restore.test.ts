@@ -763,7 +763,68 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
     });
     assert.equal(drillMissingDisk.valid, false, "drill must detect missing disk artifact and return valid: false");
 
-    // 4. Empty-artifact project passes validation and drill cleanly
+    // 4. Manifest with invalid non-sha256 project.sqlite hash is rejected
+    const invalidSqliteHashDir = newTempDir();
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(invalidSqliteHashDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    const invalidSqliteManifest = {
+      ...manifest,
+      files: manifest.files.map((f: { relativePath: string; sha256: string }) =>
+        f.relativePath === "project.sqlite" ? { ...f, sha256: "not-a-valid-sha256" } : f
+      )
+    };
+    writeFileSync(join(invalidSqliteHashDir, "ganesh-project-packet.json"), JSON.stringify(invalidSqliteManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "cmd-invalid-sqlite-hash",
+        sourcePath: invalidSqliteHashDir,
+        destinationPath: fix.root,
+        mode: "drill",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // 5. Non-omitted DB artifact with null storage_path is rejected fail-closed
+    const nullStorageArtDir = newTempDir();
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(nullStorageArtDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    // Update the sqlite database inside the packet to set storage_path to NULL for an active artifact
+    const modDb = new DatabaseSync(join(nullStorageArtDir, "project.sqlite"));
+    modDb.prepare("UPDATE artifact_versions SET storage_path = NULL WHERE content_status = 'available'").run();
+    modDb.close();
+    // Update manifest sha256 for project.sqlite so inspection passes to validatePacketArtifactReferences
+    const modSqliteBytes = readFileSync(join(nullStorageArtDir, "project.sqlite"));
+    const modSqliteHash = sha256(modSqliteBytes);
+    const modManifest = {
+      ...manifest,
+      files: manifest.files.map((f: { relativePath: string; sha256: string }) =>
+        f.relativePath === "project.sqlite" ? { ...f, sha256: modSqliteHash } : f
+      )
+    };
+    writeFileSync(join(nullStorageArtDir, "ganesh-project-packet.json"), JSON.stringify(modManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "cmd-null-storage-art",
+        sourcePath: nullStorageArtDir,
+        destinationPath: fix.root,
+        mode: "drill",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // 6. Empty-artifact project passes validation and drill cleanly
     const emptyProjDir = newTempDir();
     const emptyHandle = createProject({ rootPath: emptyProjDir, ownerId: fix.ownerId });
     try {

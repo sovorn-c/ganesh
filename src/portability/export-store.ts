@@ -12,7 +12,7 @@ import type {
   ProjectPacket, ProjectPacketInspection, PacketHashResult, PortabilityOperation
 } from "./portability-types.js";
 
-function getPortabilityOp(handle: ProjectHandle, commandId: string): PortabilityOperation | undefined {
+export function getPortabilityOperation(handle: ProjectHandle, commandId: string): PortabilityOperation | undefined {
   const row = handle.db.prepare(
     "SELECT id, command_id, kind, payload_hash, status, packet_path, created_at, updated_at FROM portability_operations WHERE command_id = ?"
   ).get(commandId) as Record<string, unknown> | undefined;
@@ -24,16 +24,7 @@ function getPortabilityOp(handle: ProjectHandle, commandId: string): Portability
   } : undefined;
 }
 
-export function getPortabilityOperation(handle: ProjectHandle, commandId: string): PortabilityOperation | undefined {
-  return getPortabilityOp(handle, commandId);
-}
-
-export function exportProject(
-  handle: ProjectHandle,
-  capability: unknown,
-  request: ExportRequest
-): ProjectPacket {
-  // Authority: owner-only, workers denied
+export function exportProject(handle: ProjectHandle, capability: unknown, request: ExportRequest): ProjectPacket {
   if (isWorkerCapability(capability)) {
     throw new ProjectStoreError("forbidden", "forbidden: workers cannot export projects");
   }
@@ -48,7 +39,7 @@ export function exportProject(
 
   return protectCanonicalWrite(capability, () => {
     // Check idempotency
-    const existing = getPortabilityOp(handle, request.commandId);
+    const existing = getPortabilityOperation(handle, request.commandId);
     if (existing) {
       if (existing.payloadHash !== request.payloadHash) {
         throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
@@ -82,16 +73,22 @@ export function exportProject(
     const stagingDir = join(parentDir, `.${basename(packetDir)}.staging-${stageId}`);
     const discardDir = join(parentDir, `.${basename(packetDir)}.discard-${stageId}`);
 
+    // Purge any stale discard or staging residue from prior operations
+    try {
+      for (const e of readdirSync(parentDir)) {
+        if (e.startsWith(`.${basename(packetDir)}.discard-`) || e.startsWith(`.${basename(packetDir)}.staging-`)) {
+          rmSync(join(parentDir, e), { recursive: true, force: true });
+        }
+      }
+    } catch { /* best effort */ }
+
     try {
       mkdirSync(stagingDir, { recursive: true });
 
       // Copy SQLite
-      const dbSrc = handle.project.databasePath;
       const dbDest = join(stagingDir, "project.sqlite");
-      copyFileSync(dbSrc, dbDest);
-      const dbBytes = readFileSync(dbDest);
-      const dbHash = computeSha256(dbBytes);
-
+      copyFileSync(handle.project.databasePath, dbDest);
+      const dbHash = computeSha256(readFileSync(dbDest));
       const files: PacketFileEntry[] = [{ relativePath: "project.sqlite", sha256: dbHash }];
       const omissions: OmissionNotice[] = [];
 
@@ -143,22 +140,13 @@ export function exportProject(
         const destArtifact = assertContainedRelativePath(artifactsDir, storagePath);
         mkdirSync(join(destArtifact, ".."), { recursive: true });
         copyFileSync(srcPath, destArtifact);
-        const artifactBytes = readFileSync(destArtifact);
-        const artifactHash = computeSha256(artifactBytes);
-        files.push({ relativePath: `artifacts/${storagePath}`, sha256: artifactHash });
+        files.push({ relativePath: `artifacts/${storagePath}`, sha256: computeSha256(readFileSync(destArtifact)) });
       }
 
-      const commitmentIds: string[] = [];
-      try {
-        const rows = handle.db.prepare("SELECT id FROM commitments ORDER BY created_at").all() as Array<{ id: string }>;
-        for (const r of rows) { commitmentIds.push(String(r.id)); }
-      } catch { /* table may not exist */ }
-
-      const evidenceLocatorIds: string[] = [];
-      try {
-        const rows = handle.db.prepare("SELECT id FROM source_locators ORDER BY id").all() as Array<{ id: string }>;
-        for (const r of rows) { evidenceLocatorIds.push(String(r.id)); }
-      } catch { /* table may not exist */ }
+      let commitmentIds: string[] = [];
+      try { commitmentIds = (handle.db.prepare("SELECT id FROM commitments ORDER BY created_at").all() as Array<{ id: string }>).map((r) => String(r.id)); } catch { /* ignore */ }
+      let evidenceLocatorIds: string[] = [];
+      try { evidenceLocatorIds = (handle.db.prepare("SELECT id FROM source_locators ORDER BY id").all() as Array<{ id: string }>).map((r) => String(r.id)); } catch { /* ignore */ }
 
       const manifest: PacketManifest = {
         kind: "project",
@@ -184,7 +172,7 @@ export function exportProject(
       try {
         renameSync(stagingDir, packetDir);
         if (movedOld) {
-          try { rmSync(discardDir, { recursive: true, force: true }); } catch { /* ignore */ }
+          rmSync(discardDir, { recursive: true, force: true });
         }
       } catch (swapErr) {
         if (movedOld) {
@@ -194,10 +182,10 @@ export function exportProject(
       }
 
       // Mark complete
+      // Mark complete
       transaction(handle.db, () => {
-        handle.db.prepare(
-          "UPDATE portability_operations SET status = ?, packet_path = ?, updated_at = ? WHERE id = ?"
-        ).run("complete", packetDir, isoNow(), operationId);
+        handle.db.prepare("UPDATE portability_operations SET status = ?, packet_path = ?, updated_at = ? WHERE id = ?")
+          .run("complete", packetDir, isoNow(), operationId);
       });
 
       return { manifest, packetPath: packetDir, operationId };
@@ -205,9 +193,8 @@ export function exportProject(
       // Mark failed, clean up
       try {
         transaction(handle.db, () => {
-          handle.db.prepare(
-            "UPDATE portability_operations SET status = ?, updated_at = ? WHERE id = ?"
-          ).run("failed", isoNow(), operationId);
+          handle.db.prepare("UPDATE portability_operations SET status = ?, updated_at = ? WHERE id = ?")
+            .run("failed", isoNow(), operationId);
         });
       } catch { /* preserve original error */ }
       if (existsSync(stagingDir)) { try { rmSync(stagingDir, { recursive: true, force: true }); } catch { /* ignore */ } }
@@ -276,7 +263,15 @@ export function inspectProjectPacket(packetPath: string): ProjectPacketInspectio
   if (!existsSync(manifestPath)) {
     throw new ProjectStoreError("packet-not-found", "no ganesh-project-packet.json at the specified path");
   }
-  const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as PacketManifest;
+  let manifest: PacketManifest;
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as PacketManifest;
+  } catch (err) {
+    throw new ProjectStoreError("corrupt-packet", `malformed manifest JSON: ${(err as Error).message}`);
+  }
+  if (!manifest || typeof manifest !== "object" || !Array.isArray(manifest.files)) {
+    throw new ProjectStoreError("corrupt-packet", "manifest must contain a files array");
+  }
   const hashResults: PacketHashResult[] = [];
 
   for (const file of manifest.files) {
@@ -288,6 +283,11 @@ export function inspectProjectPacket(packetPath: string): ProjectPacketInspectio
     const bytes = readFileSync(filePath);
     const actual = computeSha256(bytes);
     hashResults.push({ relativePath: file.relativePath, expected: file.sha256, actual, match: actual === file.sha256 });
+  }
+
+  const sqliteEntries = manifest.files.filter((f) => f && f.relativePath === "project.sqlite");
+  if (sqliteEntries.length !== 1 || typeof sqliteEntries[0].sha256 !== "string" || !/^[0-9a-f]{64}$/i.test(sqliteEntries[0].sha256)) {
+    throw new ProjectStoreError("corrupt-packet", "packet manifest is missing canonical hashed project.sqlite entry");
   }
 
   return {

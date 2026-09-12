@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "200/200 tests passed, including E15 export, packet integrity, permission omissions, and strict path containment."
+    evidence: "201/201 tests passed, including E15 export, packet integrity, permission omissions, and strict path containment."
   typecheck:
     passed: true
     command: npm run typecheck

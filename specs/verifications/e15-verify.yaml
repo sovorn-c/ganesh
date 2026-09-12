@@ -40,7 +40,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 200/200 tests passed
+    evidence: 201/201 tests passed
   typecheck:
     passed: true
     command: npm run typecheck
@@ -71,7 +71,7 @@ checks:
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 200
+  tests_passing: 201
   review_started: true
   review_passed: false
   release_started: false

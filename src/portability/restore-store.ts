@@ -277,10 +277,10 @@ function validatePacketArtifactReferences(packetPath: string, manifest: PacketMa
     }
 
     const rows = db.prepare(
-      "SELECT id, storage_path, content_hash, content_status, access_level FROM artifact_versions WHERE storage_path IS NOT NULL"
+      "SELECT id, storage_path, content_hash, content_status, access_level FROM artifact_versions"
     ).all() as Array<{
       id: string;
-      storage_path: string;
+      storage_path: string | null;
       content_hash: string | null;
       content_status: string;
       access_level: string;
@@ -296,12 +296,19 @@ function validatePacketArtifactReferences(packetPath: string, manifest: PacketMa
         continue;
       }
 
+      if (!row.storage_path || typeof row.storage_path !== "string" || !row.storage_path.trim()) {
+        throw new ProjectStoreError(
+          "corrupt-packet",
+          `packet has non-omitted artifact version ${vId} with missing storage path`
+        );
+      }
+
       const storagePath = row.storage_path;
       assertContainedArtifactPath(packetArtifactsDir, storagePath);
 
       const relPath = `artifacts/${storagePath}`;
       const expectedHash = manifestFileMap.get(relPath);
-      if (!expectedHash) {
+      if (!expectedHash || typeof expectedHash !== "string" || !/^[0-9a-f]{64}$/i.test(expectedHash)) {
         throw new ProjectStoreError(
           "corrupt-packet",
           `packet manifest is missing entry for referenced artifact: ${storagePath}`
@@ -376,8 +383,8 @@ export function restoreProject(
   }
 
   // Require canonical hashed project.sqlite entry in manifest
-  const sqliteFile = inspection.manifest.files?.find((f) => f.relativePath === "project.sqlite");
-  if (!sqliteFile || typeof sqliteFile.sha256 !== "string" || !sqliteFile.sha256.trim()) {
+  const sqliteEntries = inspection.manifest.files?.filter((f) => f && f.relativePath === "project.sqlite") ?? [];
+  if (sqliteEntries.length !== 1 || typeof sqliteEntries[0].sha256 !== "string" || !/^[0-9a-f]{64}$/i.test(sqliteEntries[0].sha256)) {
     throw new ProjectStoreError("corrupt-packet", "packet manifest is missing canonical hashed project.sqlite entry");
   }
 

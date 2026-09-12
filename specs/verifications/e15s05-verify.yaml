@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "200/200 tests passed, including E15 stale restore grant withdrawal preservation, tombstone unlink path containment preserving external victims, stale destination artifact cleanup on replace without artifacts, disclosure denial persistence, branch isolation, and tombstone preservation."
+    evidence: "201/201 tests passed, including E15 stale restore grant withdrawal preservation, tombstone unlink path containment preserving external victims, stale destination artifact cleanup on replace without artifacts, disclosure denial persistence, branch isolation, and tombstone preservation."
   typecheck:
     passed: true
     command: npm run typecheck

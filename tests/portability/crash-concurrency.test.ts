@@ -376,6 +376,34 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
     }
   });
 
+  it("e15s03 createProject error cleanup fail-closed: never deletes winner store when db is busy or owned by other project", () => {
+    const root = emptyDestination();
+    try {
+      // 1. Create a winning project
+      const winnerHandle = createProject({ rootPath: root, ownerId: "owner-winner" });
+      const winnerDbPath = join(root, ".ganesh", "project.sqlite");
+      assert.equal(existsSync(winnerDbPath), true);
+      winnerHandle.close();
+
+      // 2. Simulate losing createProject call attempting creation on same root
+      assert.throws(
+        () => createProject({ rootPath: root, ownerId: "owner-loser" }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "project-exists"
+      );
+      assert.equal(existsSync(winnerDbPath), true, "winner database must survive project-exists rejection");
+
+      // 3. Re-verify the winner project can be reopened cleanly
+      const reopened = openProject(root);
+      try {
+        assert.equal(reopened.project.ownerId, "owner-winner");
+      } finally {
+        reopened.close();
+      }
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   // SC-e15s03-P1-04: Corruption and pending ops stay honest
   it("e15s03 corrupt artifact reports contentStatus corrupt without rewriting hash", () => {
     const art = registerPublicArtifact(fix.handle, "corruptible-doc", "v1", "pristine content");
