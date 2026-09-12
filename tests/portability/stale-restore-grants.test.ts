@@ -14,6 +14,7 @@ import {
   inspectArtifactVersion
 } from "../../src/index.js";
 import { withdrawDataUse } from "../../src/policy/policy-store.js";
+import { _clearPortabilityRegistryForTests } from "../../src/portability/restore-store.js";
 import {
   portabilityFixture,
   disposePortabilityFixture,
@@ -29,10 +30,12 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
   let cleanDirs: string[] = [];
 
   beforeEach(() => {
+    _clearPortabilityRegistryForTests();
     fix = portabilityFixture("owner-stale-test");
   });
 
   afterEach(() => {
+    _clearPortabilityRegistryForTests();
     disposePortabilityFixture(fix);
     for (const d of cleanDirs) {
       rmSync(d, { recursive: true, force: true });
@@ -54,7 +57,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     // Export a stale packet while grant is active
     const stalePacketDir = newTempDir();
     exportProject(fix.handle, fix.ownerCap, {
-      commandId: "export-stale-packet",
+      commandId: `export-stale-packet-${fix.handle.project.id}`,
       destinationPath: stalePacketDir,
       destination: "local",
       purpose: "backup",
@@ -70,7 +73,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
 
     // Now run replace restore overlaying the stale packet
     const replaceResult = restoreProject(fix.ownerCap, {
-      commandId: "replace-restore-cmd",
+      commandId: `replace-restore-cmd-${fix.handle.project.id}`,
       sourcePath: stalePacketDir,
       destinationPath: fix.root,
       mode: "replace",
@@ -97,7 +100,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
 
     const staleDir = newTempDir();
     exportProject(fix.handle, fix.ownerCap, {
-      commandId: "export-stale-for-discl",
+      commandId: `export-stale-for-discl-${fix.handle.project.id}`,
       destinationPath: staleDir,
       destination: "local",
       purpose: "backup",
@@ -107,7 +110,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     withdrawDataUse(fix.handle, perm.id, "revoked", "test-owner");
 
     restoreProject(fix.ownerCap, {
-      commandId: "replace-discl-cmd",
+      commandId: `replace-discl-cmd-${fix.handle.project.id}`,
       sourcePath: staleDir,
       destinationPath: fix.root,
       mode: "replace",
@@ -130,7 +133,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
       // Remote export must omit the artifact
       const remoteExportDir = newTempDir();
       const packet = exportProject(reopened, fix.ownerCap, {
-        commandId: "export-after-replace",
+        commandId: `export-after-replace-${fix.handle.project.id}`,
         destinationPath: remoteExportDir,
         destination: "external-cloud",
         purpose: "ai-training",
@@ -153,7 +156,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
 
     const staleDir = newTempDir();
     exportProject(fix.handle, fix.ownerCap, {
-      commandId: "export-stale-branch",
+      commandId: `export-stale-branch-${fix.handle.project.id}`,
       destinationPath: staleDir,
       destination: "local",
       purpose: "backup",
@@ -163,7 +166,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     withdrawDataUse(fix.handle, perm.id, "revoked", "test-owner");
 
     restoreProject(fix.ownerCap, {
-      commandId: "replace-branch-cmd",
+      commandId: `replace-branch-cmd-${fix.handle.project.id}`,
       sourcePath: staleDir,
       destinationPath: fix.root,
       mode: "replace",
@@ -191,7 +194,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
       deleteArtifactContent(reopened, fix.ownerCap, {
         artifactVersionId: art.id,
         reason: "erasure before replace",
-        commandId: "del-before-replace",
+        commandId: `del-before-replace-${fix.handle.project.id}`,
         payloadHash: packetPayloadHash({ art: art.id })
       });
 
@@ -207,7 +210,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     const reopenedForExport = openProject(fix.root);
     try {
       exportProject(reopenedForExport, fix.ownerCap, {
-        commandId: "export-for-tombstone-replace",
+        commandId: `export-for-tombstone-replace-${fix.handle.project.id}`,
         destinationPath: staleDir,
         destination: "local",
         purpose: "backup",
@@ -219,7 +222,7 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
 
     // Now run replace
     restoreProject(fix.ownerCap, {
-      commandId: "replace-tombstone-cmd",
+      commandId: `replace-tombstone-cmd-${fix.handle.project.id}`,
       sourcePath: staleDir,
       destinationPath: fix.root,
       mode: "replace",
