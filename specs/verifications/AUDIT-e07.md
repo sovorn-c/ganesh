@@ -2,7 +2,7 @@
 
 - Epic: `e07-evidence-claims`
 - Branch: `feat/e07-evidence-claims`
-- Reviewed commits: `fb3b7be`, `dcf72f0`
+- Reviewed base commit: `ca40743`; current uncommitted bounded correction diff included
 - Plan revision: `sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a`
 - Scope: all four E07 stories, additive persistence, evidence/claim authority boundaries, inherited behavior, and review artifacts.
 
@@ -12,8 +12,8 @@
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
-- `npm test`: 130/130 passed.
-- E07 focused evidence tests: 8/8 passed.
+- `npm test`: 134/134 passed.
+- E07 focused evidence tests: 12/12 passed.
 - `npm run preflight`: exit 0; execution mode remains the documented `not_configured` warning.
 - `npm audit --omit=dev`: 0 vulnerabilities.
 - Traceability: 32 stories, 0 dark stories.
@@ -33,8 +33,9 @@
 ## Findings
 
 1. Split the matrix/reassessment responsibility from `claim-store.ts` and replaced locator double casts with a typed object-record conversion. Corrected by `dcf72f0`.
-2. The documented CWE fixture-sync helper is absent from this checkout. This is recorded as a tooling limitation; no security finding was inferred from the missing helper.
-3. Independent `pi-fork` review was not run because the executable/extension is unavailable in this session. This remains a process gate, not a code finding.
+2. Latest review findings were corrected in the current bounded diff: reassessment overlays survive new evidence, citation identity ignores caller metadata, appraisal/synthesis reject empty command IDs, and appraisal/synthesis reads guard missing E07 schema.
+3. The documented CWE fixture-sync helper is absent from this checkout. This is recorded as a tooling limitation; no security finding was inferred from the missing helper.
+4. Independent `pi-fork` review was not run because the executable/extension is unavailable in this session. This remains a process gate, not a code finding.
 
 ## Verdict
 

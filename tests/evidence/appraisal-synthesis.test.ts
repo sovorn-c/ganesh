@@ -5,6 +5,8 @@ import { test } from "node:test";
 import {
   ProjectStoreError,
   applySourceNotice,
+  getAppraisal,
+  getSynthesis,
   listCommitments,
   listScholarlyFindings,
   linkClaimEvidence,
@@ -25,6 +27,26 @@ test("e07s04 thematic appraisal treats kappa and power as not applicable", () =>
     });
     strictEqual(appraisal.result, "pass");
     strictEqual(appraisal.findings.every((finding) => finding.result === "not-applicable"), true);
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e07s04 appraisal and synthesis require command identity and schema", () => {
+  const fixture = projectFixture();
+  try {
+    const source = importText(fixture.handle, "e07s04-command-guards");
+    const capability = evidenceWorker(fixture.handle);
+    const invalid = (error: unknown) => error instanceof ProjectStoreError && error.code === "invalid-command";
+    throws(() => recordAppraisal(fixture.handle, capability, {
+      commandId: "", sourceVersionId: source.result.artifactVersionId, methodKind: "unspecified"
+    }), invalid);
+    throws(() => synthesizeClaims(fixture.handle, capability, { commandId: "" }), invalid);
+
+    fixture.handle.db.exec("DROP TABLE claims");
+    const unavailable = (error: unknown) => error instanceof ProjectStoreError && error.code === "evidence-schema-unavailable";
+    throws(() => getAppraisal(fixture.handle, capability, "missing"), unavailable);
+    throws(() => getSynthesis(fixture.handle, capability, "missing"), unavailable);
   } finally {
     disposeFixture(fixture);
   }

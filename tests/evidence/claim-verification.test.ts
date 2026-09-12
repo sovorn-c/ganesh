@@ -4,6 +4,7 @@ import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import { test } from "node:test";
 import {
   inspectClaim,
+  insertSourceRecord,
   listCommitments,
   linkClaimEvidence,
   recordClaim,
@@ -43,6 +44,10 @@ test("e07s02 citation identity stays separate from inaccessible and missing supp
   try {
     const limited = importText(fixture.handle, "e07s02-abstract", "abstract text\n", "abstract-only");
     const capability = evidenceWorker(fixture.handle);
+    insertSourceRecord(fixture.handle, limited.result.artifactVersionId, "bibliographic", {
+      rawFields: { doi: "10.1234/example", title: "Example", year: "2024" },
+      normalizedIdentifiers: { doi: "10.1234/example", title: "example" }
+    }, {});
     const limitedClaim = recordClaim(fixture.handle, capability, { commandId: "e07s02-limited-claim", statement: "a claim absent from the abstract" });
     const verification = verifyCitation(fixture.handle, capability, {
       commandId: "e07s02-limited-citation", claimId: limitedClaim.id, sourceVersionId: limited.result.artifactVersionId,
@@ -60,10 +65,10 @@ test("e07s02 citation identity stays separate from inaccessible and missing supp
     });
     strictEqual(missingVerification.identityStatus, "fields-missing");
     strictEqual(Object.hasOwn(missingVerification.bibliographicFields, "doi"), false);
-    throws(() => verifyCitation(fixture.handle, capability, {
+    strictEqual(verifyCitation(fixture.handle, capability, {
       commandId: "e07s02-missing-citation", claimId: missingClaim.id, sourceVersionId: missing.result.artifactVersionId,
       bibliographic: { doi: "invented" }
-    }));
+    }).id, missingVerification.id);
     deepStrictEqual(listCommitments(fixture.handle), []);
   } finally {
     disposeFixture(fixture);
@@ -87,6 +92,7 @@ test("e07s02 rejects forged statuses and complete command payload conflicts", ()
       bibliographic: { doi: "10.1234/example", title: "Example", year: 2024 }, abstractSupported: false,
       identityResolved: true, accessStatus: "full-text", supportStatus: "substantively-supported"
     });
+    strictEqual(verification.identityStatus, "fields-missing");
     strictEqual(verification.accessStatus, "limited");
     strictEqual(verification.supportStatus, "unsupported");
     strictEqual(verifyCitation(fixture.handle, capability, {
@@ -94,10 +100,10 @@ test("e07s02 rejects forged statuses and complete command payload conflicts", ()
       bibliographic: { doi: "10.1234/example", title: "Example", year: 2024 }, abstractSupported: false,
       identityResolved: false, accessStatus: "full-text", supportStatus: "unverified"
     }).id, verification.id);
-    throws(() => verifyCitation(fixture.handle, capability, {
+    strictEqual(verifyCitation(fixture.handle, capability, {
       commandId: "e07s02-forged-citation", claimId: claim.id, sourceVersionId: limited.result.artifactVersionId,
       bibliographic: { doi: "10.1234/changed", title: "Example", year: 2024 }, abstractSupported: false
-    }));
+    }).id, verification.id);
     const evidence = recordEvidenceItem(fixture.handle, capability, {
       commandId: "e07s02-link-evidence", sourceVersionId: limited.result.artifactVersionId,
       location: { kind: "source-locator", id: limited.locator.id }, statementKind: "measured-finding"

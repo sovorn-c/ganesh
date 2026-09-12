@@ -125,6 +125,8 @@ function updateClaimSupport(handle: ProjectHandle, claimId: string): ClaimSuppor
   else if (verifications.some((row) => row.identity_status === "resolved")) {support = "identity-resolved";}
   if (hasSupport && hasChallenge) {support = "contested";}
   if (!hasSupport && !hasChallenge && verifications.length === 0) {support = "unverified";}
+  const hasOpenReassessment = handle.db.prepare("SELECT 1 AS present FROM claim_reassessments WHERE claim_id = ? LIMIT 1").get(claimId) !== undefined;
+  if (hasOpenReassessment) {support = "needs-reassessment";}
   handle.db.prepare("UPDATE claims SET current_support = ?, updated_at = ? WHERE id = ?").run(support, isoNow(), claimId);
   return support;
 }
@@ -229,10 +231,11 @@ function bibliographicCandidates(...records: readonly unknown[]): Record<string,
 
 function sourceBibliography(handle: ProjectHandle, sourceVersionId: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
-  for (const record of listSourceRecords(handle, sourceVersionId)) {
-    if (["bibliographic", "citation", "metadata", "reference"].includes(String(record.recordKind))) {
-      Object.assign(result, bibliographicCandidates(record.data));
-    }
+  for (const record of listSourceRecords(handle, sourceVersionId, "bibliographic")) {
+    const data = typeof record.data === "object" && record.data !== null ? record.data as Record<string, unknown> : {};
+    const rawFields = typeof data.rawFields === "object" && data.rawFields !== null ? data.rawFields : undefined;
+    const normalizedIdentifiers = typeof data.normalizedIdentifiers === "object" && data.normalizedIdentifiers !== null ? data.normalizedIdentifiers : undefined;
+    Object.assign(result, bibliographicCandidates(data, rawFields, normalizedIdentifiers));
   }
   return result;
 }
@@ -249,13 +252,7 @@ export function verifyCitation(handle: ProjectHandle, capability: unknown, reque
   claimById(handle, request.claimId);
   const source = getSourceVersion(handle, request.sourceVersionId);
   const artifact = inspectArtifactVersion(handle, request.sourceVersionId);
-  const bibliographicFields = bibliographicCandidates(
-    sourceBibliography(handle, request.sourceVersionId),
-    request.sourceRecord,
-    request.citation,
-    request.metadata,
-    request.bibliographic
-  );
+  const bibliographicFields = sourceBibliography(handle, request.sourceVersionId);
   const identity: CitationIdentityStatus = field(bibliographicFields, "doi", "DOI") !== undefined
     && field(bibliographicFields, "title") !== undefined
     && field(bibliographicFields, "year", "publishedYear") !== undefined

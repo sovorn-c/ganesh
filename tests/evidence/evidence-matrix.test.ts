@@ -68,6 +68,14 @@ test("e07s03 source notices add reassessment overlays without rewriting links", 
     strictEqual(result.claimIds.includes(changed.id), true);
     strictEqual(inspectClaim(fixture.handle, capability, changed.id).claim.currentSupport, "needs-reassessment");
     strictEqual(inspectClaim(fixture.handle, capability, untouched.id).claim.currentSupport, "substantively-supported");
+    const lateEvidence = recordEvidenceItem(fixture.handle, capability, {
+      commandId: "e07s03-late-evidence", sourceVersionId: affected.result.artifactVersionId,
+      location: { kind: "source-locator", id: affected.locator.id.replace(/-1$/, "-2") }, statementKind: "inference", includeExcerpt: true
+    });
+    linkClaimEvidence(fixture.handle, capability, {
+      commandId: "e07s03-late-link", claimId: changed.id, evidenceItemId: lateEvidence.id, role: "supporting"
+    });
+    strictEqual(inspectClaim(fixture.handle, capability, changed.id).claim.currentSupport, "needs-reassessment");
     strictEqual(inspectClaim(fixture.handle, capability, changed.id).links[0]?.verificationStatus, before.links[0]?.verificationStatus);
     strictEqual(inspectClaim(fixture.handle, capability, changed.id).reassessments[0]?.previousSupport, before.claim.currentSupport);
     strictEqual(applySourceNotice(fixture.handle, capability, { commandId: "e07s03-retraction", sourceVersionId: affected.result.artifactVersionId, notice: "source retracted", kind: "retraction" }).status, "duplicate");

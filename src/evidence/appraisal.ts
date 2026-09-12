@@ -6,6 +6,7 @@ import { payloadHash } from "../persistence/history-store.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
 import { transaction } from "../persistence/schema.js";
 import { buildEvidenceMatrix } from "./claim-matrix-store.js";
+import { assertClaimSchema } from "./claim-store.js";
 import type { EvidenceMatrix } from "./claim-types.js";
 
 export type MethodKind = "reflexive-thematic-analysis" | "quantitative-dependent-observations" | "unspecified";
@@ -130,6 +131,8 @@ function findingsFor(request: AppraisalRequest, methodKind: MethodKind): Apprais
 
 export function recordAppraisal(handle: ProjectHandle, capability: unknown, request: AppraisalRequest): AppraisalRecord {
   assertWritable(handle);
+  assertClaimSchema(handle);
+  if (!request.commandId || request.commandId.trim() === "") {throw new ProjectStoreError("invalid-command", "commandId is required");}
   if (!allowed(handle, capability, ["evidence:appraise"])) {throw new ProjectStoreError("forbidden", "appraisal requires evidence:appraise capability");}
   getSourceVersion(handle, request.sourceVersionId);
   const methodKind = normalizeMethodKind(request.methodKind ?? request.method ?? "unspecified");
@@ -159,6 +162,7 @@ export function recordAppraisal(handle: ProjectHandle, capability: unknown, requ
 }
 
 export function getAppraisal(handle: ProjectHandle, capability: unknown, appraisalId: string): AppraisalRecord {
+  assertClaimSchema(handle);
   if (!allowed(handle, capability, ["evidence:inspect"]) && !allowed(handle, capability, ["evidence:appraise"])) {throw new ProjectStoreError("forbidden", "appraisal inspection requires evidence:inspect capability");}
   const row = handle.db.prepare("SELECT * FROM appraisals WHERE id = ?").get(appraisalId) as Record<string, unknown> | undefined;
   if (row === undefined) {throw new ProjectStoreError("appraisal-not-found", "appraisal was not found");}
@@ -167,6 +171,8 @@ export function getAppraisal(handle: ProjectHandle, capability: unknown, apprais
 
 export function synthesizeClaims(handle: ProjectHandle, capability: unknown, request: SynthesisRequest): SynthesisRecord {
   assertWritable(handle);
+  assertClaimSchema(handle);
+  if (!request.commandId || request.commandId.trim() === "") {throw new ProjectStoreError("invalid-command", "commandId is required");}
   if (!allowed(handle, capability, ["claim:inspect"])) {throw new ProjectStoreError("forbidden", "synthesis requires claim:inspect capability");}
   const matrix: EvidenceMatrix = buildEvidenceMatrix(handle, capability, { claimIds: request.claimIds });
   const disagreements = matrix.rows.flatMap((row) => row.disagreements);
@@ -198,6 +204,7 @@ export function synthesizeClaims(handle: ProjectHandle, capability: unknown, req
 }
 
 export function getSynthesis(handle: ProjectHandle, capability: unknown, synthesisId: string): SynthesisRecord {
+  assertClaimSchema(handle);
   if (!allowed(handle, capability, ["claim:inspect"]) && !allowed(handle, capability, ["evidence:inspect"])) {throw new ProjectStoreError("forbidden", "synthesis inspection requires claim inspection capability");}
   const row = handle.db.prepare("SELECT * FROM syntheses WHERE id = ?").get(synthesisId) as Record<string, unknown> | undefined;
   if (row === undefined) {throw new ProjectStoreError("synthesis-not-found", "synthesis was not found");}
