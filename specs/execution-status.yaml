@@ -362,44 +362,49 @@ epics:
     verification_evidence: specs/verifications/e07-verify.yaml
   e08:
     title: Literature discovery and contribution challenge
-    status: in_progress
+    status: done
     stories:
       e08s01:
         title: Review Protocol, Query Versions and Landscape Map
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e08s01-verify.yaml
       e08s02:
         title: Authorized Retrieval, Citation Exploration and Honest Coverage
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
         tasks_failing: 0
         tasks_passing: 4
+        verification_evidence: specs/verifications/e08s02-verify.yaml
       e08s03:
         title: Screening, Eligibility Amendments and Uncertainty Queue
-        status: passing
+        status: done
         planning_status: ready
         bcps: 5
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e08s03-verify.yaml
       e08s04:
         title: Gap and Contribution Challenge with Counter-Search
-        status: passing
+        status: done
         planning_status: ready
         bcps: 4
         risk: P0
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e08s04-verify.yaml
+    verification_evidence: specs/verifications/e08-verify.yaml
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-12T11:04:00Z"

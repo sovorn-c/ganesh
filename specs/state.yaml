@@ -1,17 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: review
-active_epic: e08
-active_story: e08s04
+active_flow: release
+active_epic: none
+active_story: none
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: bp-plan
+  next_command: "/bp-plan"
   summary: >-
-    E08 build completed on feat/e08-literature-contribution under approved plan revision
+    E08 was locally released on main under approved plan revision
     sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50.
-    All four stories and 16 task checks passed; fresh whole-epic review is next.
-    This is a local build only; production readiness, remote CI, publishing and
-    deployment remain unclaimed.
+    All four stories and 16 task checks passed; whole-epic review pass 2 passed
+    after one correction. Production readiness, remote CI, publishing and deployment
+    remain unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -37,6 +37,7 @@ discovery:
   e07_build: complete
   e07_review: complete_local_release
   e08_build: complete
+  e08_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:

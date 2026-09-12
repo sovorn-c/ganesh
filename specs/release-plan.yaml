@@ -131,8 +131,8 @@ epics:
   - R07
 - id: e08
   title: Literature discovery and contribution challenge
-  capsule_dir: epics/e08-literature-contribution
-  file: epics/e08-literature-contribution/epic.yaml
+  capsule_dir: epics/archive/e08-literature-contribution
+  file: epics/archive/e08-literature-contribution/epic.yaml
   sequence: 9
   depends_on:
   - e07

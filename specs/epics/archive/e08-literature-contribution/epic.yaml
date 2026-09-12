@@ -55,7 +55,7 @@ bcp_estimate:
     E07 claims/counterevidence, E05 discovery-role candidates, E02 registerArtifactVersion,
     and the injected-adapter retrieval boundary. No new HTTP, citation-graph or NLP
     package is required.
-status: planned
+status: done
 planning_stage: stories_complete
 risk: P0
 story_planning: complete
@@ -110,7 +110,7 @@ requirement_deltas:
 stories:
 - id: e08s01
   title: Review Protocol, Query Versions and Landscape Map
-  status: passing
+  status: done
   bcps: 6
   risk: P0
   delta: "ADDED + MODIFIED"
@@ -119,7 +119,7 @@ stories:
   tasks_file: e08s01-tasks.yaml
 - id: e08s02
   title: Authorized Retrieval, Citation Exploration and Honest Coverage
-  status: passing
+  status: done
   bcps: 6
   risk: P0
   delta: "ADDED + MODIFIED"
@@ -128,7 +128,7 @@ stories:
   tasks_file: e08s02-tasks.yaml
 - id: e08s03
   title: Screening, Eligibility Amendments and Uncertainty Queue
-  status: passing
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
@@ -137,15 +137,15 @@ stories:
   tasks_file: e08s03-tasks.yaml
 - id: e08s04
   title: Gap and Contribution Challenge with Counter-Search
-  status: passing
+  status: done
   bcps: 4
   risk: P0
   delta: ADDED
   depends_on: [e08s01, e08s02, e08s03]
   spec_file: e08s04-gap-contribution-challenge-and-counter-search.md
   tasks_file: e08s04-tasks.yaml
-capsule_dir: epics/e08-literature-contribution
-next_skill: bp-build
+capsule_dir: epics/archive/e08-literature-contribution
+next_skill: bp-plan
 plan_revision: sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50
 plan_approval: approved_exact_revision
 plan_approval_revision: sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50
