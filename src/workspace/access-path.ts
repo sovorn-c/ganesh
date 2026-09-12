@@ -37,11 +37,11 @@ export function qualifyAccessPath(input: AccessPathInput): AccessPathResult {
     reason = "colour-only-status";
   } else if (!input.utf8) {
     reason = "non-utf8-terminal";
-  } else if (input.textTerminal === false || input.terminal === "dumb" || (input.terminal !== undefined && input.terminal.trim() === "")) {
+  } else if (input.textTerminal !== true || input.terminal === "dumb" || (input.terminal !== undefined && input.terminal.trim() === "")) {
     reason = "non-text-terminal";
-  } else if (input.keyboardMapComplete === false) {
+  } else if (input.keyboardMapComplete !== true) {
     reason = "missing-keyboard-map";
-  } else if (input.pointerOnly === true) {
+  } else if (input.pointerOnly !== false) {
     reason = "pointer-only";
   } else if (input.screenReader !== undefined && input.terminal !== undefined && !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`)) {
     reason = "unsupported-screen-reader-pairing";

@@ -13,7 +13,9 @@ const BINDINGS: readonly KeyboardBinding[] = [
   { action: "defer", keys: ["d"], label: "Defer displayed decision" },
   { action: "inspect", keys: ["i"], label: "Inspect evidence" },
   { action: "viewer", keys: ["v"], label: "Request local viewer" },
-  { action: "cancel-run", keys: ["c"], label: "Cancel run" },
+  { action: "cancel-run", keys: ["c"], label: "Cancel run or contract" },
+  { action: "status", keys: ["s"], label: "Show live work status" },
+  { action: "access-path", keys: ["x"], label: "Qualify terminal access path" },
   { action: "focus-next", keys: ["Tab"], label: "Focus next control" },
   { action: "focus-previous", keys: ["Shift+Tab"], label: "Focus previous control" }
 ];

@@ -1,16 +1,16 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
+active_flow: review_correction
 active_epic: e14
 active_story: none
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
+  next_skill: bp-review
+  next_command: "/bp-review"
   summary: >-
-    E14 terminal workspace was released locally on main after whole-epic review PASS
-    and Node.js 24 checks. Four stories and 16 task verifications pass, with 16 mapped
-    scenarios and a 114-test suite. Production release readiness, remote CI, publishing
-    and deployment remain intentionally unclaimed.
+    Independent review blocked the E14 local release with correction findings in runtime
+    extension trust, launch lifecycle, reachable status/access keyboard paths, duplicate
+    confirmation commands and symlinked-parent containment. Corrections are in progress
+    on the authorized E14 branch; the prior main merge is not treated as final.
 
 discovery:
   seed_conventions: confirmed
@@ -33,7 +33,7 @@ discovery:
   e05_build: complete
   e05_review: complete_local_release
   e14_build: complete
-  e14_review: complete_local_release
+  e14_review: correction_required
   environment:
     status: verified_node24_target
     runtime:
@@ -67,10 +67,9 @@ discovery:
     blockers: []
   survey:
     phase: Release
-    rationale: E14's dependency-ordered stories, task ledgers, implementation, security
-      evidence, whole-epic review, and Node.js 24 release checks passed before the local
-      merge to main. E01-E06 remain complete local releases; the pre-build Discover
-      snapshot is retained below as history, not current state.
+    rationale: E14's first whole-epic review passed self-audit but independent review
+      found correction items after the local merge. The pre-build Discover snapshot is
+      retained below as history, not current state; E01-E06 remain complete local releases.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
@@ -170,10 +169,9 @@ discovery:
     and Node.js 24 release checks passed on the feature branch; the branch was merged
     locally into main without a push, tag, PR, publish, deploy, or production-readiness
     claim.
-  - E14 implementation and whole-epic review passed on feat/e14-terminal-workspace;
-    the branch was merged locally into main without a push, tag, PR, publish, deploy,
-    or production-readiness claim. Four stories, 16 task checks and 16 scenario-focused
-    workspace tests passed.
+  - E14 first implementation review passed on feat/e14-terminal-workspace, then
+    independent review blocked final release with correction findings. Work is continuing
+    on the authorized E14 branch without treating the prior main merge as final.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded

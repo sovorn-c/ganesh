@@ -24,7 +24,7 @@ function statusLabel(status: WorkRunRecord["status"] | undefined): string {
   if (status === "running") {
     return "working";
   }
-  return status ?? "blocked";
+  return status ?? "no-selection";
 }
 
 function remainingFor(budget: BudgetInspection | undefined): Readonly<Record<string, number | "unlimited">> {

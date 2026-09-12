@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { createOwnerCapability } from "../authority/capability-broker.js";
 import { createProject, openProject } from "../project/project-store.js";
-import { ProjectStoreError } from "../project/project-types.js";
+import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
 import { createWorkspacePorts } from "./runtime-port.js";
 import { createWorkspaceExtensions } from "./extension.js";
 import { resolveProjectFolder } from "./argv.js";
@@ -51,7 +51,7 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
   }
 
   const ownerId = request.ownerId ?? "local-owner";
-  let handle;
+  let handle: ProjectHandle | undefined;
   let status: "created" | "reopened";
   try {
     if (projectExists(root)) {
@@ -90,12 +90,18 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
       ...runtimeOptions,
       extensionFactories: createWorkspaceExtensions(session)
     });
-    await ports.tui.run(runtime, { projectRoot: root, ownerId: handle.project.ownerId });
-    return {
-      status,
-      message: status === "created" ? "Ganesh workspace created; current records are ready" : "Ganesh workspace reopened; current records are ready",
-      session
-    };
+    const closeOnProcessExit = (): void => handle?.close();
+    process.once("exit", closeOnProcessExit);
+    try {
+      await ports.tui.run(runtime, { projectRoot: root, ownerId: handle.project.ownerId });
+      return {
+        status,
+        message: status === "created" ? "Ganesh workspace created; current records are ready" : "Ganesh workspace reopened; current records are ready",
+        session
+      };
+    } finally {
+      process.removeListener("exit", closeOnProcessExit);
+    }
   } catch (error) {
     try { handle?.close(); } catch { /* preserve the bounded launch error */ }
     return errorResult(error);

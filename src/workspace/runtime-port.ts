@@ -17,6 +17,7 @@ export class PiWorkspaceRuntimePort {
         cwd,
         agentDir,
         resourceLoaderOptions: {
+          noExtensions: true,
           extensionFactories: [...(options.extensionFactories ?? [])]
         }
       });

@@ -1,7 +1,7 @@
 // story: e14s01
 // scenario: SC-e14s01-P0-01 SC-e14s01-P0-02 SC-e14s01-P0-03 SC-e14s01-P1-04
 import { strict as assert } from "node:assert";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, it } from "node:test";
@@ -105,6 +105,26 @@ describe("E14 workspace launcher", () => {
     }
     assert.equal(existsSync(join(root, ".ganesh")), false);
     assert.equal(runtime.options.length, 0);
+  });
+
+  it("e14s01 allowed-root intake rejects a symlinked parent escape", async () => {
+    const root = fixtureRoot();
+    const outside = fixtureRoot();
+    const link = join(root, "linked-parent");
+    const outsideProject = join(outside, "project");
+    mkdirSync(outsideProject);
+    symlinkSync(outside, link, "dir");
+    const result = await runWorkspace({ ...request(root), argv: [join(link, "project")], allowedRoot: root });
+    assert.equal(result.status, "failed");
+    assert.equal(result.error?.code, "path-escape");
+    assert.equal(existsSync(join(outside, ".ganesh")), false);
+  });
+
+  it("e14s01 normal workspace return leaves the project handle available to the caller", async () => {
+    const root = fixtureRoot();
+    const result = await runWorkspace(request(root));
+    assert.ok(result.session?.handle.db);
+    result.session?.handle.close();
   });
 
   it("e14s01 late.entry and incomplete context open records without a stage pipeline", async () => {

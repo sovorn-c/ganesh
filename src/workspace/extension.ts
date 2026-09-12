@@ -1,11 +1,53 @@
-import type { ExtensionAPI, InlineExtension } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, ExtensionCommandContext, InlineExtension } from "@earendil-works/pi-coding-agent";
+import type { DecisionAction } from "../decisions/decision-types.js";
+import { qualifyAccessPath } from "./access-path.js";
 import { confirmExactVersion } from "./confirmation.js";
 import { openLocalViewer, presentInspection, nativeLocalViewerPort } from "./evidence.js";
-import { cancelFromWorkspace } from "./status.js";
+import { cancelFromWorkspace, presentWorkStatus } from "./status.js";
 import { presentAlternatives, presentHelp } from "./steering.js";
 import type { WorkspaceSession } from "./workspace-types.js";
 
-type WorkspaceCommandRegistrar = Pick<ExtensionAPI, "registerCommand">;
+type WorkspaceCommandRegistrar = Pick<ExtensionAPI, "registerCommand" | "registerShortcut">;
+
+function workRequest(identifier: string): { readonly runId: string } | { readonly contractId: string } {
+  return identifier.startsWith("run-") ? { runId: identifier } : { contractId: identifier };
+}
+
+function terminalAccessPath() {
+  const locale = `${process.env.LC_ALL ?? ""} ${process.env.LANG ?? ""}`;
+  return qualifyAccessPath({
+    keyboard: process.stdin.isTTY === true,
+    textStatus: true,
+    utf8: locale === "" || /utf-?8/i.test(locale),
+    keyboardMapComplete: true,
+    textTerminal: process.stdout.isTTY === true,
+    pointerOnly: false,
+    ...(process.env.TERM === undefined ? {} : { terminal: process.env.TERM })
+  });
+}
+
+async function confirmCommand(
+  session: WorkspaceSession,
+  args: string,
+  ctx: ExtensionContext,
+  action: DecisionAction
+): Promise<void> {
+  const packetId = args.trim();
+  if (packetId === "") {
+    ctx.ui.notify(`Usage: /ganesh-${action === "approved" ? "confirm" : action} <packet-id>`, "warning");
+    return;
+  }
+  try {
+    const result = await confirmExactVersion(session, {
+      packetId,
+      action,
+      commandId: `workspace-${action}-${packetId}`
+    }, ctx.ui);
+    ctx.ui.notify(result.reason, result.status === "committed" ? "info" : "warning");
+  } catch (error) {
+    ctx.ui.notify(error instanceof Error ? error.message : "confirmation failed", "warning");
+  }
+}
 
 export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session: WorkspaceSession): void {
   pi.registerCommand("ganesh-help", {
@@ -25,25 +67,12 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
       }
     }
   });
-  pi.registerCommand("ganesh-confirm", {
-    description: "Confirm the exact versions displayed in a decision packet",
-    handler: async (args, ctx) => {
-      const packetId = args.trim();
-      if (packetId === "") {
-        ctx.ui.notify("Usage: /ganesh-confirm <packet-id>", "warning");
-        return;
-      }
-      try {
-        const result = await confirmExactVersion(session, {
-          packetId,
-          commandId: `workspace-confirm-${packetId}-${Date.now()}`
-        }, ctx.ui);
-        ctx.ui.notify(result.reason, result.status === "committed" ? "info" : "warning");
-      } catch (error) {
-        ctx.ui.notify(error instanceof Error ? error.message : "confirmation failed", "warning");
-      }
-    }
-  });
+  for (const [name, action] of [["ganesh-confirm", "approved"], ["ganesh-reject", "rejected"], ["ganesh-defer", "deferred"]] as const) {
+    pi.registerCommand(name, {
+      description: `${action} the exact versions displayed in a decision packet`,
+      handler: async (args, ctx) => confirmCommand(session, args, ctx, action)
+    });
+  }
   pi.registerCommand("ganesh-inspect", {
     description: "Inspect saved evidence honestly and offline",
     handler: async (args, ctx) => {
@@ -71,21 +100,85 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
       ctx.ui.notify(result.reason, result.status === "launched" ? "info" : "warning");
     }
   });
-  pi.registerCommand("ganesh-cancel", {
-    description: "Cancel a bounded run and show its fence status",
+  pi.registerCommand("ganesh-status", {
+    description: "Show readable live work status and remaining budget",
     handler: async (args, ctx) => {
-      const runId = args.trim();
-      if (runId === "") {
-        ctx.ui.notify("Usage: /ganesh-cancel <run-id>", "warning");
+      const identifier = args.trim();
+      ctx.ui.notify(presentWorkStatus(session, identifier === "" ? {} : workRequest(identifier)).text, "info");
+    }
+  });
+  pi.registerCommand("ganesh-access", {
+    description: "Qualify this terminal access path and report blockers",
+    handler: async (_args, ctx) => {
+      const result = terminalAccessPath();
+      ctx.ui.notify(`Access path: ${result.status}${result.reason === undefined ? "" : ` (${result.reason})`}`, result.accessible ? "info" : "warning");
+    }
+  });
+  pi.registerCommand("ganesh-cancel", {
+    description: "Cancel a bounded run or contract and show its fence status",
+    handler: async (args, ctx) => {
+      const identifier = args.trim();
+      if (identifier === "") {
+        ctx.ui.notify("Usage: /ganesh-cancel <run-id|contract-id>", "warning");
         return;
       }
       try {
-        ctx.ui.notify(cancelFromWorkspace(session, { runId }).text, "info");
+        ctx.ui.notify(cancelFromWorkspace(session, workRequest(identifier)).text, "info");
       } catch (error) {
         ctx.ui.notify(error instanceof Error ? error.message : "cancellation failed", "warning");
       }
     }
   });
+
+  const shortcuts = [
+    ["?", "help"],
+    ["a", "alternatives"],
+    ["y", "approved"],
+    ["n", "rejected"],
+    ["d", "deferred"],
+    ["i", "inspect"],
+    ["v", "viewer"],
+    ["c", "cancel"],
+    ["s", "status"],
+    ["x", "access"]
+  ] as const;
+  for (const [shortcut, action] of shortcuts) {
+    pi.registerShortcut(shortcut, {
+      description: `Run the Ganesh ${action} action`,
+      handler: async (ctx) => {
+        if (action === "help") {
+          ctx.ui.notify(presentHelp(session).text, "info");
+          return;
+        }
+        if (action === "alternatives") {
+          ctx.ui.notify(presentAlternatives(session).text, "info");
+          return;
+        }
+        if (action === "access") {
+          const result = terminalAccessPath();
+          ctx.ui.notify(`Access path: ${result.status}${result.reason === undefined ? "" : ` (${result.reason})`}`, result.accessible ? "info" : "warning");
+          return;
+        }
+        const prompt = action === "status" ? "run or contract id (leave empty for latest)" : action === "cancel" ? "run or contract id" : action === "inspect" || action === "viewer" ? "source version id" : "decision packet id";
+        const identifier = await ctx.ui.input(`Ganesh ${action}`, prompt);
+        if (identifier === undefined || (action === "cancel" && identifier.trim() === "")) {
+          return;
+        }
+        if (action === "approved" || action === "rejected" || action === "deferred") {
+          await confirmCommand(session, identifier, ctx, action);
+        } else if (action === "inspect") {
+          ctx.ui.notify(presentInspection(session, { sourceVersionId: identifier.trim() }).text, "info");
+        } else if (action === "viewer") {
+          const result = await openLocalViewer(session, { sourceVersionId: identifier.trim() }, nativeLocalViewerPort);
+          ctx.ui.notify(result.reason, result.status === "launched" ? "info" : "warning");
+        } else if (action === "cancel") {
+          ctx.ui.notify(cancelFromWorkspace(session, workRequest(identifier.trim())).text, "info");
+        } else {
+          ctx.ui.notify(presentWorkStatus(session, identifier.trim() === "" ? {} : workRequest(identifier.trim())).text, "info");
+        }
+      }
+    });
+  }
 }
 
 export function createWorkspaceExtensions(session: WorkspaceSession): readonly InlineExtension[] {

@@ -103,10 +103,16 @@ describe("E14 live work state and access paths", () => {
     const bindings = keyboardMap();
     assert.ok(bindings.some((binding) => binding.keys.includes("Tab")));
     assert.ok(bindings.some((binding) => binding.keys.includes("Shift+Tab")));
-    assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, keyboardMapComplete: true, screenReader: "VoiceOver", terminal: "Terminal.app" }).status, "supported");
+    assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver", terminal: "Terminal.app" }).status, "supported");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: false, utf8: true }).reason, "colour-only-status");
     assert.deepEqual(qualifyAccessPath({ keyboard: false, textStatus: true, utf8: true }).reason, "no-keyboard");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: false }).reason, "non-utf8-terminal");
-    assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, screenReader: "Other", terminal: "Terminal.app" }).reason, "unsupported-screen-reader-pairing");
+    assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "Other", terminal: "Terminal.app" }).reason, "unsupported-screen-reader-pairing");
+  });
+
+  it("e14s04 unknown access evidence is blocked instead of assumed supported", () => {
+    assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true }).reason, "non-text-terminal");
+    assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true }).reason, "missing-keyboard-map");
+    assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true }).reason, "pointer-only");
   });
 });

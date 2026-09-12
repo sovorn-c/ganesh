@@ -1,4 +1,5 @@
 import { compareBranchReferences, listAlternativeImpact } from "../decisions/alternative-store.js";
+import { keyboardMapText } from "./keyboard.js";
 import type { WorkspaceSession } from "./workspace-types.js";
 
 export interface HelpAction {
@@ -27,6 +28,9 @@ const HELP_ACTIONS: readonly HelpAction[] = [
   { command: "/ganesh-alternatives", label: "Alternatives", description: "inspect branch candidates and impacts without adopting them" },
   { command: "/ganesh-confirm", label: "Confirm exact version", description: "review and confirm one displayed decision packet" },
   { command: "/ganesh-inspect", label: "Inspect evidence", description: "read source access, extraction, integrity and locator limits" },
+  { command: "/ganesh-viewer", label: "Open local viewer", description: "request an authorized native viewer for saved evidence" },
+  { command: "/ganesh-status", label: "Work status", description: "show readable status and remaining budget" },
+  { command: "/ganesh-access", label: "Access path", description: "report terminal access blockers explicitly" },
   { command: "/ganesh-cancel", label: "Cancel work", description: "fence a run or contract through the existing work APIs" }
 ];
 
@@ -41,7 +45,12 @@ function formatAlternativeText(view: Pick<AlternativeView, "sourceBranchId" | "d
 }
 
 export function presentHelp(_session: WorkspaceSession): HelpView {
-  const text = HELP_ACTIONS.map((action) => `${action.command}: ${action.description}`).join("\n");
+  const text = [
+    ...HELP_ACTIONS.map((action) => `${action.command}: ${action.description}`),
+    "Keyboard shortcuts:",
+    keyboardMapText(),
+    "Tab/Shift+Tab: Pi editor focus traversal"
+  ].join("\n");
   return { title: "Ganesh workspace help", actions: HELP_ACTIONS, text };
 }
 

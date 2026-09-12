@@ -36,6 +36,10 @@
 3. Replaced a test-only `as unknown as ExtensionAPI` cast with a narrow registrar interface.
 4. Added story/scenario traceability tags and per-story verification evidence.
 
+## Independent review correction cycle
+
+The initial self-audit PASS was superseded by two independent read-only reviews. They blocked the release for project-extension trust, Pi process-exit cleanup, unreachable live status and access/keyboard paths, duplicate registered confirmation command IDs, symlinked-parent containment, contract cancellation reachability, and stale verification targets. The authorized correction cycle addresses those findings on `feat/e14-terminal-workspace`; final release evidence must be regenerated after the correction review.
+
 ## Verdict
 
-**PASS for E14 implementation review.** The reviewed branch was merged locally into `main` as `a1b7678`, then archived and re-verified by the local release gate recorded in `specs/verifications/e14-verify.yaml`. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.
+**CORRECTION REQUIRED.** The initial implementation review was not sufficient for final release. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.

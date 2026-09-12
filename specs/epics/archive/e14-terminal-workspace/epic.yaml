@@ -56,7 +56,7 @@ bcp_estimate:
     extension command/custom UI APIs, E02-E06 domain commands and existing owner-capability
     seams. Live screen-reader hardware, distribution packaging and scholarly steering
     quality remain later-epic verification obligations.
-status: complete
+status: review_pending
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -131,7 +131,7 @@ stories:
   spec_file: e14s04-accessible-live-work-state.md
   tasks_file: e14s04-tasks.yaml
 capsule_dir: epics/archive/e14-terminal-workspace
-next_skill: bp-plan
+next_skill: bp-review
 plan_approval: approved_exact_revision
 plan_approval_revision: sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8
 plan_approved_at: "2026-09-12T00:31:22Z"

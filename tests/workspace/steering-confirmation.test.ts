@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, it } from "node:test";
+import type { ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
 import {
   createBranch,
   createDecisionPacket,
@@ -87,9 +88,40 @@ describe("E14 steering and confirmation", () => {
       packetId: created.id, action: "approved", selectedCandidateVersionIds: [candidate.id], commandId: "worker", capability: worker
     }));
     const registered: string[] = [];
-    registerWorkspaceCommands({ registerCommand: (name: string) => registered.push(name) }, session);
-    assert.deepEqual(registered, ["ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-inspect", "ganesh-viewer", "ganesh-cancel"]);
+    const shortcuts: string[] = [];
+    registerWorkspaceCommands({
+      registerCommand: (name) => registered.push(name),
+      registerShortcut: (shortcut) => shortcuts.push(shortcut)
+    }, session);
+    assert.deepEqual(registered, [
+      "ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-reject", "ganesh-defer",
+      "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel"
+    ]);
+    assert.deepEqual(shortcuts, ["?", "a", "y", "n", "d", "i", "v", "c", "s", "x"]);
     assert.equal(listCommitments(session.handle).length, 0);
+    session.handle.close();
+  });
+
+  it("e14s02 registered confirmation retries reuse one trusted command id", async () => {
+    const session = await sessionFixture();
+    const candidate = artifact(session.handle, "question", "1", "candidate");
+    const created = packet(session, candidate.id, "packet-command-retry");
+    const commands = new Map<string, (args: string, ctx: ExtensionCommandContext) => Promise<void>>();
+    registerWorkspaceCommands({
+      registerCommand: (name, options) => commands.set(name, options.handler),
+      registerShortcut: () => undefined
+    }, session);
+    const notifications: string[] = [];
+    const context = {
+      ui: {
+        confirm: async () => true,
+        notify: (message: string) => { notifications.push(message); }
+      }
+    } as unknown as ExtensionCommandContext;
+    await commands.get("ganesh-confirm")?.(created.id, context);
+    await commands.get("ganesh-confirm")?.(created.id, context);
+    assert.equal(listCommitments(session.handle, created.id).length, 1);
+    assert.equal(notifications.length, 2);
     session.handle.close();
   });
 
@@ -129,6 +161,9 @@ describe("E14 steering and confirmation", () => {
     updateBranchReference(session.handle, { branchId: branch.id, logicalId: "question", artifactVersionId: alternative.id, expectedVersion: 0, commandId: "alternative-update" });
     const help = presentHelp(session);
     assert.match(help.text, /ganesh-confirm/);
+    assert.match(help.text, /ganesh-viewer/);
+    assert.match(help.text, /ganesh-status/);
+    assert.match(help.text, /Keyboard shortcuts/);
     const view = presentAlternatives(session, "alternative", "main");
     assert.equal(view.adopted, false);
     assert.equal(view.differences.length, 1);
