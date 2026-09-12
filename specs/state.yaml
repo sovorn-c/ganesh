@@ -1,17 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: release
-active_epic: none
-active_story: none
+active_flow: review
+active_epic: e08
+active_story: e08s04
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
+  next_skill: bp-review
+  next_command: "/bp-review"
   summary: >-
-    E07 was locally released on main under approved plan revision
-    sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a.
-    All four stories and 16 task checks passed; post-fallback whole-epic review
-    passed. Production readiness, remote CI, publishing and deployment remain
-    unclaimed.
+    E08 build completed on feat/e08-literature-contribution under approved plan revision
+    sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50.
+    All four stories and 16 task checks passed; fresh whole-epic review is next.
+    This is a local build only; production readiness, remote CI, publishing and
+    deployment remain unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -36,6 +36,7 @@ discovery:
   e14_review: complete_local_release
   e07_build: complete
   e07_review: complete_local_release
+  e08_build: complete
   environment:
     status: verified_node24_target
     runtime:
@@ -186,9 +187,9 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e07
+  first_eligible_epic: e08
   first_tracer_bullet_epic: e05
-  selected_epic: none
+  selected_epic: e08
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
@@ -217,7 +218,23 @@ blueprint:
   implementation_start: not_authorized
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e06_e07_e14_complete;e08_e18_deferred_to_bp_plan
+  story_planning: e01_e07_e14_complete;e08_plan_approved;e15_e18_deferred_to_bp_plan
+  e08_plan: approved_exact_revision
+  e08_plan_revision: sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50
+  e08_plan_approved_at: '2026-09-12T09:54:54Z'
+  e08_plan_approval_source: explicit_owner_message
+  e08_plan_artifacts:
+  - specs/epics/e08-literature-contribution/epic.yaml
+  - specs/epics/e08-literature-contribution/e08s01-review-protocol-query-versions-and-landscape.md
+  - specs/epics/e08-literature-contribution/e08s01-tasks.yaml
+  - specs/epics/e08-literature-contribution/e08s02-authorized-retrieval-citation-exploration-and-coverage.md
+  - specs/epics/e08-literature-contribution/e08s02-tasks.yaml
+  - specs/epics/e08-literature-contribution/e08s03-screening-eligibility-amendments-and-uncertainty-queue.md
+  - specs/epics/e08-literature-contribution/e08s03-tasks.yaml
+  - specs/epics/e08-literature-contribution/e08s04-gap-contribution-challenge-and-counter-search.md
+  - specs/epics/e08-literature-contribution/e08s04-tasks.yaml
+  - specs/tech-architecture/e08-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
   e07_plan: approved_exact_revision
   e07_plan_revision: sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a
   e07_plan_approved_at: '2026-09-12T04:19:56Z'
@@ -273,16 +290,14 @@ metrics:
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 2
-      total_seconds: 1140.0
-      avg_seconds: 570.0
-      _start: '2026-09-12T03:56:09Z'
+      calls: 3
+      total_seconds: 2067.0
+      avg_seconds: 689.0
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
     slice-tasks:
-      calls: 1
-      total_seconds: 1140.0
-      avg_seconds: 1140.0
-      _start: '2026-09-12T03:56:10Z'
+      calls: 2
+      total_seconds: 2067.0
+      avg_seconds: 1033.5

@@ -1,0 +1,46 @@
+story_id: e08s04
+spec: e08s04-gap-contribution-challenge-and-counter-search.md
+title: Gap and Contribution Challenge with Counter-Search
+status: passing
+bcps: 4
+tasks:
+  - id: e08s04-t01
+    description: Record search-scoped dated gap assessments bound to a corpus snapshot, query versions and search date, and reject universally-novel and exhaustive-absence statuses.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s04.*(gap assessment|search-scoped|universal|exhaustive)' dist/tests/*/*.test.js"
+    risk: P0
+    security: low
+    scenarios: [SC-e08s04-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [literature, gap-assessment, D-11]
+  - id: e08s04-t02
+    description: Run AC-04 counter-search that retains a seeded contrary paper, links E07 challenging evidence, and revises, rejects or narrows the gap instead of suppressing the source.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s04.*(contrary|counter-search|challenging|revised|rejected|narrowed)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e08s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [literature, AC-04, counterevidence, Security Review]
+  - id: e08s04-t03
+    description: Keep contribution proposals qualified after counter-search and refuse universal novelty claims when the scoped contrary set is empty.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s04.*(contribution|qualified|empty contrary|novelty)' dist/tests/*/*.test.js"
+    risk: P0
+    security: low
+    scenarios: [SC-e08s04-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [literature, contribution, research-integrity]
+  - id: e08s04-t04
+    description: Prove gap, contribution and counter-search APIs do not create commitments or E04 scholarly findings, ingest specialist origin as proposed, prove no new security findings in affected claim-link paths, and keep released tests passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e08s04.*(commitment|scholarly finding|specialist|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: medium
+    scenarios: [SC-e08s04-P1-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [authority, Security Review, regression]
