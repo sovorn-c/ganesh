@@ -1,6 +1,6 @@
 // story: e15s01
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from "node:fs";
-import { basename, isAbsolute, join, relative, resolve } from "node:path";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync, rmSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, isWorkerCapability, type OwnerCapability, protectCanonicalWrite } from "../authority/capability-broker.js";
@@ -104,7 +104,13 @@ export function exportProject(
           continue;
         }
 
-        const srcPath = join(handle.project.artifactRoot, storagePath);
+        let srcPath: string;
+        try {
+          srcPath = assertContainedRelativePath(handle.project.artifactRoot, storagePath);
+        } catch {
+          omissions.push({ artifactVersionId: versionId, reason: "path-escape" });
+          continue;
+        }
         if (!existsSync(srcPath)) {
           omissions.push({ artifactVersionId: versionId, reason: "content-missing" });
           continue;
@@ -124,7 +130,7 @@ export function exportProject(
           }
         }
 
-        const destArtifact = join(artifactsDir, storagePath);
+        const destArtifact = assertContainedRelativePath(artifactsDir, storagePath);
         mkdirSync(join(destArtifact, ".."), { recursive: true });
         copyFileSync(srcPath, destArtifact);
         const artifactBytes = readFileSync(destArtifact);
@@ -191,12 +197,50 @@ export function assertContainedRelativePath(basePath: string, relativePath: stri
   if (isAbsolute(relativePath)) {
     throw new ProjectStoreError("path-escape", `path must not be absolute: ${relativePath}`);
   }
+  if (relativePath.includes("\0")) {
+    throw new ProjectStoreError("path-escape", "path contains null byte");
+  }
+
   const resolvedBase = resolve(basePath);
   const resolvedTarget = resolve(resolvedBase, relativePath);
   const rel = relative(resolvedBase, resolvedTarget);
   if (rel.startsWith("..") || isAbsolute(rel) || resolvedTarget === resolvedBase) {
-    throw new ProjectStoreError("path-escape", `path escapes packet directory: ${relativePath}`);
+    throw new ProjectStoreError("path-escape", `path escapes root directory: ${relativePath}`);
   }
+
+  const realBase = existsSync(resolvedBase) ? realpathSync(resolvedBase) : resolvedBase;
+
+  // Walk segments to ensure no intermediate symlink or directory escapes base
+  const segments = relativePath.split(/[\\/]+/).filter(Boolean);
+  let cur = resolvedBase;
+  for (const segment of segments) {
+    cur = join(cur, segment);
+    if (existsSync(cur)) {
+      const st = lstatSync(cur);
+      if (st.isSymbolicLink()) {
+        const realCur = realpathSync(cur);
+        const relFromBase = relative(realBase, realCur);
+        if (relFromBase.startsWith("..") || isAbsolute(relFromBase)) {
+          throw new ProjectStoreError("path-escape", `symlink escapes root: ${relativePath}`);
+        }
+      } else {
+        const realCur = realpathSync(cur);
+        const relFromBase = relative(realBase, realCur);
+        if (relFromBase.startsWith("..") || isAbsolute(relFromBase)) {
+          throw new ProjectStoreError("path-escape", `path escapes root: ${relativePath}`);
+        }
+      }
+    }
+  }
+
+  if (existsSync(resolvedTarget)) {
+    const realTarget = realpathSync(resolvedTarget);
+    const relFromBase = relative(realBase, realTarget);
+    if (relFromBase.startsWith("..") || isAbsolute(relFromBase)) {
+      throw new ProjectStoreError("path-escape", `resolved path escapes root: ${relativePath}`);
+    }
+  }
+
   return resolvedTarget;
 }
 

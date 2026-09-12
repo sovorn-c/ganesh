@@ -1,5 +1,5 @@
 // story: e15s03
-import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { ProjectStoreError } from "./project-types.js";
 import type { ProjectLock } from "../portability/portability-types.js";
@@ -45,42 +45,83 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
     };
   }
 
-  // Check for foreign lock
-  if (existsSync(path)) {
+  const lockDir = join(normRoot, ".ganesh");
+  mkdirSync(lockDir, { recursive: true });
+
+  const maxAttempts = 10;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // 1. Try atomic exclusive creation
+    try {
+      writeFileSync(path, String(myPid), { flag: "wx" });
+      activeLocks.set(normRoot, { pid: myPid, count: 1 });
+      return {
+        projectRoot: normRoot,
+        pid: myPid,
+        release() {
+          const lock = activeLocks.get(normRoot);
+          if (lock) {
+            lock.count--;
+            if (lock.count <= 0) {
+              activeLocks.delete(normRoot);
+              try { unlinkSync(path); } catch { /* already gone */ }
+            }
+          }
+        }
+      };
+    } catch (err: any) {
+      if (err?.code !== "EEXIST") {
+        throw err;
+      }
+    }
+
+    // 2. Lock file exists; inspect PID
+    let lockPid: number | null = null;
     try {
       const content = readFileSync(path, "utf-8").trim();
-      const lockPid = parseInt(content, 10);
-      if (!isNaN(lockPid) && lockPid !== myPid && isPidAlive(lockPid)) {
+      const parsed = parseInt(content, 10);
+      if (!isNaN(parsed)) {
+        lockPid = parsed;
+      }
+    } catch {
+      continue;
+    }
+
+    if (lockPid !== null) {
+      if (lockPid === myPid) {
+        activeLocks.set(normRoot, { pid: myPid, count: 1 });
+        return {
+          projectRoot: normRoot,
+          pid: myPid,
+          release() {
+            const lock = activeLocks.get(normRoot);
+            if (lock) {
+              lock.count--;
+              if (lock.count <= 0) {
+                activeLocks.delete(normRoot);
+                try { unlinkSync(path); } catch { /* already gone */ }
+              }
+            }
+          }
+        };
+      }
+
+      if (isPidAlive(lockPid)) {
         throw new ProjectStoreError(
           "project-locked",
           `project-locked: project is locked by process ${lockPid}; close the other instance or remove ${path}`
         );
       }
-      // Dead pid — steal the lock
-    } catch (error) {
-      if (error instanceof ProjectStoreError) { throw error; }
-      // File read error — proceed to overwrite
+    }
+
+    // Dead PID or corrupt file: safely unlink stale lock and retry atomic creation
+    try {
+      unlinkSync(path);
+    } catch {
+      // Unlink race
     }
   }
 
-  // Acquire lock
-  writeFileSync(path, String(myPid), { flag: "w" });
-  activeLocks.set(projectRoot, { pid: myPid, count: 1 });
-
-  return {
-    projectRoot,
-    pid: myPid,
-    release() {
-      const lock = activeLocks.get(projectRoot);
-      if (lock) {
-        lock.count--;
-        if (lock.count <= 0) {
-          activeLocks.delete(projectRoot);
-          try { unlinkSync(path); } catch { /* already gone */ }
-        }
-      }
-    }
-  };
+  throw new ProjectStoreError("project-locked", `failed to acquire write lock on ${path} after multiple attempts`);
 }
 
 export function isProjectLocked(projectRoot: string): boolean {

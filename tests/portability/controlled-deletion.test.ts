@@ -228,4 +228,57 @@ describe("E15s04 controlled deletion of derived content and caches", () => {
     const commitments = fix.handle.db.prepare("SELECT count(*) as cnt FROM commitments").get() as { cnt: number };
     assert.ok(commitments.cnt >= 0, "commitments table must remain inspectable");
   });
+
+  it("e15s04 controlled deletion removes artifacts linked only through dependencies while preserving tombstones and disclosures", () => {
+    // Register parent artifact
+    const artParent = registerPublicArtifact(fix.handle, "doc-parent-dep", "v1", "sensitive parent content");
+    assert.equal(existsSync(artParent.storagePath!), true);
+
+    // Register child artifact linked ONLY through dependencies
+    const artChild = registerArtifactVersion(fix.handle, {
+      logicalId: "doc-child-dep",
+      version: "v1",
+      versionId: "doc-child-dep-v1",
+      content: "derived child content from parent",
+      dependencies: [{ versionId: artParent.id, relation: "depends-on" }]
+    });
+    assert.equal(existsSync(artChild.storagePath!), true);
+
+    // Record an external disclosure for the child artifact
+    classifyAndGrant(fix.handle, artParent.id, "external-partner", "cross-validation");
+    classifyAndGrant(fix.handle, artChild.id, "external-partner", "cross-validation");
+    const dRes = requestDisclosure(fix.handle, {
+      operation: "export",
+      destination: "external-partner",
+      purpose: "cross-validation",
+      sourceVersions: [artChild.id]
+    });
+    assert.equal(dRes.status, "allow");
+
+    // Delete the parent artifact
+    const res = deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: artParent.id,
+      reason: "erasure request for parent",
+      commandId: "del-parent-dep-cascade",
+      payloadHash: packetPayloadHash({ art: artParent.id })
+    });
+
+    // Both parent and child storage files must be unlinked
+    assert.equal(existsSync(artParent.storagePath!), false, "parent artifact storage file must be unlinked");
+    assert.equal(existsSync(artChild.storagePath!), false, "child dependency artifact storage file must be unlinked");
+
+    // Both parent and child must have evidence tombstones
+    const tombParent = getEvidenceTombstone(fix.handle, fix.ownerCap, artParent.id);
+    const tombChild = getEvidenceTombstone(fix.handle, fix.ownerCap, artChild.id);
+    assert.ok(tombParent, "parent tombstone must exist");
+    assert.ok(tombChild, "child tombstone must exist");
+
+    // Both parent and child report unavailable
+    assert.equal(inspectArtifactVersion(fix.handle, artParent.id).contentStatus, "unavailable");
+    assert.equal(inspectArtifactVersion(fix.handle, artChild.id).contentStatus, "unavailable");
+
+    // Child disclosure must be reported as not recalled
+    assert.ok(res.notRecalledDisclosures.length > 0, "disclosures on cascaded artifacts must be reported as not recalled");
+    assert.ok(res.notRecalledDisclosures.some(d => d.destination === "external-partner"));
+  });
 });

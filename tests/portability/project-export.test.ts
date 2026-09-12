@@ -1,7 +1,7 @@
 // story: e15s01 — Versioned Project Export with Integrity and Current Permissions
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -260,6 +260,45 @@ describe("E15s01 versioned project export", () => {
       );
     } finally {
       rmSync(maliciousDir, { recursive: true, force: true });
+    }
+  });
+
+  it("e15s01 adversarial: inspectProjectPacket rejects symlink traversal escaping root", () => {
+    const maliciousDir = emptyDestination();
+    const outsideTarget = emptyDestination();
+    try {
+      mkdirSync(maliciousDir, { recursive: true });
+      mkdirSync(outsideTarget, { recursive: true });
+      writeFileSync(join(outsideTarget, "secret.txt"), "sensitive external host data");
+
+      // Create symlink inside packet pointing to outside directory
+      const symlinkDir = join(maliciousDir, "artifacts");
+      mkdirSync(symlinkDir, { recursive: true });
+      symlinkSync(outsideTarget, join(symlinkDir, "escape_link"));
+
+      const maliciousManifest = {
+        kind: "project",
+        schemaVersion: PROJECT_SCHEMA_VERSION,
+        projectId: "test-proj",
+        createdAt: new Date().toISOString(),
+        destination: "local",
+        purpose: "test",
+        files: [
+          { relativePath: "artifacts/escape_link/secret.txt", sha256: "fakehash" }
+        ],
+        omissions: [],
+        commitmentIds: [],
+        evidenceLocatorIds: []
+      };
+      writeFileSync(join(maliciousDir, "ganesh-project-packet.json"), JSON.stringify(maliciousManifest, null, 2));
+
+      assert.throws(
+        () => inspectProjectPacket(maliciousDir),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "path-escape"
+      );
+    } finally {
+      rmSync(maliciousDir, { recursive: true, force: true });
+      rmSync(outsideTarget, { recursive: true, force: true });
     }
   });
 });

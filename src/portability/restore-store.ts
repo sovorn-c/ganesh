@@ -1,10 +1,11 @@
 // story: e15s02, e15s05
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
-import { createSchema, configureDatabase, transaction } from "../persistence/schema.js";
+import { createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
 import { isoNow, newId, sha256 as computeSha256 } from "../persistence/storage-utils.js";
 import { acquireProjectWriteLock } from "../project/project-lock.js";
 import { assertContainedRelativePath, inspectProjectPacket } from "./export-store.js";
@@ -12,18 +13,154 @@ import type {
   RestoreRequest, RestoreResult, PacketManifest
 } from "./portability-types.js";
 
-function getDatabaseOwnerId(sqlitePath: string): string | null {
-  if (!existsSync(sqlitePath)) {
-    return null;
-  }
+function getPortabilityRegistryPath(): string {
+  const base = process.env.GANESH_DATA_DIR || join(tmpdir(), ".ganesh-registry");
+  mkdirSync(base, { recursive: true });
+  return join(base, "portability-commands.sqlite");
+}
+
+function getPortabilityRegistryDb(): DatabaseSync {
+  const p = getPortabilityRegistryPath();
+  const db = new DatabaseSync(p);
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS portability_commands (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT,
+      source_path TEXT NOT NULL,
+      destination_path TEXT NOT NULL,
+      status TEXT NOT NULL,
+      operation_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
+  return db;
+}
+
+function checkPortabilityCommand(commandId: string): {
+  commandId: string;
+  kind: string;
+  payloadHash: string | null;
+  sourcePath: string;
+  destinationPath: string;
+  status: string;
+  operationId: string;
+} | null {
+  const db = getPortabilityRegistryDb();
   try {
-    const db = new DatabaseSync(sqlitePath, { readOnly: true });
-    configureDatabase(db);
-    const row = db.prepare("SELECT owner_id FROM projects LIMIT 1").get() as { owner_id: string } | undefined;
+    const row = db.prepare(
+      "SELECT command_id, kind, payload_hash, source_path, destination_path, status, operation_id FROM portability_commands WHERE command_id = ?"
+    ).get(commandId) as Record<string, unknown> | undefined;
+    if (!row) { return null; }
+    return {
+      commandId: String(row.command_id),
+      kind: String(row.kind),
+      payloadHash: row.payload_hash ? String(row.payload_hash) : null,
+      sourcePath: String(row.source_path),
+      destinationPath: String(row.destination_path),
+      status: String(row.status),
+      operationId: String(row.operation_id)
+    };
+  } finally {
     db.close();
-    return row?.owner_id ?? null;
-  } catch {
-    return null;
+  }
+}
+
+function recordPortabilityCommand(entry: {
+  commandId: string;
+  kind: string;
+  payloadHash: string | null;
+  sourcePath: string;
+  destinationPath: string;
+  status: string;
+  operationId: string;
+}): void {
+  const db = getPortabilityRegistryDb();
+  try {
+    const now = isoNow();
+    db.prepare(`
+      INSERT OR REPLACE INTO portability_commands
+      (command_id, kind, payload_hash, source_path, destination_path, status, operation_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      entry.commandId,
+      entry.kind,
+      entry.payloadHash,
+      entry.sourcePath,
+      entry.destinationPath,
+      entry.status,
+      entry.operationId,
+      now,
+      now
+    );
+  } finally {
+    db.close();
+  }
+}
+
+export function _clearPortabilityRegistryForTests(): void {
+  try {
+    const p = getPortabilityRegistryPath();
+    if (existsSync(p)) {
+      rmSync(p, { force: true });
+    }
+  } catch { /* best effort */ }
+}
+
+function validateAndGetPacketOwnerId(packetPath: string): { ownerId: string; schemaVersion: number } {
+  const sqlitePath = join(packetPath, "project.sqlite");
+  if (!existsSync(sqlitePath)) {
+    throw new ProjectStoreError("corrupt-packet", "packet is missing project.sqlite");
+  }
+  let db: DatabaseSync;
+  try {
+    db = new DatabaseSync(sqlitePath, { readOnly: true });
+    configureDatabase(db);
+  } catch (err) {
+    throw new ProjectStoreError("corrupt-packet", `packet database is malformed or unreadable: ${(err as Error).message}`);
+  }
+
+  try {
+    const integrity = db.prepare("PRAGMA integrity_check").get() as { integrity_check?: string } | undefined;
+    if (!integrity || integrity.integrity_check !== "ok") {
+      throw new ProjectStoreError("corrupt-packet", `packet database failed integrity check: ${integrity?.integrity_check ?? "unknown"}`);
+    }
+
+    const tableExists = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='projects'"
+    ).get();
+    if (!tableExists) {
+      throw new ProjectStoreError("unsupported-schema", "packet database is missing projects table");
+    }
+
+    const row = db.prepare("SELECT owner_id, schema_version FROM projects LIMIT 1").get() as { owner_id?: string; schema_version?: number } | undefined;
+    if (!row || typeof row.owner_id !== "string" || !row.owner_id.trim()) {
+      throw new ProjectStoreError("corrupt-packet", "packet database has missing or invalid project owner");
+    }
+
+    let schemaVersion = 1;
+    try {
+      const v = readSchemaVersion(db);
+      if (v > 0) {
+        schemaVersion = v;
+      }
+    } catch {
+      // Table may not exist, check projects table
+    }
+    if (typeof row.schema_version === "number" && row.schema_version > 0) {
+      schemaVersion = Math.max(schemaVersion, row.schema_version);
+    }
+
+    return { ownerId: row.owner_id, schemaVersion };
+  } catch (err) {
+    if (err instanceof ProjectStoreError) {
+      throw err;
+    }
+    throw new ProjectStoreError("corrupt-packet", `packet database validation failed: ${(err as Error).message}`);
+  } finally {
+    try { db.close(); } catch { /* ignore */ }
   }
 }
 
@@ -74,32 +211,78 @@ export function restoreProject(
     );
   }
 
-  // Enforce matching owner between capability and source packet
-  const packetDbPath = join(request.sourcePath, "project.sqlite");
-  const packetOwnerId = getDatabaseOwnerId(packetDbPath);
-  if (packetOwnerId && ownerCap.ownerId !== packetOwnerId) {
-    throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match packet owner");
-  }
-
-  if (request.mode === "drill") {
-    return {
-      mode: "drill",
-      valid: inspection.valid,
-      hashResults: inspection.hashResults,
-      operationId: newId("drill"),
-      detail: inspection.valid ? "drill passed: all hashes match" : "drill failed: hash mismatch detected",
-      reinstatedGrants: [],
-      preservedWithdrawals: []
-    };
-  }
-
+  // If packet file hashes do not match manifest, reject immediately before DB inspection or destination modification
   if (!inspection.valid) {
+    if (request.mode === "drill") {
+      return {
+        mode: "drill",
+        valid: false,
+        hashResults: inspection.hashResults,
+        operationId: newId("drill"),
+        detail: "drill failed: hash mismatch detected",
+        reinstatedGrants: [],
+        preservedWithdrawals: []
+      };
+    }
     return {
       mode: request.mode,
       valid: false,
       hashResults: inspection.hashResults,
       operationId: newId("restore-failed"),
       detail: "restore rejected: hash mismatch before destination is ready",
+      reinstatedGrants: [],
+      preservedWithdrawals: []
+    };
+  }
+
+  // Fail closed on unreadable/malformed/missing-schema/future-schema packet database
+  const { ownerId: packetOwnerId, schemaVersion: dbSchemaVersion } = validateAndGetPacketOwnerId(request.sourcePath);
+  if (dbSchemaVersion > PROJECT_SCHEMA_VERSION) {
+    throw new ProjectStoreError(
+      "unsupported-schema",
+      `unsupported-schema: packet database schema version ${dbSchemaVersion} exceeds supported version ${PROJECT_SCHEMA_VERSION}`
+    );
+  }
+
+  // Enforce matching owner between capability and source packet
+  if (ownerCap.ownerId !== packetOwnerId) {
+    throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match packet owner");
+  }
+
+  // Enforce global command idempotency and payload conflict (for materialize and replace)
+  if (request.mode === "materialize" || request.mode === "replace") {
+    const existing = checkPortabilityCommand(request.commandId);
+    if (existing) {
+      if (existing.payloadHash && request.payloadHash && existing.payloadHash !== request.payloadHash) {
+        throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
+      }
+      if (resolve(existing.destinationPath) !== resolve(request.destinationPath)) {
+        throw new ProjectStoreError(
+          "payload-conflict",
+          `payload-conflict: command ${request.commandId} was already executed for destination ${existing.destinationPath}`
+        );
+      }
+      if (existing.status === "complete") {
+        return {
+          mode: request.mode,
+          valid: true,
+          hashResults: inspection.hashResults,
+          operationId: existing.operationId,
+          detail: `${request.mode} complete: idempotent return`,
+          reinstatedGrants: [],
+          preservedWithdrawals: []
+        };
+      }
+    }
+  }
+
+  if (request.mode === "drill") {
+    return {
+      mode: "drill",
+      valid: true,
+      hashResults: inspection.hashResults,
+      operationId: newId("drill"),
+      detail: "drill passed: all hashes match",
       reinstatedGrants: [],
       preservedWithdrawals: []
     };
@@ -123,6 +306,38 @@ function materializeRestore(
 ): RestoreResult {
   const destStore = join(request.destinationPath, ".ganesh");
   if (existsSync(destStore)) {
+    const destDbPath = join(destStore, "project.sqlite");
+    if (existsSync(destDbPath)) {
+      try {
+        const checkDb = new DatabaseSync(destDbPath, { readOnly: true });
+        configureDatabase(checkDb);
+        try {
+          const row = checkDb.prepare(
+            "SELECT id, payload_hash, status FROM portability_operations WHERE command_id = ?"
+          ).get(request.commandId) as { id: string; payload_hash: string; status: string } | undefined;
+          if (row) {
+            if (row.payload_hash && request.payloadHash && String(row.payload_hash) !== request.payloadHash) {
+              throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
+            }
+            if (row.status === "complete") {
+              return {
+                mode: "materialize",
+                valid: true,
+                hashResults: inspection.hashResults,
+                operationId: String(row.id),
+                detail: "materialize complete: idempotent return",
+                reinstatedGrants: [],
+                preservedWithdrawals: []
+              };
+            }
+          }
+        } finally {
+          checkDb.close();
+        }
+      } catch (err) {
+        if (err instanceof ProjectStoreError) { throw err; }
+      }
+    }
     throw new ProjectStoreError("project-exists", "materialize requires an empty destination without .ganesh");
   }
 
@@ -146,6 +361,7 @@ function materializeRestore(
       }
 
       // Record operation into destination database
+      const opId = newId("restore");
       try {
         const db = new DatabaseSync(destDb);
         configureDatabase(db);
@@ -153,18 +369,28 @@ function materializeRestore(
           transaction(db, () => {
             db.prepare(
               "INSERT INTO portability_operations (id, command_id, kind, payload_hash, status, packet_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-            ).run(newId("restore"), request.commandId, "restore-materialize", request.payloadHash, "complete", request.sourcePath, isoNow(), isoNow());
+            ).run(opId, request.commandId, "restore-materialize", request.payloadHash ?? "", "complete", request.sourcePath, isoNow(), isoNow());
           });
         } finally {
           db.close();
         }
       } catch { /* table may not exist in earlier schema */ }
 
+      recordPortabilityCommand({
+        commandId: request.commandId,
+        kind: "restore-materialize",
+        payloadHash: request.payloadHash ?? null,
+        sourcePath: request.sourcePath,
+        destinationPath: request.destinationPath,
+        status: "complete",
+        operationId: opId
+      });
+
       return {
         mode: "materialize",
         valid: true,
         hashResults: inspection.hashResults,
-        operationId: newId("restore"),
+        operationId: opId,
         detail: "materialize complete: project created from packet",
         reinstatedGrants: [],
         preservedWithdrawals: []
@@ -188,17 +414,19 @@ function replaceRestore(
     throw new ProjectStoreError("project-not-found", "replace requires an existing project at destination");
   }
 
-  const destDbPath = join(destStore, "project.sqlite");
-  const destOwnerId = getDatabaseOwnerId(destDbPath);
-  if (destOwnerId && capability.ownerId !== destOwnerId) {
-    throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match project owner");
-  }
-
   return protectCanonicalWrite(capability, () => {
     // Acquire destination write lock
     const lock = acquireProjectWriteLock(request.destinationPath);
 
     try {
+      const destDbPath = join(destStore, "project.sqlite");
+      if (!existsSync(destDbPath)) {
+        throw new ProjectStoreError("project-not-found", "replace requires an existing project database");
+      }
+      const { ownerId: destOwnerId } = validateAndGetPacketOwnerId(destStore);
+      if (capability.ownerId !== destOwnerId) {
+        throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match project owner");
+      }
       // Check persisted idempotency & payload conflict
       try {
         const checkDb = new DatabaseSync(destDbPath, { readOnly: true });
@@ -404,22 +632,32 @@ function replaceRestore(
           stagedDb.close();
         }
 
-        // Atomic swap
+        // Atomic swap of BOTH DB and artifacts with complete rollback
         const bakDbPath = join(destStore, "project.sqlite.bak");
-        try {
-          renameSync(destDbPath, bakDbPath);
-        } catch {
-          copyFileSync(destDbPath, bakDbPath);
+        const bakArtifactsDir = join(destStore, "artifacts.bak");
+        const destArtifacts = join(destStore, "artifacts");
+
+        // Backup existing database
+        copyFileSync(destDbPath, bakDbPath);
+
+        // Backup existing artifacts if any exist
+        if (existsSync(destArtifacts)) {
+          rmSync(bakArtifactsDir, { recursive: true, force: true });
+          copyDirRecursive(destArtifacts, bakArtifactsDir);
         }
 
         try {
           copyFileSync(stageDbPath, destDbPath);
           const stageArtifacts = join(stageDir, "artifacts");
           if (existsSync(stageArtifacts)) {
-            const destArtifacts = join(destStore, "artifacts");
-            copyDirRecursive(stageArtifacts, destArtifacts);
+            const tmpDestArtifacts = join(destStore, "artifacts.tmp");
+            rmSync(tmpDestArtifacts, { recursive: true, force: true });
+            copyDirRecursive(stageArtifacts, tmpDestArtifacts);
+            rmSync(destArtifacts, { recursive: true, force: true });
+            renameSync(tmpDestArtifacts, destArtifacts);
           }
           try { rmSync(bakDbPath, { force: true }); } catch { /* best effort */ }
+          try { rmSync(bakArtifactsDir, { recursive: true, force: true }); } catch { /* best effort */ }
         } catch (swapError) {
           // Roll back database
           if (existsSync(bakDbPath)) {
@@ -428,17 +666,35 @@ function replaceRestore(
               rmSync(bakDbPath, { force: true });
             } catch { /* best effort */ }
           }
+          // Roll back artifacts
+          if (existsSync(bakArtifactsDir)) {
+            try {
+              rmSync(destArtifacts, { recursive: true, force: true });
+              renameSync(bakArtifactsDir, destArtifacts);
+            } catch { /* best effort */ }
+          }
           throw swapError;
         }
       } finally {
         rmSync(stageDir, { recursive: true, force: true });
       }
 
+      const opId = newId("restore-replace");
+      recordPortabilityCommand({
+        commandId: request.commandId,
+        kind: "restore-replace",
+        payloadHash: request.payloadHash ?? null,
+        sourcePath: request.sourcePath,
+        destinationPath: request.destinationPath,
+        status: "complete",
+        operationId: opId
+      });
+
       return {
         mode: "replace",
         valid: true,
         hashResults: inspection.hashResults,
-        operationId: newId("restore-replace"),
+        operationId: opId,
         detail: `replace complete: ${preservedWithdrawals.length} withdrawn/expired grants preserved`,
         reinstatedGrants: [],
         preservedWithdrawals

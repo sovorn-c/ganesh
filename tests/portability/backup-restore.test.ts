@@ -17,6 +17,7 @@ import {
   createOwnerCapability,
   ProjectStoreError
 } from "../../src/index.js";
+import { _clearPortabilityRegistryForTests } from "../../src/portability/restore-store.js";
 import { createSchema } from "../../src/persistence/schema.js";
 import { sha256 } from "../../src/persistence/storage-utils.js";
 import {
@@ -33,13 +34,15 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
   let cleanDirs: string[] = [];
 
   beforeEach(() => {
+    _clearPortabilityRegistryForTests();
     fix = portabilityFixture("owner-backup-test");
   });
 
   afterEach(() => {
+    _clearPortabilityRegistryForTests();
     disposePortabilityFixture(fix);
     for (const d of cleanDirs) {
-      rmSync(d, { recursive: true, force: true });
+      try { rmSync(d, { recursive: true, force: true }); } catch { /* best effort */ }
     }
     cleanDirs = [];
   });
@@ -475,5 +478,205 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
     } finally {
       liveCheck.close();
     }
+  });
+
+  it("e15s02 restore fail-open: unreadable or invalid SQLite database rejected before authorization or drill", () => {
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-for-failopen",
+      payloadHash: packetPayloadHash({ cmd: "failopen" })
+    });
+
+    // 1. Packet with junk SQLite file (hashes match manifest, but SQLite is unreadable)
+    const corruptPacketDir = newTempDir();
+    const manifestPath = join(backup.backupPath, "ganesh-project-packet.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    const corruptBytes = Buffer.from("NOT A VALID SQLITE DATABASE FILE HEADER JUNK");
+    const corruptHash = sha256(corruptBytes);
+    const corruptManifest = {
+      ...manifest,
+      files: manifest.files.map((f: { relativePath: string; sha256: string }) =>
+        f.relativePath === "project.sqlite" ? { ...f, sha256: corruptHash } : f
+      )
+    };
+    for (const f of manifest.files) {
+      const src = join(backup.backupPath, f.relativePath);
+      const dest = join(corruptPacketDir, f.relativePath);
+      mkdirSync(join(dest, ".."), { recursive: true });
+      copyFileSync(src, dest);
+    }
+    writeFileSync(join(corruptPacketDir, "project.sqlite"), corruptBytes);
+    writeFileSync(join(corruptPacketDir, "ganesh-project-packet.json"), JSON.stringify(corruptManifest, null, 2));
+
+    // Drill MUST fail with corrupt-packet and NOT return valid: true
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "drill-corrupt",
+        sourcePath: corruptPacketDir,
+        destinationPath: fix.root,
+        mode: "drill",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // Materialize MUST fail with corrupt-packet
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "mat-corrupt",
+        sourcePath: corruptPacketDir,
+        destinationPath: newTempDir(),
+        mode: "materialize",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
+
+    // 2. Packet with missing projects table
+    const noProjectsDir = newTempDir();
+    const noProjectsDb = new DatabaseSync(join(noProjectsDir, "project.sqlite"));
+    noProjectsDb.exec("CREATE TABLE something_else (id TEXT);");
+    noProjectsDb.close();
+    const dbBytes = readFileSync(join(noProjectsDir, "project.sqlite"));
+    const noProjectsManifest = {
+      ...manifest,
+      files: [{ relativePath: "project.sqlite", sha256: sha256(dbBytes) }]
+    };
+    writeFileSync(join(noProjectsDir, "ganesh-project-packet.json"), JSON.stringify(noProjectsManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "mat-no-projects",
+        sourcePath: noProjectsDir,
+        destinationPath: newTempDir(),
+        mode: "materialize",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "unsupported-schema"
+    );
+
+    // 3. Packet with future schema in SQLite database
+    const futureDbDir = newTempDir();
+    const futureDb = new DatabaseSync(join(futureDbDir, "project.sqlite"));
+    createSchema(futureDb);
+    futureDb.exec(`INSERT INTO projects (id, owner_id, root_path, schema_version, created_at) VALUES ('p1', '${fix.ownerId}', '/tmp', 999, '2026-09-12T00:00:00.000Z');`);
+    futureDb.exec("UPDATE metadata SET value = '999' WHERE key = 'schema_version';");
+    futureDb.close();
+    const futureDbBytes = readFileSync(join(futureDbDir, "project.sqlite"));
+    const futureManifest = {
+      ...manifest,
+      files: [{ relativePath: "project.sqlite", sha256: sha256(futureDbBytes) }]
+    };
+    writeFileSync(join(futureDbDir, "ganesh-project-packet.json"), JSON.stringify(futureManifest, null, 2));
+
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "mat-future-db",
+        sourcePath: futureDbDir,
+        destinationPath: newTempDir(),
+        mode: "materialize",
+        payloadHash: "hash"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "unsupported-schema"
+    );
+  });
+
+  it("e15s02 materialize restore enforces persisted command idempotency and rejects materializing to another destination", () => {
+    registerPublicArtifact(fix.handle, "doc-idemp-mat", "v1", "idempotent materialize content");
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-for-idemp-mat",
+      payloadHash: packetPayloadHash({ cmd: "idemp-mat" })
+    });
+
+    const destA = newTempDir();
+    const destB = newTempDir();
+
+    // First materialize to destA
+    const res1 = restoreProject(fix.ownerCap, {
+      commandId: "mat-idemp-cmd",
+      sourcePath: backup.backupPath,
+      destinationPath: destA,
+      mode: "materialize",
+      payloadHash: "mat-hash-1"
+    });
+    assert.equal(res1.valid, true);
+
+    // Retry with exact same commandId, destination, and payloadHash -> idempotent return
+    const res2 = restoreProject(fix.ownerCap, {
+      commandId: "mat-idemp-cmd",
+      sourcePath: backup.backupPath,
+      destinationPath: destA,
+      mode: "materialize",
+      payloadHash: "mat-hash-1"
+    });
+    assert.equal(res2.valid, true);
+    assert.equal(res2.operationId, res1.operationId);
+
+    // Retry with same commandId and destination but conflicting payload -> payload-conflict
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "mat-idemp-cmd",
+        sourcePath: backup.backupPath,
+        destinationPath: destA,
+        mode: "materialize",
+        payloadHash: "mat-hash-conflicting"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "payload-conflict"
+    );
+
+    // Repeated command trying to materialize to ANOTHER destination destB -> payload-conflict
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "mat-idemp-cmd",
+        sourcePath: backup.backupPath,
+        destinationPath: destB,
+        mode: "materialize",
+        payloadHash: "mat-hash-1"
+      }),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "payload-conflict"
+    );
+  });
+
+  it("e15s02 replace is transactional across DB and artifacts: rolls back both when artifact swap fails", () => {
+    const initialArt = registerPublicArtifact(fix.handle, "doc-orig", "v1", "original surviving content");
+    const origArtifactFile = initialArt.storagePath!;
+    assert.equal(existsSync(origArtifactFile), true);
+
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-for-art-rollback",
+      payloadHash: packetPayloadHash({ cmd: "art-rollback" })
+    });
+
+    const destDbPath = join(fix.root, ".ganesh", "project.sqlite");
+    const origDbBytes = readFileSync(destDbPath);
+
+    // Create a bad packet that fails during transactional stage validate/swap
+    const badPacketDir = newTempDir();
+    const manifestPath = join(backup.backupPath, "ganesh-project-packet.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+    // Add an artifact that escapes containment
+    const badManifest = {
+      ...manifest,
+      files: [
+        ...manifest.files,
+        { relativePath: "artifacts/../../escaped.txt", sha256: "fake" }
+      ]
+    };
+    writeFileSync(join(badPacketDir, "ganesh-project-packet.json"), JSON.stringify(badManifest, null, 2));
+
+    assert.throws(() => {
+      restoreProject(fix.ownerCap, {
+        commandId: "replace-art-fail",
+        sourcePath: badPacketDir,
+        destinationPath: fix.root,
+        mode: "replace",
+        payloadHash: "dummy"
+      });
+    });
+
+    // Verify both DB and artifacts are completely unchanged
+    const currentDbBytes = readFileSync(destDbPath);
+    assert.deepEqual(currentDbBytes, origDbBytes, "database bytes must be identical after rollback");
+    assert.equal(existsSync(origArtifactFile), true, "original artifact file must be untouched after rollback");
+    assert.equal(readFileSync(origArtifactFile, "utf-8"), "original surviving content");
   });
 });

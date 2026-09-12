@@ -6,6 +6,7 @@ import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { transaction } from "../persistence/schema.js";
 import { isoNow, newId, pathInside } from "../persistence/storage-utils.js";
+import { dependentVersions } from "../branches/dependency-store.js";
 import type {
   DeletionRequest, DeletionResult, EvidenceTombstone, DeletionEvent, NotRecalledDisclosure
 } from "./portability-types.js";
@@ -38,36 +39,80 @@ export function deleteArtifactContent(
       throw new ProjectStoreError("artifact-not-found", `artifact version ${versionId} was not found`);
     }
 
-    const unlinkedPaths: string[] = [];
-    const storagePath = row.storage_path ? String(row.storage_path) : null;
-    const contentHash = row.content_hash ? String(row.content_hash) : null;
-    const storeRoot = join(handle.project.rootPath, ".ganesh");
-
-    // 1. Unlink original artifact
-    if (storagePath) {
-      const fullPath = join(handle.project.artifactRoot, storagePath);
-      if (existsSync(fullPath) && pathInside(storeRoot, fullPath)) {
-        rmSync(fullPath, { force: true });
-        unlinkedPaths.push(fullPath);
-      }
-    }
-
-    // 2. Unlink derived materials
-    const derivedRows = handle.db.prepare(
-      "SELECT candidate_version_id FROM derived_materials WHERE source_version_ids LIKE ?"
-    ).all(`%${versionId}%`) as Array<Record<string, unknown>>;
-    for (const d of derivedRows) {
-      if (d.candidate_version_id) {
-        const derivedArtifact = handle.db.prepare(
-          "SELECT storage_path FROM artifact_versions WHERE id = ?"
-        ).get(String(d.candidate_version_id)) as Record<string, unknown> | undefined;
-        if (derivedArtifact?.storage_path) {
-          const derivedPath = join(handle.project.artifactRoot, String(derivedArtifact.storage_path));
-          if (existsSync(derivedPath) && pathInside(storeRoot, derivedPath)) {
-            rmSync(derivedPath, { force: true });
-            unlinkedPaths.push(derivedPath);
+    // 1. Discover all reachable versions through dependencies and derived materials
+    const allAffectedVersionIds = new Set<string>([versionId]);
+    const queue = [versionId];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      // A. Dependencies table
+      try {
+        const deps = dependentVersions(handle, current);
+        for (const dep of deps) {
+          if (!allAffectedVersionIds.has(dep)) {
+            allAffectedVersionIds.add(dep);
+            queue.push(dep);
           }
         }
+      } catch { /* dependencies table might not exist in old schemas */ }
+
+      // B. Derived materials table
+      try {
+        const derivedRows = handle.db.prepare(
+          "SELECT candidate_version_id FROM derived_materials WHERE source_version_ids LIKE ?"
+        ).all(`%${current}%`) as Array<Record<string, unknown>>;
+        for (const d of derivedRows) {
+          const candId = d.candidate_version_id ? String(d.candidate_version_id) : null;
+          if (candId && !allAffectedVersionIds.has(candId)) {
+            allAffectedVersionIds.add(candId);
+            queue.push(candId);
+          }
+        }
+      } catch { /* derived_materials table might not exist */ }
+    }
+
+    const unlinkedPaths: string[] = [];
+    const storeRoot = join(handle.project.rootPath, ".ganesh");
+    const now = isoNow();
+    const actor = ownerCap.ownerId;
+    const tombstoneId = newId("tombstone");
+    const tombstoneMap = new Map<string, string>();
+    tombstoneMap.set(versionId, tombstoneId);
+
+    // 2. Unlink files and app backups for all affected versions
+    for (const vId of allAffectedVersionIds) {
+      const vRow = handle.db.prepare(
+        "SELECT id, content_hash, storage_path FROM artifact_versions WHERE id = ?"
+      ).get(vId) as Record<string, unknown> | undefined;
+      const vStoragePath = vRow?.storage_path ? String(vRow.storage_path) : null;
+
+      if (vStoragePath) {
+        const fullPath = join(handle.project.artifactRoot, vStoragePath);
+        if (existsSync(fullPath) && pathInside(storeRoot, fullPath)) {
+          rmSync(fullPath, { force: true });
+          unlinkedPaths.push(fullPath);
+        }
+
+        // Unlink from app backups if requested
+        if (request.includeAppBackups) {
+          const backupsDir = join(storeRoot, "backups");
+          if (existsSync(backupsDir)) {
+            try {
+              for (const entry of readdirSync(backupsDir, { withFileTypes: true })) {
+                if (entry.isDirectory()) {
+                  const backupFile = join(backupsDir, entry.name, "artifacts", vStoragePath);
+                  if (existsSync(backupFile) && pathInside(storeRoot, backupFile)) {
+                    rmSync(backupFile, { force: true });
+                    unlinkedPaths.push(backupFile);
+                  }
+                }
+              }
+            } catch { /* best effort */ }
+          }
+        }
+      }
+
+      if (vId !== versionId) {
+        tombstoneMap.set(vId, newId("tombstone"));
       }
     }
 
@@ -90,63 +135,50 @@ export function deleteArtifactContent(
       scanForCache(artifactRoot);
     }
 
-    // 4. Unlink app backups if requested
-    if (request.includeAppBackups) {
-      const backupsDir = join(storeRoot, "backups");
-      if (existsSync(backupsDir)) {
-        try {
-          for (const entry of readdirSync(backupsDir, { withFileTypes: true })) {
-            if (entry.isDirectory()) {
-              const backupArtifacts = join(backupsDir, entry.name, "artifacts");
-              if (existsSync(backupArtifacts) && storagePath) {
-                const backupFile = join(backupArtifacts, storagePath);
-                if (existsSync(backupFile) && pathInside(storeRoot, backupFile)) {
-                  rmSync(backupFile, { force: true });
-                  unlinkedPaths.push(backupFile);
-                }
-              }
-            }
+    // 4. Collect not-recalled disclosures across all affected versions
+    const notRecalledDisclosures: NotRecalledDisclosure[] = [];
+    for (const vId of allAffectedVersionIds) {
+      try {
+        const disclosureRows = handle.db.prepare(
+          "SELECT id, destination, purpose FROM disclosure_decisions WHERE source_version_ids LIKE ? AND status = 'allow' AND destination != 'local'"
+        ).all(`%${vId}%`) as Array<Record<string, unknown>>;
+        for (const d of disclosureRows) {
+          const dId = String(d.id);
+          if (!notRecalledDisclosures.some(x => x.disclosureId === dId)) {
+            notRecalledDisclosures.push({
+              disclosureId: dId,
+              destination: String(d.destination),
+              purpose: String(d.purpose),
+              status: "recall-not-promised"
+            });
           }
-        } catch { /* best effort */ }
-      }
+        }
+      } catch { /* disclosure table may not exist */ }
     }
 
-    // 5. Write tombstone
-    const tombstoneId = newId("tombstone");
-    const now = isoNow();
-    const actor = ownerCap.ownerId;
-
-    // 6. Collect not-recalled disclosures
-    const notRecalledDisclosures: NotRecalledDisclosure[] = [];
-    try {
-      const disclosureRows = handle.db.prepare(
-        "SELECT id, destination, purpose FROM disclosure_decisions WHERE source_version_ids LIKE ? AND status = 'allow' AND destination != 'local'"
-      ).all(`%${versionId}%`) as Array<Record<string, unknown>>;
-      for (const d of disclosureRows) {
-        notRecalledDisclosures.push({
-          disclosureId: String(d.id),
-          destination: String(d.destination),
-          purpose: String(d.purpose),
-          status: "recall-not-promised"
-        });
-      }
-    } catch { /* disclosure table may not exist */ }
-
-    // 7. Persist tombstone, deletion event, and mark artifact unavailable in one transaction
+    // 5. Persist tombstones, deletion event, and mark all affected versions unavailable in one transaction
     const deletionEventId = newId("deletion");
     transaction(handle.db, () => {
-      handle.db.prepare(
-        "INSERT INTO evidence_tombstones (id, artifact_version_id, content_hash, reason, actor, deleted_at) VALUES (?, ?, ?, ?, ?, ?)"
-      ).run(tombstoneId, versionId, contentHash, request.reason, actor, now);
+      for (const vId of allAffectedVersionIds) {
+        const vRow = handle.db.prepare(
+          "SELECT id, content_hash FROM artifact_versions WHERE id = ?"
+        ).get(vId) as Record<string, unknown> | undefined;
+        const vHash = vRow?.content_hash ? String(vRow.content_hash) : null;
+        const tId = tombstoneMap.get(vId) ?? newId("tombstone");
+        const tReason = vId === versionId ? request.reason : `cascaded dependent deletion from ${versionId}: ${request.reason}`;
+
+        handle.db.prepare(
+          "INSERT INTO evidence_tombstones (id, artifact_version_id, content_hash, reason, actor, deleted_at) VALUES (?, ?, ?, ?, ?, ?)"
+        ).run(tId, vId, vHash, tReason, actor, now);
+
+        handle.db.prepare(
+          "UPDATE artifact_versions SET content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
+        ).run(vId);
+      }
 
       handle.db.prepare(
         "INSERT INTO deletion_events (id, artifact_version_id, unlinked_paths, tombstone_id, not_recalled_disclosures, command_id, payload_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       ).run(deletionEventId, versionId, JSON.stringify(unlinkedPaths), tombstoneId, JSON.stringify(notRecalledDisclosures), request.commandId, request.payloadHash, now);
-
-      // Mark artifact unavailable
-      handle.db.prepare(
-        "UPDATE artifact_versions SET content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
-      ).run(versionId);
     });
 
     return {

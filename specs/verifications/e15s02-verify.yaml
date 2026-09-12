@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "185/185 tests passed, including E15 backup, restore materialize/replace, restore drills, owner matching, destination locking, contract validation, and transactional rollback."
+    evidence: "191/191 tests passed, including E15 backup, restore materialize/replace, restore drills, owner matching, destination locking, contract validation, and transactional rollback."
   typecheck:
     passed: true
     command: npm run typecheck

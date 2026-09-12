@@ -3,6 +3,7 @@ import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
 import { writeFileSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { spawn } from "node:child_process";
 import {
   openProject,
   createProject,
@@ -187,6 +188,48 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
       } finally {
         handle.close();
       }
+    } finally {
+      rmSync(freshRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("e15s03 concurrent processes racing for write lock: exactly one succeeds, others get project-locked", async () => {
+    const freshRoot = emptyDestination();
+    try {
+      const freshHandle = createProject({ rootPath: freshRoot, ownerId: "owner-race" });
+      freshHandle.close(); // Ensure activeLocks is clear
+
+      // Spawn 3 concurrent node processes trying to acquire write lock simultaneously
+      const script = `
+        import { acquireProjectWriteLock } from "./dist/src/project/project-lock.js";
+        import { ProjectStoreError } from "./dist/src/project/project-types.js";
+        try {
+          const lock = acquireProjectWriteLock(process.argv[1]);
+          setTimeout(() => {
+            lock.release();
+            process.exit(0);
+          }, 200);
+        } catch (err) {
+          if (err instanceof ProjectStoreError && err.code === "project-locked") {
+            process.exit(42);
+          }
+          process.exit(1);
+        }
+      `;
+
+      const runners = Array.from({ length: 3 }, () => {
+        return new Promise<number>((resolve) => {
+          const child = spawn(process.argv[0], ["--input-type=module", "-e", script, freshRoot]);
+          child.on("close", (code) => resolve(code ?? 1));
+        });
+      });
+
+      const exitCodes = await Promise.all(runners);
+      const successes = exitCodes.filter((c) => c === 0).length;
+      const locked = exitCodes.filter((c) => c === 42).length;
+
+      assert.equal(successes, 1, "exactly one concurrent process should acquire the lock");
+      assert.equal(locked, 2, "other processes should receive project-locked exit code");
     } finally {
       rmSync(freshRoot, { recursive: true, force: true });
     }

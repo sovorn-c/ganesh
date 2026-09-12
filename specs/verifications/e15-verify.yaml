@@ -5,7 +5,7 @@ verified_at: "2026-09-12T15:00:00Z"
 verifier: bp-release-solo
 branch: feat/e15-recovery-portability
 runtime: Node.js 24.21.0
-status: passed
+status: pending_review
 plan_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
 stories:
   e15s01:
@@ -40,7 +40,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 185/185 tests passed
+    evidence: 191/191 tests passed
   typecheck:
     passed: true
     command: npm run typecheck
@@ -65,13 +65,15 @@ checks:
     passed: true
     evidence: 41 stories, 0 dark stories, 20 E15 scenarios mapped; 0 HIGH/MEDIUM blind spots
   review:
-    passed: true
-    evidence: Review pass 1 findings resolved and verified
+    status: pending_review
+    passed: false
+    evidence: Correction pass 2 resolved all review blockers (symlink traversal, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking, transitive dependency deletion, atomic DB and artifact rollback); ready for fresh whole-epic review
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 185
-  review_passed: true
-  release_started: true
+  tests_passing: 191
+  review_started: true
+  review_passed: false
+  release_started: false
   production_readiness_claimed: false
 next_skill: /bp-review

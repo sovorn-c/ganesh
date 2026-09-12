@@ -6,6 +6,7 @@ import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { migrateSchema, transaction } from "../persistence/schema.js";
 import { isoNow, newId, sha256 as computeSha256 } from "../persistence/storage-utils.js";
+import { assertContainedRelativePath } from "./export-store.js";
 import type {
   BackupRequest, BackupSnapshot, PacketManifest, PacketFileEntry,
   MigrateWithBackupResult
@@ -68,9 +69,15 @@ export function backupProject(
 
       for (const row of artifactRows) {
         const storagePath = String(row.storage_path);
-        const srcPath = join(handle.project.artifactRoot, storagePath);
+        let srcPath: string;
+        let destPath: string;
+        try {
+          srcPath = assertContainedRelativePath(handle.project.artifactRoot, storagePath);
+          destPath = assertContainedRelativePath(artifactsDir, storagePath);
+        } catch {
+          continue;
+        }
         if (!existsSync(srcPath)) {continue;}
-        const destPath = join(artifactsDir, storagePath);
         mkdirSync(join(destPath, ".."), { recursive: true });
         copyFileSync(srcPath, destPath);
         const bytes = readFileSync(destPath);
