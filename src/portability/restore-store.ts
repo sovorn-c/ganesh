@@ -1,12 +1,12 @@
 // story: e15s02, e15s05
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync, lstatSync, realpathSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
-import { isoNow, newId, sha256 as computeSha256 } from "../persistence/storage-utils.js";
+import { isoNow, newId, sha256 as computeSha256, pathInside } from "../persistence/storage-utils.js";
 import { acquireProjectWriteLock } from "../project/project-lock.js";
 import { assertContainedRelativePath, inspectProjectPacket } from "./export-store.js";
 import type {
@@ -107,6 +107,79 @@ export function _clearPortabilityRegistryForTests(): void {
       rmSync(p, { force: true });
     }
   } catch { /* best effort */ }
+}
+
+function assertContainedArtifactPath(baseDir: string, relativePath: string): string {
+  if (typeof relativePath !== "string" || relativePath.trim() === "") {
+    throw new ProjectStoreError("path-escape", "storage path must be a non-empty string");
+  }
+  if (relativePath.includes("\0")) {
+    throw new ProjectStoreError("path-escape", "storage path contains null byte");
+  }
+  if (isAbsolute(relativePath)) {
+    throw new ProjectStoreError("path-escape", `storage path cannot be absolute: ${relativePath}`);
+  }
+
+  const resolvedBase = resolve(baseDir);
+  mkdirSync(resolvedBase, { recursive: true });
+  const realBase = realpathSync(resolvedBase);
+
+  const resolvedTarget = resolve(resolvedBase, relativePath);
+  const rel = relative(resolvedBase, resolvedTarget);
+  if (rel.startsWith("..") || isAbsolute(rel) || resolvedTarget === resolvedBase) {
+    throw new ProjectStoreError("path-escape", `storage path escapes base directory: ${relativePath}`);
+  }
+
+  const segments = rel.split(/[\\/]+/).filter(Boolean);
+  let cur = resolvedBase;
+
+  for (let i = 0; i < segments.length; i++) {
+    cur = join(cur, segments[i]);
+    let st;
+    try {
+      st = lstatSync(cur);
+    } catch {
+      continue;
+    }
+
+    const isLeaf = i === segments.length - 1;
+
+    if (!isLeaf) {
+      if (st.isSymbolicLink()) {
+        throw new ProjectStoreError("path-escape", `intermediate symlink in storage path: ${relativePath}`);
+      }
+      try {
+        const realCur = realpathSync(cur);
+        if (!pathInside(realBase, realCur)) {
+          throw new ProjectStoreError("path-escape", `storage path segment escapes root: ${relativePath}`);
+        }
+      } catch {
+        throw new ProjectStoreError("path-escape", `storage path segment inaccessible: ${relativePath}`);
+      }
+    } else {
+      if (st.isSymbolicLink()) {
+        try {
+          const realCur = realpathSync(cur);
+          if (!pathInside(realBase, realCur)) {
+            throw new ProjectStoreError("path-escape", `symlink target escapes root: ${relativePath}`);
+          }
+        } catch {
+          throw new ProjectStoreError("path-escape", `symlink target inaccessible: ${relativePath}`);
+        }
+      } else {
+        try {
+          const realCur = realpathSync(cur);
+          if (!pathInside(realBase, realCur)) {
+            throw new ProjectStoreError("path-escape", `storage path escapes root: ${relativePath}`);
+          }
+        } catch {
+          throw new ProjectStoreError("path-escape", `storage path target inaccessible: ${relativePath}`);
+        }
+      }
+    }
+  }
+
+  return resolvedTarget;
 }
 
 function validateAndGetPacketOwnerId(packetPath: string): { ownerId: string; schemaVersion: number } {
@@ -360,6 +433,27 @@ function materializeRestore(
         copyFileSync(src, dest);
       }
 
+      // Validate all artifact storage paths in destination database
+      const destArtifactsDir = join(destStore, "artifacts");
+      try {
+        const db = new DatabaseSync(destDb);
+        configureDatabase(db);
+        try {
+          const allArtifacts = db.prepare(
+            "SELECT storage_path FROM artifact_versions WHERE storage_path IS NOT NULL"
+          ).all() as Array<{ storage_path: string }>;
+          for (const art of allArtifacts) {
+            if (art.storage_path) {
+              assertContainedArtifactPath(destArtifactsDir, art.storage_path);
+            }
+          }
+        } finally {
+          db.close();
+        }
+      } catch (err) {
+        if (err instanceof ProjectStoreError) { throw err; }
+      }
+
       // Record operation into destination database
       const opId = newId("restore");
       try {
@@ -604,15 +698,41 @@ function replaceRestore(
             } catch { /* table may not exist */ }
           }
 
-          // 6. Mark tombstoned artifacts as unavailable and unlink copied files in stage
+          // 6. Mark tombstoned artifacts as unavailable and unlink copied files in stage with strict containment
+          const stageArtifactsDir = join(stageDir, "artifacts");
+
+          // Defense-in-depth: validate containment of all artifact storage paths in packet database
+          try {
+            const allArtifacts = stagedDb.prepare(
+              "SELECT storage_path FROM artifact_versions WHERE storage_path IS NOT NULL"
+            ).all() as Array<{ storage_path: string }>;
+            for (const art of allArtifacts) {
+              if (art.storage_path) {
+                assertContainedArtifactPath(stageArtifactsDir, art.storage_path);
+              }
+            }
+          } catch (err) {
+            if (err instanceof ProjectStoreError) { throw err; }
+          }
+
           for (const tombstone of liveTombstones) {
             const vId = String(tombstone.artifact_version_id);
+            let row: { storage_path?: string } | undefined;
             try {
-              const row = stagedDb.prepare("SELECT storage_path FROM artifact_versions WHERE id = ?").get(vId) as { storage_path?: string } | undefined;
-              if (row?.storage_path) {
-                const fullP = join(stageDir, "artifacts", row.storage_path);
-                rmSync(fullP, { force: true });
+              row = stagedDb.prepare("SELECT storage_path FROM artifact_versions WHERE id = ?").get(vId) as { storage_path?: string } | undefined;
+            } catch { /* table or column may not exist */ }
+            if (row?.storage_path) {
+              const safePath = assertContainedArtifactPath(stageArtifactsDir, row.storage_path);
+              if (existsSync(safePath)) {
+                const st = lstatSync(safePath);
+                if (st.isSymbolicLink()) {
+                  unlinkSync(safePath);
+                } else {
+                  rmSync(safePath, { force: true, recursive: true });
+                }
               }
+            }
+            try {
               stagedDb.prepare(
                 "UPDATE artifact_versions SET content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
               ).run(vId);

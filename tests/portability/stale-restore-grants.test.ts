@@ -1,8 +1,10 @@
 // story: e15s05 — Monotonic Grant Persistence Across Stale Restores
 import { describe, it, afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { rmSync, existsSync } from "node:fs";
+import { rmSync, existsSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { DatabaseSync } from "node:sqlite";
 import {
   exportProject,
   restoreProject,
@@ -11,7 +13,8 @@ import {
   deleteArtifactContent,
   getEvidenceTombstone,
   listDeletionEvents,
-  inspectArtifactVersion
+  inspectArtifactVersion,
+  ProjectStoreError
 } from "../../src/index.js";
 import { withdrawDataUse } from "../../src/policy/policy-store.js";
 import { _clearPortabilityRegistryForTests } from "../../src/portability/restore-store.js";
@@ -286,5 +289,159 @@ describe("E15s05 monotonic grant persistence across stale restores", () => {
     assert.equal(existsSync(destArtPath), false, "stale destination artifact must be removed after replace");
     const destArtifactsDir = join(fix.root, ".ganesh", "artifacts");
     assert.equal(existsSync(destArtifactsDir), false, "stale destination artifacts directory must be removed");
+  });
+
+  // Adversarial containment tests for replace restore tombstone unlinking
+  it("e15s05 replace restore rejects path-traversal storage paths on tombstoned artifacts and leaves external victim intact", () => {
+    // 1. Create an external victim file outside the project and workspace
+    const victimDir = emptyDestination();
+    cleanDirs.push(victimDir);
+    const victimFile = join(victimDir, "external-victim-traversal.txt");
+    writeFileSync(victimFile, "PRESERVE THIS VICTIM FILE CONTENT - TRAVERSAL");
+    assert.equal(existsSync(victimFile), true, "victim file must exist before restore attempt");
+
+    // 2. Register artifact in live project
+    const art = registerPublicArtifact(fix.handle, "doc-victim-traversal", "v1", "payload to be tombstoned");
+    const artId = art.id;
+
+    // 3. Export valid packet while artifact is active
+    const packetDir = newTempDir();
+    exportProject(fix.handle, fix.ownerCap, {
+      commandId: `export-victim-trav-${fix.handle.project.id}`,
+      destinationPath: packetDir,
+      destination: "local",
+      purpose: "backup",
+      payloadHash: packetPayloadHash({ dest: packetDir })
+    });
+
+    // 4. In live project, tombstone the artifact
+    deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: artId,
+      reason: "privacy erasure",
+      commandId: `del-trav-${fix.handle.project.id}`,
+      payloadHash: packetPayloadHash({ art: artId }),
+      includeAppBackups: true
+    });
+
+    // 5. Craft packet database to have a traversal path pointing to the external victim
+    const packetDbPath = join(packetDir, "project.sqlite");
+    const traversalPath = join("../../../../../../../../../..", victimFile);
+    const packetDb = new DatabaseSync(packetDbPath);
+    try {
+      packetDb.prepare("UPDATE artifact_versions SET storage_path = ? WHERE id = ?").run(traversalPath, artId);
+    } finally {
+      packetDb.close();
+    }
+
+    // Recompute manifest project.sqlite hash so manifest validation passes
+    const manifestPath = join(packetDir, "ganesh-project-packet.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    const newDbHash = createHash("sha256").update(readFileSync(packetDbPath)).digest("hex");
+    const fileEntry = manifest.files.find((f: { relativePath: string }) => f.relativePath === "project.sqlite");
+    if (fileEntry) {
+      fileEntry.sha256 = newDbHash;
+    }
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    // 6. Attempt replace restore: must throw path-escape and leave victim intact
+    assert.throws(
+      () => {
+        restoreProject(fix.ownerCap, {
+          commandId: `replace-victim-trav-${fix.handle.project.id}`,
+          sourcePath: packetDir,
+          destinationPath: fix.root,
+          mode: "replace",
+          payloadHash: packetPayloadHash({ dest: fix.root })
+        });
+      },
+      (err: unknown) => {
+        assert.ok(err instanceof ProjectStoreError, "must throw ProjectStoreError");
+        assert.equal((err as ProjectStoreError).code, "path-escape", "must fail with path-escape");
+        return true;
+      }
+    );
+
+    // 7. Verify external victim survived and was NOT unlinked
+    assert.equal(existsSync(victimFile), true, "external victim file must survive replace restore");
+    assert.equal(readFileSync(victimFile, "utf8"), "PRESERVE THIS VICTIM FILE CONTENT - TRAVERSAL");
+
+    // Clean up victim
+    rmSync(victimFile, { force: true });
+  });
+
+  it("e15s05 replace restore rejects absolute storage paths on tombstoned artifacts and leaves external victim intact", () => {
+    // 1. Create an external victim file outside the project and workspace
+    const victimDir = emptyDestination();
+    cleanDirs.push(victimDir);
+    const victimFile = join(victimDir, "external-victim-absolute.txt");
+    writeFileSync(victimFile, "PRESERVE THIS VICTIM FILE CONTENT - ABSOLUTE");
+    assert.equal(existsSync(victimFile), true, "victim file must exist before restore attempt");
+
+    // 2. Register artifact in live project
+    const art = registerPublicArtifact(fix.handle, "doc-victim-absolute", "v1", "payload to be tombstoned");
+    const artId = art.id;
+
+    // 3. Export valid packet while artifact is active
+    const packetDir = newTempDir();
+    exportProject(fix.handle, fix.ownerCap, {
+      commandId: `export-victim-abs-${fix.handle.project.id}`,
+      destinationPath: packetDir,
+      destination: "local",
+      purpose: "backup",
+      payloadHash: packetPayloadHash({ dest: packetDir })
+    });
+
+    // 4. In live project, tombstone the artifact
+    deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: artId,
+      reason: "privacy erasure",
+      commandId: `del-abs-${fix.handle.project.id}`,
+      payloadHash: packetPayloadHash({ art: artId }),
+      includeAppBackups: true
+    });
+
+    // 5. Craft packet database to have an absolute path pointing to the external victim
+    const packetDbPath = join(packetDir, "project.sqlite");
+    const packetDb = new DatabaseSync(packetDbPath);
+    try {
+      packetDb.prepare("UPDATE artifact_versions SET storage_path = ? WHERE id = ?").run(victimFile, artId);
+    } finally {
+      packetDb.close();
+    }
+
+    // Recompute manifest project.sqlite hash so manifest validation passes
+    const manifestPath = join(packetDir, "ganesh-project-packet.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    const newDbHash = createHash("sha256").update(readFileSync(packetDbPath)).digest("hex");
+    const fileEntry = manifest.files.find((f: { relativePath: string }) => f.relativePath === "project.sqlite");
+    if (fileEntry) {
+      fileEntry.sha256 = newDbHash;
+    }
+    writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+    // 6. Attempt replace restore: must throw path-escape and leave victim intact
+    assert.throws(
+      () => {
+        restoreProject(fix.ownerCap, {
+          commandId: `replace-victim-abs-${fix.handle.project.id}`,
+          sourcePath: packetDir,
+          destinationPath: fix.root,
+          mode: "replace",
+          payloadHash: packetPayloadHash({ dest: fix.root })
+        });
+      },
+      (err: unknown) => {
+        assert.ok(err instanceof ProjectStoreError, "must throw ProjectStoreError");
+        assert.equal((err as ProjectStoreError).code, "path-escape", "must fail with path-escape");
+        return true;
+      }
+    );
+
+    // 7. Verify external victim survived and was NOT unlinked
+    assert.equal(existsSync(victimFile), true, "external victim file must survive replace restore");
+    assert.equal(readFileSync(victimFile, "utf8"), "PRESERVE THIS VICTIM FILE CONTENT - ABSOLUTE");
+
+    // Clean up victim
+    rmSync(victimFile, { force: true });
   });
 });
