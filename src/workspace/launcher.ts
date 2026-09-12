@@ -42,7 +42,7 @@ function errorResult(error: unknown): WorkspaceLaunchResult {
 
 export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<WorkspaceLaunchResult> {
   const folder = resolveProjectFolder(request.argv, request.cwd, request.allowedRoot);
-  if (folder.status !== "resolved" || folder.path === undefined || folder.code === undefined && folder.path === undefined) {
+  if (folder.status !== "resolved" || folder.path === undefined) {
     return failure(folder.code ?? "launch-failed", folder.message);
   }
   const root = folder.path;

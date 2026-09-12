@@ -1,0 +1,42 @@
+---
+story_id: e14s03
+verified_at: "2026-09-12T01:12:00Z"
+verifier: verify-work
+branch: feat/e14-terminal-workspace
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  build:
+    passed: true
+    command: npm run build
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  tests:
+    passed: true
+    command: "node --test --test-name-pattern='e14s03.*' dist/tests/*/*.test.js"
+    evidence: "4/4 E14s03 behavior tests passed; npm test passed with 114/114 tests."
+  terminal_verdict:
+    command: "npm test"
+    exit_code: 0
+    captured_at: "2026-09-12T01:10:00Z"
+    note: "Single contiguous run under Node.js 24.21.0."
+  manual:
+    steps:
+      - step: "Inspect an imported source through the workspace."
+        expected: "Access, extraction, integrity, locators and limitations are shown without fabricated quotation text."
+        actual: "Allowed and denied inspection views passed with bounded content behavior."
+        passed: true
+      - step: "Request a native local viewer through an injected LocalViewerPort."
+        expected: "Only an authorized, project-contained path is launched; denied paths never reach the port."
+        actual: "Viewer authorization, containment, denial and unavailable-port tests passed."
+        passed: true
+  security:
+    passed: true
+    evidence: "Source handoff authorization, artifact containment and argument-vector native spawning reviewed; no high-confidence new finding."
+  gaps:
+    closed: true
+    count: 0

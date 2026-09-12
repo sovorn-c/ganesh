@@ -1,3 +1,5 @@
+// story: e14s03
+// scenario: SC-e14s03-P0-01 SC-e14s03-P0-02 SC-e14s03-P0-03 SC-e14s03-P1-04
 import { strict as assert } from "node:assert";
 import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

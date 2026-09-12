@@ -5,7 +5,9 @@ import { cancelFromWorkspace } from "./status.js";
 import { presentAlternatives, presentHelp } from "./steering.js";
 import type { WorkspaceSession } from "./workspace-types.js";
 
-export function registerWorkspaceCommands(pi: ExtensionAPI, session: WorkspaceSession): void {
+type WorkspaceCommandRegistrar = Pick<ExtensionAPI, "registerCommand">;
+
+export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session: WorkspaceSession): void {
   pi.registerCommand("ganesh-help", {
     description: "Show Ganesh workspace help",
     handler: async (_args, ctx) => {

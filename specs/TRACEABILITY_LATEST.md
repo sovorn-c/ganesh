@@ -1,7 +1,7 @@
 # Traceability Matrix
 
-**Generated:** 2026-09-11T22:01:26Z
-**Total stories:** 24
+**Generated:** 2026-09-12T01:17:15Z
+**Total stories:** 28
 **Dark stories:** 0
 
 ## Story Coverage
@@ -32,3 +32,7 @@
 | e06s02 | Located PDF and DOCX Extraction | e06 | done | 6 |
 | e06s03 | Located Bibliographic and Tabular Imports | e06 | done | 7 |
 | e06s04 | Reviewable Source Matching and Permission-Gated Inspection | e06 | done | 4 |
+| e14s01 | Product Launcher and Late-Entry Project Intake | e14 | done | 2 |
+| e14s02 | Contextual Help, Alternatives and Exact-Version Confirmation | e14 | done | 2 |
+| e14s03 | Evidence Inspection, Native Viewers and Offline Inspection | e14 | done | 2 |
+| e14s04 | Accessible Live Work State and Access-Path Qualification | e14 | done | 2 |

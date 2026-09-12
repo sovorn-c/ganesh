@@ -1,3 +1,5 @@
+// story: e14s01
+// scenario: SC-e14s01-P0-01 SC-e14s01-P0-02 SC-e14s01-P0-03 SC-e14s01-P1-04
 import { strict as assert } from "node:assert";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";

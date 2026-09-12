@@ -1,3 +1,5 @@
+// story: e14s04
+// scenario: SC-e14s04-P0-01 SC-e14s04-P0-02 SC-e14s04-P0-03 SC-e14s04-P1-04
 import { strict as assert } from "node:assert";
 import { afterEach, describe, it } from "node:test";
 import {

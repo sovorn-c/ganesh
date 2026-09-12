@@ -1,3 +1,5 @@
+// story: e14s02
+// scenario: SC-e14s02-P0-01 SC-e14s02-P0-02 SC-e14s02-P0-03 SC-e14s02-P1-04
 import { strict as assert } from "node:assert";
 import { mkdtempSync, rmSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +14,6 @@ import {
   registerWorkspaceCommands,
   updateBranchReference
 } from "../../src/index.js";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { artifact } from "../support/project-fixtures.js";
 import { runWorkspace } from "../../src/workspace/launcher.js";
 import { confirmExactVersion } from "../../src/workspace/confirmation.js";
@@ -86,7 +87,7 @@ describe("E14 steering and confirmation", () => {
       packetId: created.id, action: "approved", selectedCandidateVersionIds: [candidate.id], commandId: "worker", capability: worker
     }));
     const registered: string[] = [];
-    registerWorkspaceCommands({ registerCommand: (name: string) => registered.push(name) } as unknown as ExtensionAPI, session);
+    registerWorkspaceCommands({ registerCommand: (name: string) => registered.push(name) }, session);
     assert.deepEqual(registered, ["ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-inspect", "ganesh-viewer", "ganesh-cancel"]);
     assert.equal(listCommitments(session.handle).length, 0);
     session.handle.close();

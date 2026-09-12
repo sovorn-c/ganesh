@@ -24,7 +24,9 @@ const result = await runWorkspace({
 if (result.status === "failed") {
   console.error(`ganesh: ${result.error?.code ?? "launch-failed"}: ${result.message}`);
   process.exitCode = 1;
-} else if (printLaunch) {
-  console.log(result.message);
+} else {
+  if (printLaunch) {
+    console.log(result.message);
+  }
   result.session?.handle.close();
 }

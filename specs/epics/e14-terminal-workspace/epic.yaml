@@ -17,7 +17,11 @@ boundaries:
     state, budgets, cancellation and offline inspection are understandable.
   excludes:
   - Product outcomes owned by other epics; shared integration remains required.
-  - Story specifications and implementation tasks at blueprint stage.
+  - Scholarly competencies, literature retrieval, evidence appraisal, method design,
+    ethics authorization, local analysis execution, export, deletion, packaging and
+    production-release qualification.
+  - Live VoiceOver hardware in npm test, a replacement TUI, a Ganesh web application,
+    global ~/.pi mutation, and real provider spend.
 depends_on:
 - e04
 - e05
@@ -45,14 +49,92 @@ wsjf_inputs:
 total_bcps: 21
 bcp_estimate:
   range:
-  - 13
-  - 34
-  confidence: low
-  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
-    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
-    /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+  - 21
+  - 21
+  confidence: medium
+  basis: Four vertical story slices total 21 BCP after inspection of Pi InteractiveMode,
+    extension command/custom UI APIs, E02-E06 domain commands and existing owner-capability
+    seams. Live screen-reader hardware, distribution packaging and scholarly steering
+    quality remain later-epic verification obligations.
+status: review_pending
+planning_stage: complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e14s01
+  type: ADDED
+  requirement: Product launcher and late-entry project intake
+  after: ganesh [project-folder] resolves a local folder, creates or reopens the durable
+    project, binds a curated Pi InteractiveMode session to that project without writing
+    ~/.pi, and admits incomplete or late research context without a stage wizard.
+- story_id: e14s01
+  type: MODIFIED
+  requirement: Developer CLI entry and npm run dev
+  before: src/cli.ts and npm run dev printed the runtime baseline name and version
+    after build.
+  after: The same commands invoke the product workspace launcher after build. Tests
+    and non-TTY checks use an injected TuiPort and never block on InteractiveMode.run().
+- story_id: e14s02
+  type: ADDED
+  requirement: Contextual help, alternatives and exact-version confirmation
+  after: The workspace presents contextual help and research alternatives, and an
+    explicit local owner confirmation showing exact packet and option versions is the
+    only TUI path that may call recordOwnerDecision.
+- story_id: e14s03
+  type: ADDED
+  requirement: Evidence inspection, native viewers and offline inspection
+  after: The workspace inspects E06 source descriptors, launches a native local viewer
+    only after an allowed local handoff path, and keeps inspection available without
+    live providers.
+- story_id: e14s04
+  type: ADDED
+  requirement: Accessible live work state and access-path qualification
+  after: Working, waiting-for-human, blocked, remaining budget and cancellation are
+    presented as readable non-colour text, keyboard-only maps complete critical flows,
+    and unsupported access paths are explicit blockers rather than claimed accessible
+    sessions.
+stories:
+- id: e14s01
+  title: Product Launcher and Late-Entry Project Intake
+  status: done
+  bcps: 6
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: []
+  spec_file: e14s01-product-launcher-and-late-entry-intake.md
+  tasks_file: e14s01-tasks.yaml
+- id: e14s02
+  title: Contextual Help, Alternatives and Exact-Version Confirmation
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on: [e14s01]
+  spec_file: e14s02-help-alternatives-and-exact-version-confirmation.md
+  tasks_file: e14s02-tasks.yaml
+- id: e14s03
+  title: Evidence Inspection, Native Viewers and Offline Inspection
+  status: done
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on: [e14s01]
+  spec_file: e14s03-evidence-inspection-and-native-viewers.md
+  tasks_file: e14s03-tasks.yaml
+- id: e14s04
+  title: Accessible Live Work State and Access-Path Qualification
+  status: done
+  bcps: 4
+  risk: P0
+  delta: ADDED
+  depends_on: [e14s01, e14s02, e14s03]
+  spec_file: e14s04-accessible-live-work-state.md
+  tasks_file: e14s04-tasks.yaml
 capsule_dir: epics/e14-terminal-workspace
+next_skill: bp-build
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8
+plan_approved_at: "2026-09-12T00:31:22Z"
+plan_approval_source: explicit_owner_message
+implementation_authorized: true
 sequence: 7

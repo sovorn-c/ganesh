@@ -1,17 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: release_complete
-active_epic: e05
-active_story: none
+active_flow: implementation
+active_epic: e14
+active_story: e14s04
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
+  next_skill: bp-review
+  next_command: "/bp-review"
   summary: >-
-    E05 bounded autonomous work was released locally on main after final whole-epic
-    review PASS and Node.js 24 checks. Five stories and 20 task verifications pass,
-    with 19 mapped scenarios and a 98-test suite. The local release is complete;
-    production release readiness, remote CI, publishing, deployment, and the separate
-    release-check gate remain intentionally unclaimed.
+    E14 implementation completed on feat/e14-terminal-workspace under approved plan
+    revision sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8.
+    Four stories and 16 task checks passed; whole-epic review and local release remain
+    pending. E01-E06 remain complete local releases. Production readiness is unclaimed.
+
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -164,10 +164,13 @@ discovery:
   - E06 task ledgers, NFR evidence, whole-epic review, and Node.js 24 release checks
     passed on the feature branch; the branch was merged locally into main without
     a push, tag, PR, publish, deploy, or production-readiness claim.
-  - E05 task ledgers, per-story evidence, whole-epic review pass 2, security gate, and
-    Node.js 24 release checks passed on the feature branch; the branch was merged
+  - E05 task ledgers, per-story evidence, whole-epic review pass 2, security gate,
+    and Node.js 24 release checks passed on the feature branch; the branch was merged
     locally into main without a push, tag, PR, publish, deploy, or production-readiness
     claim.
+  - E14 implementation completed on feat/e14-terminal-workspace; four stories, 16 task
+    checks and 16 scenario-focused workspace tests passed. Whole-epic review and local
+    release remain pending; production readiness is not claimed.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -179,9 +182,9 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e05
+  first_eligible_epic: e14
   first_tracer_bullet_epic: e05
-  selected_epic: e05
+  selected_epic: e14
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
@@ -190,6 +193,27 @@ blueprint:
   e05_plan_revision: sha256:68a783527f733bbea19d8948785168e9469dfa45e9fb3b60c358ace5fa7ab373
   e05_plan_approved_at: '2026-09-11T20:58:00Z'
   e05_plan_approval_source: explicit_owner_message
+  e14_plan: approved_exact_revision
+  e14_plan_revision: sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8
+  e14_plan_approved_at: '2026-09-12T00:31:22Z'
+  e14_plan_approval_source: explicit_owner_message
+  e14_plan_artifacts:
+  - specs/epics/e14-terminal-workspace/epic.yaml
+  - specs/epics/e14-terminal-workspace/e14s01-product-launcher-and-late-entry-intake.md
+  - specs/epics/e14-terminal-workspace/e14s01-tasks.yaml
+  - specs/epics/e14-terminal-workspace/e14s02-help-alternatives-and-exact-version-confirmation.md
+  - specs/epics/e14-terminal-workspace/e14s02-tasks.yaml
+  - specs/epics/e14-terminal-workspace/e14s03-evidence-inspection-and-native-viewers.md
+  - specs/epics/e14-terminal-workspace/e14s03-tasks.yaml
+  - specs/epics/e14-terminal-workspace/e14s04-accessible-live-work-state.md
+  - specs/epics/e14-terminal-workspace/e14s04-tasks.yaml
+  - specs/tech-architecture/e14-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  audit_plan: READY_implementation_mode_approved
+  implementation_start: complete_bp_build
+  implementation_ready: true
+  production_ready: false
+  story_planning: e01_e06_complete;e14_build_complete;e07_e18_deferred_to_bp_plan
   e05_plan_artifacts:
   - specs/epics/archive/e05-bounded-work/epic.yaml
   - specs/epics/archive/e05-bounded-work/e05s01-authorized-contract-and-specialist-run.md
@@ -203,12 +227,6 @@ blueprint:
   - specs/epics/archive/e05-bounded-work/e05s05-provider-degradation-and-session-rebinding.md
   - specs/epics/archive/e05-bounded-work/e05s05-tasks.yaml
   - specs/tech-architecture/e05-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
-  audit_plan: READY_implementation_mode_approved
-  implementation_start: complete_bp_build
-  implementation_ready: true
-  production_ready: false
-  story_planning: e01_e04_e05_e06_complete;e07_e18_deferred_to_bp_plan
   verification: ruby specs/verifications/check-blueprint.rb
   standard_yaml_gate: blocked_missing_PyYAML;_independent_Ruby_gate_passed
   audit_artifact: specs/PLAN-AUDIT_LATEST.md
@@ -230,14 +248,17 @@ metrics:
       calls: 2
       total_seconds: 440.0
       avg_seconds: 220.0
+      _start: '2026-09-12T00:10:14Z'
     plan-work:
       calls: 2
       total_seconds: 0.0
       avg_seconds: 0.0
+      _start: '2026-09-12T00:10:15Z'
     bp-plan:
       calls: 2
       total_seconds: 1140.0
       avg_seconds: 570.0
+      _start: '2026-09-12T00:09:10Z'
     bp-review:
       calls: 1
       total_seconds: 0.0
@@ -246,3 +267,4 @@ metrics:
       calls: 1
       total_seconds: 1140.0
       avg_seconds: 1140.0
+      _start: '2026-09-12T00:09:10Z'
