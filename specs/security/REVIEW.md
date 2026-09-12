@@ -78,7 +78,7 @@ The section above records the resolved pass-2 security finding and its checks. I
 
 ## e14 security review — local implementation gate
 
-- **Scope:** Current E14 workspace implementation on `feat/e14-terminal-workspace`, covering project-folder intake, project-local Pi runtime binding, trusted exact-version confirmation, source inspection and local viewer handoff, live work status/cancellation, keyboard maps, and access-path qualification.
+- **Scope:** Current E14 workspace implementation landed on `main`, covering project-folder intake, project-local Pi runtime binding, trusted exact-version confirmation, source inspection and local viewer handoff, live work status/cancellation, keyboard maps, and access-path qualification.
 - **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --audit-level=high` reported `found 0 vulnerabilities`.
 - **Authority and policy:** Workspace confirmation and cancellation delegate to existing E04/E05 owner-gated APIs. Forged, worker, chat and unbound paths are rejected by tests; no new authority source was introduced.
 - **Path and process boundaries:** Intake rejects missing, non-directory, unreadable, symlink and escaping folders. Viewer handoff requires current source authorization, verified integrity, local destination, artifact-root containment, and argument-vector spawning with `shell: false`.

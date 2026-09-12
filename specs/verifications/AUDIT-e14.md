@@ -1,7 +1,7 @@
 # E14 Whole-Epic Review
 
 - Epic: e14-terminal-workspace
-- Branch: `feat/e14-terminal-workspace`
+- Branch: `main`
 - Plan revision: `sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8`
 - Review scope: all four E14 stories, workspace sources/tests, CLI/package boundary, and E01-E06 regression behavior.
 
