@@ -8,7 +8,7 @@ development_status:
   e05: done
   e14: done
   e07: done
-  e08: in_progress
+  e08: done
   e15: backlog
   e16: backlog
   e09: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e08_stories
-active_epic: e08
-active_story: e08s04
-note: E08 build completed on feat/e08-literature-contribution under approved plan revision sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50. All four stories and 16 task checks passed; review is next. E01-E07 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e08_complete
+active_epic: none
+active_story: none
+note: E08 was locally released on main under approved plan revision sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50. All four stories and 16 task checks passed; whole-epic review pass 2 passed after one correction. E01-E07 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
