@@ -314,7 +314,7 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e14s04-verify.yaml
-    verification_evidence: specs/verifications/e14-build.yaml
+    verification_evidence: specs/verifications/e14-verify.yaml
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-12T01:12:00Z"

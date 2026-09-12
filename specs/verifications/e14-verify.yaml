@@ -1,33 +1,33 @@
 ---
 epic_id: e14
 title: Accessible terminal research workspace
-verified_at: "2026-09-12T01:08:36Z"
-verifier: bp-build
-branch: feat/e14-terminal-workspace
+verified_at: "2026-09-12T01:23:22Z"
+verifier: local-release-gate
+branch: main
 runtime: Node.js 24.21.0
-status: build_passed
+status: passed
 plan_revision: sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8
 stories:
   e14s01:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    task_evidence: specs/epics/e14-terminal-workspace/e14s01-tasks.yaml
+    task_evidence: specs/epics/archive/e14-terminal-workspace/e14s01-tasks.yaml
   e14s02:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    task_evidence: specs/epics/e14-terminal-workspace/e14s02-tasks.yaml
+    task_evidence: specs/epics/archive/e14-terminal-workspace/e14s02-tasks.yaml
   e14s03:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    task_evidence: specs/epics/e14-terminal-workspace/e14s03-tasks.yaml
+    task_evidence: specs/epics/archive/e14-terminal-workspace/e14s03-tasks.yaml
   e14s04:
     status: passed
     tasks_total: 4
     tasks_passing: 4
-    task_evidence: specs/epics/e14-terminal-workspace/e14s04-tasks.yaml
+    task_evidence: specs/epics/archive/e14-terminal-workspace/e14s04-tasks.yaml
 checks:
   task_verifications:
     passed: true
@@ -56,7 +56,7 @@ summary:
   task_verifications: 16
   task_verifications_passing: 16
   tests_passing: 114
-  review_started: false
-  release_started: false
+  review_started: true
+  release_started: true
   production_readiness_claimed: false
-next_skill: /bp-review
+next_skill: /bp-plan

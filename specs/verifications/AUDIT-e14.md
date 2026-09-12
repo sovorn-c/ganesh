@@ -38,4 +38,4 @@
 
 ## Verdict
 
-**PASS for E14 implementation review.** Local release remains a separate next step. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.
+**PASS for E14 implementation review.** The reviewed branch was merged locally into `main` as `a1b7678`, then archived and re-verified by the local release gate recorded in `specs/verifications/e14-verify.yaml`. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.

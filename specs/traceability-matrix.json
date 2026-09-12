@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T01:17:15Z",
+  "generated_at": "2026-09-12T01:24:03Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -954,7 +954,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e14-terminal-workspace/e14s01-tasks.yaml",
+          "file": "specs/epics/archive/e14-terminal-workspace/e14s01-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -978,7 +978,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e14-terminal-workspace/e14s02-tasks.yaml",
+          "file": "specs/epics/archive/e14-terminal-workspace/e14s02-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -1002,7 +1002,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e14-terminal-workspace/e14s03-tasks.yaml",
+          "file": "specs/epics/archive/e14-terminal-workspace/e14s03-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
@@ -1026,7 +1026,7 @@
           "method": "explicit_tag"
         },
         {
-          "file": "specs/epics/e14-terminal-workspace/e14s04-tasks.yaml",
+          "file": "specs/epics/archive/e14-terminal-workspace/e14s04-tasks.yaml",
           "line": 0,
           "confidence": "low",
           "method": "task_reference"
