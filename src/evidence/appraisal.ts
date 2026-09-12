@@ -2,6 +2,7 @@ import { ProjectStoreError, type ProjectHandle } from "../project/project-types.
 import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, isWorkerCapability } from "../authority/capability-broker.js";
 import { getSourceVersion } from "../sources/source-store.js";
+import { payloadHash } from "../persistence/history-store.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
 import { transaction } from "../persistence/schema.js";
 import { buildEvidenceMatrix } from "./claim-matrix-store.js";
@@ -131,16 +132,26 @@ export function recordAppraisal(handle: ProjectHandle, capability: unknown, requ
   assertWritable(handle);
   if (!allowed(handle, capability, ["evidence:appraise"])) {throw new ProjectStoreError("forbidden", "appraisal requires evidence:appraise capability");}
   getSourceVersion(handle, request.sourceVersionId);
-  const existing = handle.db.prepare("SELECT * FROM appraisals WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
-  if (existing !== undefined) {return appraisalFromRow(existing);}
   const methodKind = normalizeMethodKind(request.methodKind ?? request.method ?? "unspecified");
   const findings = findingsFor(request, methodKind);
   const hasIssue = findings.some((finding) => finding.applicability === "applicable" && (finding.result === "analysis-issue" || finding.result === "missing"));
+  const result: AppraisalRecord["result"] = hasIssue ? "needs-attention" : "pass";
+  const origin: AppraisalOrigin = isOwnerCapability(capability)
+    ? request.origin === "specialist-proposed" ? "specialist-proposed" : "owner-recorded"
+    : "specialist-proposed";
+  const scholarlyFindingId = request.scholarlyFindingId;
+  const existing = handle.db.prepare("SELECT * FROM appraisals WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
+  if (existing !== undefined) {
+    const old = appraisalFromRow(existing);
+    const requestedPayload = payloadHash({ sourceVersionId: request.sourceVersionId, methodKind, result, findings, origin, scholarlyFindingId: scholarlyFindingId ?? null });
+    const existingPayload = payloadHash({ sourceVersionId: old.sourceVersionId, methodKind: old.methodKind, result: old.result, findings: old.findings, origin: old.origin, scholarlyFindingId: old.scholarlyFindingId ?? null });
+    if (requestedPayload !== existingPayload) {throw new ProjectStoreError("appraisal-payload-conflict", "command ID was reused with a different appraisal");}
+    return old;
+  }
   const appraisal: AppraisalRecord = {
     id: newId("appraisal"), sourceVersionId: request.sourceVersionId, methodKind,
-    result: hasIssue ? "needs-attention" : "pass", findings,
-    origin: request.origin ?? (isOwnerCapability(capability) ? "owner-recorded" : "specialist-proposed"),
-    ...(request.scholarlyFindingId === undefined ? {} : { scholarlyFindingId: request.scholarlyFindingId }),
+    result, findings, origin,
+    ...(scholarlyFindingId === undefined ? {} : { scholarlyFindingId }),
     commandId: request.commandId, createdAt: isoNow()
   };
   handle.db.prepare("INSERT INTO appraisals (id, source_version_id, method_kind, result, findings, origin, scholarly_finding_id, command_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(appraisal.id, appraisal.sourceVersionId, appraisal.methodKind, appraisal.result, JSON.stringify(appraisal.findings), appraisal.origin, appraisal.scholarlyFindingId ?? null, appraisal.commandId, appraisal.createdAt);

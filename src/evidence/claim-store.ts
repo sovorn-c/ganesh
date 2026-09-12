@@ -145,19 +145,26 @@ export function recordClaim(handle: ProjectHandle, capability: unknown, request:
   const statement = request.statement ?? request.proposition ?? request.text ?? (typeof request.claim === "string" ? request.claim : undefined) ?? (typeof claimPayload?.statement === "string" ? claimPayload.statement : undefined);
   if (statement === undefined || statement.trim() === "") {throw new ProjectStoreError("invalid-claim", "claim statement is required");}
   if (!request.commandId) {throw new ProjectStoreError("invalid-command", "commandId is required");}
+  const scope = request.scope ?? (claimPayload?.scope as Record<string, unknown> | undefined) ?? {};
+  const origin: ClaimRecord["origin"] = isOwnerCapability(capability)
+    ? request.origin === "specialist-proposed" ? "specialist-proposed" : "owner-recorded"
+    : "specialist-proposed";
+  const qualification = request.qualification ?? "";
   const existing = handle.db.prepare("SELECT * FROM claims WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
   if (existing !== undefined) {
     const old = claimFromRow(existing);
-    if (old.statement !== statement || JSON.stringify(old.scope) !== JSON.stringify(request.scope ?? claimPayload?.scope ?? {})) {throw new ProjectStoreError("claim-payload-conflict", "command ID was reused with a different claim");}
+    const requestedPayload = payloadHash({ id: request.id ?? old.id, statement, scope, origin, qualification });
+    const existingPayload = payloadHash({ id: old.id, statement: old.statement, scope: old.scope, origin: old.origin, qualification: old.qualification });
+    if (requestedPayload !== existingPayload) {throw new ProjectStoreError("claim-payload-conflict", "command ID was reused with a different claim");}
     return old;
   }
   const claim: ClaimRecord = {
     id: request.id ?? newId("claim"),
     statement,
-    scope: request.scope ?? (claimPayload?.scope as Record<string, unknown> | undefined) ?? {},
-    origin: request.origin ?? (isOwnerCapability(capability) ? "owner-recorded" : "specialist-proposed"),
+    scope,
+    origin,
     currentSupport: "unverified",
-    qualification: request.qualification ?? "",
+    qualification,
     commandId: request.commandId,
     createdAt: isoNow(),
     updatedAt: isoNow()
@@ -177,7 +184,9 @@ export function linkClaimEvidence(handle: ProjectHandle, capability: unknown, re
   const existing = handle.db.prepare("SELECT * FROM claim_evidence_links WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
   if (existing !== undefined) {
     const old = linkFromRow(existing, evidence);
-    if (old.claimId !== request.claimId || old.evidenceItemId !== request.evidenceItemId || old.role !== role) {throw new ProjectStoreError("claim-link-payload-conflict", "command ID was reused with a different link");}
+    const requestedPayload = payloadHash({ claimId: request.claimId, evidenceItemId: request.evidenceItemId, role, qualification: request.qualification ?? "" });
+    const existingPayload = payloadHash({ claimId: old.claimId, evidenceItemId: old.evidenceItemId, role: old.role, qualification: old.qualification });
+    if (requestedPayload !== existingPayload) {throw new ProjectStoreError("claim-link-payload-conflict", "command ID was reused with a different link");}
     return old;
   }
   const status = linkStatus(handle, capability, request.evidenceItemId);
@@ -202,10 +211,28 @@ export function linkClaimEvidence(handle: ProjectHandle, capability: unknown, re
   return link;
 }
 
+const BIBLIOGRAPHIC_KEYS = new Set([
+  "doi", "DOI", "title", "year", "publishedYear", "authors", "author", "journal", "containerTitle",
+  "volume", "issue", "pages", "page", "publisher", "url", "isbn", "issn", "abstract"
+]);
+
+function bibliographicCandidates(...records: readonly unknown[]): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const record of records) {
+    if (typeof record !== "object" || record === null) {continue;}
+    for (const [key, value] of Object.entries(record)) {
+      if (BIBLIOGRAPHIC_KEYS.has(key) && value !== undefined && value !== null && value !== "") {result[key] = value;}
+    }
+  }
+  return result;
+}
+
 function sourceBibliography(handle: ProjectHandle, sourceVersionId: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const record of listSourceRecords(handle, sourceVersionId)) {
-    if (["bibliographic", "citation", "metadata", "reference"].includes(String(record.recordKind))) {Object.assign(result, record.data);}
+    if (["bibliographic", "citation", "metadata", "reference"].includes(String(record.recordKind))) {
+      Object.assign(result, bibliographicCandidates(record.data));
+    }
   }
   return result;
 }
@@ -221,41 +248,41 @@ export function verifyCitation(handle: ProjectHandle, capability: unknown, reque
   if (!allowed(handle, capability, ["claim:record", "evidence:inspect"])) {throw new ProjectStoreError("forbidden", "citation verification requires claim:record and evidence:inspect capability");}
   claimById(handle, request.claimId);
   const source = getSourceVersion(handle, request.sourceVersionId);
-  const existing = handle.db.prepare("SELECT * FROM citation_verifications WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
-  const bibliographicFields = {
-    ...sourceBibliography(handle, request.sourceVersionId),
-    ...(request.sourceRecord ?? {}),
-    ...(request.citation ?? {}),
-    ...(request.metadata ?? {}),
-    ...(request.bibliographic ?? {})
-  };
-  const identity = request.identityResolved === true
-    ? "resolved"
-    : request.identityResolved === false
-      ? "fields-missing"
-      : (field(bibliographicFields, "doi", "DOI") !== undefined
-        && field(bibliographicFields, "title") !== undefined
-        && field(bibliographicFields, "year", "publishedYear") !== undefined
-        ? "resolved" : "fields-missing");
-  if (existing !== undefined) {
-    const old = verificationFromRow(existing);
-    const requestedFields = Object.entries(bibliographicFields);
-    const fieldConflict = requestedFields.some(([key, value]) => old.bibliographicFields[key] !== value);
-    if (old.claimId !== request.claimId || old.sourceVersionId !== request.sourceVersionId || fieldConflict || (request.supportStatus !== undefined && old.supportStatus !== request.supportStatus) || (request.accessStatus !== undefined && old.accessStatus !== request.accessStatus)) {
-      throw new ProjectStoreError("citation-payload-conflict", "command ID was reused with a different citation verification");
-    }
-    return old;
-  }
   const artifact = inspectArtifactVersion(handle, request.sourceVersionId);
-  const access: CitationAccessStatus = request.accessStatus ?? request.access ?? (source.access !== "full-text" || source.extractionStatus !== "complete" ? "limited" : artifact.contentStatus === "available" ? "full-text" : "unavailable");
+  const bibliographicFields = bibliographicCandidates(
+    sourceBibliography(handle, request.sourceVersionId),
+    request.sourceRecord,
+    request.citation,
+    request.metadata,
+    request.bibliographic
+  );
+  const identity: CitationIdentityStatus = field(bibliographicFields, "doi", "DOI") !== undefined
+    && field(bibliographicFields, "title") !== undefined
+    && field(bibliographicFields, "year", "publishedYear") !== undefined
+    ? "resolved" : "fields-missing";
+  const access: CitationAccessStatus = artifact.contentStatus !== "available"
+    ? "unavailable"
+    : source.access !== "full-text" || source.extractionStatus !== "complete"
+      ? "limited"
+      : "full-text";
   const supportFromLinks = (handle.db.prepare("SELECT cel.verification_status FROM claim_evidence_links cel JOIN evidence_items ei ON ei.id = cel.evidence_item_id WHERE cel.claim_id = ? AND cel.role = 'supporting' AND ei.source_version_id = ?").all(request.claimId, request.sourceVersionId) as Array<Record<string, unknown>>).some((row) => row.verification_status === "substantively-supported");
-  let support: CitationSupportStatus = request.supportStatus ?? "unverified";
-  if ((request.abstractSupported ?? request.abstractSupportsClaim) === false) {support = "unsupported";}
+  const abstractSupported = request.abstractSupported ?? request.abstractSupportsClaim;
+  let support: CitationSupportStatus = "unverified";
+  if (abstractSupported === false) {support = "unsupported";}
   else if (supportFromLinks && access === "full-text" && identity === "resolved") {support = "substantively-supported";}
-  else if (access !== "full-text") {support = (request.abstractSupported ?? request.abstractSupportsClaim) === true ? "unverified" : "unsupported";}
+  else if (access !== "full-text") {support = abstractSupported === true ? "unverified" : "unsupported";}
   const limitations = [...(request.limitations ?? [])];
   if (access !== "full-text") {limitations.push("full-text-unavailable");}
   if (identity === "fields-missing") {limitations.push("bibliographic-fields-missing");}
+  const normalizedLimitations = [...new Set(limitations)];
+  const existing = handle.db.prepare("SELECT * FROM citation_verifications WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
+  if (existing !== undefined) {
+    const old = verificationFromRow(existing);
+    const requestedPayload = payloadHash({ claimId: request.claimId, sourceVersionId: request.sourceVersionId, identityStatus: identity, accessStatus: access, supportStatus: support, bibliographicFields, limitations: normalizedLimitations });
+    const existingPayload = payloadHash({ claimId: old.claimId, sourceVersionId: old.sourceVersionId, identityStatus: old.identityStatus, accessStatus: old.accessStatus, supportStatus: old.supportStatus, bibliographicFields: old.bibliographicFields, limitations: old.limitations });
+    if (requestedPayload !== existingPayload) {throw new ProjectStoreError("citation-payload-conflict", "command ID was reused with a different citation verification");}
+    return old;
+  }
   const verification: CitationVerification = {
     id: newId("citation-verification"),
     claimId: request.claimId,
@@ -265,7 +292,7 @@ export function verifyCitation(handle: ProjectHandle, capability: unknown, reque
     accessStatus: access,
     supportStatus: support,
     bibliographicFields,
-    limitations: [...new Set(limitations)],
+    limitations: normalizedLimitations,
     commandId: request.commandId,
     createdAt: isoNow()
   };

@@ -1,6 +1,6 @@
 // story: e07s04
 // scenario: SC-e07s04-P0-01, SC-e07s04-P0-02, SC-e07s04-P0-03, SC-e07s04-P1-04
-import { strictEqual } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 import { test } from "node:test";
 import {
   applySourceNotice,
@@ -24,6 +24,29 @@ test("e07s04 thematic appraisal treats kappa and power as not applicable", () =>
     });
     strictEqual(appraisal.result, "pass");
     strictEqual(appraisal.findings.every((finding) => finding.result === "not-applicable"), true);
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e07s04 appraisal provenance and retries remain bounded", () => {
+  const fixture = projectFixture();
+  try {
+    const source = importText(fixture.handle, "e07s04-retry");
+    const capability = evidenceWorker(fixture.handle);
+    const first = recordAppraisal(fixture.handle, capability, {
+      commandId: "e07s04-appraisal-retry", sourceVersionId: source.result.artifactVersionId,
+      methodKind: "reflexive-thematic-analysis", origin: "owner-recorded"
+    });
+    strictEqual(first.origin, "specialist-proposed");
+    strictEqual(recordAppraisal(fixture.handle, capability, {
+      commandId: "e07s04-appraisal-retry", sourceVersionId: source.result.artifactVersionId,
+      methodKind: "reflexive-thematic-analysis", origin: "owner-recorded"
+    }).id, first.id);
+    throws(() => recordAppraisal(fixture.handle, capability, {
+      commandId: "e07s04-appraisal-retry", sourceVersionId: source.result.artifactVersionId,
+      methodKind: "quantitative-dependent-observations", origin: "owner-recorded"
+    }));
   } finally {
     disposeFixture(fixture);
   }

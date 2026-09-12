@@ -69,3 +69,46 @@ test("e07s02 citation identity stays separate from inaccessible and missing supp
     disposeFixture(fixture);
   }
 });
+
+test("e07s02 rejects forged statuses and complete command payload conflicts", () => {
+  const fixture = projectFixture();
+  try {
+    const capability = evidenceWorker(fixture.handle);
+    const limited = importText(fixture.handle, "e07s02-forged-status", "abstract text\n", "abstract-only");
+    const claim = recordClaim(fixture.handle, capability, {
+      commandId: "e07s02-forged-origin", statement: "a bounded claim", origin: "owner-recorded", qualification: "initial"
+    });
+    strictEqual(claim.origin, "specialist-proposed");
+    throws(() => recordClaim(fixture.handle, capability, {
+      commandId: "e07s02-forged-origin", statement: "a bounded claim", origin: "owner-recorded", qualification: "changed"
+    }));
+    const verification = verifyCitation(fixture.handle, capability, {
+      commandId: "e07s02-forged-citation", claimId: claim.id, sourceVersionId: limited.result.artifactVersionId,
+      bibliographic: { doi: "10.1234/example", title: "Example", year: 2024 }, abstractSupported: false,
+      identityResolved: true, accessStatus: "full-text", supportStatus: "substantively-supported"
+    });
+    strictEqual(verification.accessStatus, "limited");
+    strictEqual(verification.supportStatus, "unsupported");
+    strictEqual(verifyCitation(fixture.handle, capability, {
+      commandId: "e07s02-forged-citation", claimId: claim.id, sourceVersionId: limited.result.artifactVersionId,
+      bibliographic: { doi: "10.1234/example", title: "Example", year: 2024 }, abstractSupported: false,
+      identityResolved: false, accessStatus: "full-text", supportStatus: "unverified"
+    }).id, verification.id);
+    throws(() => verifyCitation(fixture.handle, capability, {
+      commandId: "e07s02-forged-citation", claimId: claim.id, sourceVersionId: limited.result.artifactVersionId,
+      bibliographic: { doi: "10.1234/changed", title: "Example", year: 2024 }, abstractSupported: false
+    }));
+    const evidence = recordEvidenceItem(fixture.handle, capability, {
+      commandId: "e07s02-link-evidence", sourceVersionId: limited.result.artifactVersionId,
+      location: { kind: "source-locator", id: limited.locator.id }, statementKind: "measured-finding"
+    });
+    linkClaimEvidence(fixture.handle, capability, {
+      commandId: "e07s02-link-retry", claimId: claim.id, evidenceItemId: evidence.id, role: "supporting", qualification: "initial"
+    });
+    throws(() => linkClaimEvidence(fixture.handle, capability, {
+      commandId: "e07s02-link-retry", claimId: claim.id, evidenceItemId: evidence.id, role: "supporting", qualification: "changed"
+    }));
+  } finally {
+    disposeFixture(fixture);
+  }
+});
