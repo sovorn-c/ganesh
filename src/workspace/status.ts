@@ -21,7 +21,9 @@ export interface StatusView {
 }
 
 function statusLabel(status: WorkRunRecord["status"] | undefined): string {
-  if (status === "running") return "working";
+  if (status === "running") {
+    return "working";
+  }
   return status ?? "blocked";
 }
 
@@ -80,6 +82,8 @@ export function cancelFromWorkspace(
 
 export function statusForContract(session: WorkspaceSession, contractId: string, version?: number): StatusView {
   const contract = getContract(session.handle, contractId, version);
-  if (contract === null) return viewFor(undefined, undefined, "contract not found");
+  if (contract === null) {
+    return viewFor(undefined, undefined, "contract not found");
+  }
   return presentWorkStatus(session, { contractId: contract.id, contractVersion: contract.version });
 }

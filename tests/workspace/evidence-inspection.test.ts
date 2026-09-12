@@ -15,7 +15,9 @@ import type { WorkspaceSession } from "../../src/workspace/workspace-types.js";
 const roots: string[] = [];
 
 afterEach(() => {
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 function session(handle: ProjectHandle): WorkspaceSession {

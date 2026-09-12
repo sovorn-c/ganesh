@@ -28,12 +28,19 @@ const SUPPORTED_SCREEN_READER_TERMINALS = new Set(["VoiceOver:Terminal.app", "Vo
 
 export function qualifyAccessPath(input: AccessPathInput): AccessPathResult {
   let reason: AccessPathReason | undefined;
-  if (!input.keyboard) reason = "no-keyboard";
-  else if (!input.textStatus) reason = "colour-only-status";
-  else if (!input.utf8) reason = "non-utf8-terminal";
-  else if (input.terminal !== undefined && input.terminal.trim() === "") reason = "non-text-terminal";
-  else if (input.keyboardMapComplete === false) reason = "missing-keyboard-map";
-  else if (input.screenReader !== undefined && input.terminal !== undefined && !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`)) reason = "unsupported-screen-reader-pairing";
+  if (!input.keyboard) {
+    reason = "no-keyboard";
+  } else if (!input.textStatus) {
+    reason = "colour-only-status";
+  } else if (!input.utf8) {
+    reason = "non-utf8-terminal";
+  } else if (input.terminal !== undefined && input.terminal.trim() === "") {
+    reason = "non-text-terminal";
+  } else if (input.keyboardMapComplete === false) {
+    reason = "missing-keyboard-map";
+  } else if (input.screenReader !== undefined && input.terminal !== undefined && !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`)) {
+    reason = "unsupported-screen-reader-pairing";
+  }
   return {
     status: reason === undefined ? "supported" : "blocked",
     accessible: reason === undefined,

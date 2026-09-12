@@ -9,18 +9,20 @@ import {
   listRuns,
   queueRun,
   qualifyAccessPath,
-  keyboardMap
+  keyboardMap,
+  type ProjectHandle
 } from "../../src/index.js";
 import { disposeFixture, projectFixture } from "../support/project-fixtures.js";
 import { classifiedInput, contract } from "../support/work-fixtures.js";
 import { cancelFromWorkspace, presentWorkStatus } from "../../src/workspace/status.js";
-import type { ProjectHandle } from "../../src/index.js";
 import type { WorkspaceSession } from "../../src/workspace/workspace-types.js";
 
 const fixtures: ReturnType<typeof projectFixture>[] = [];
 
 afterEach(() => {
-  for (const fixture of fixtures.splice(0)) disposeFixture(fixture);
+  for (const fixture of fixtures.splice(0)) {
+    disposeFixture(fixture);
+  }
 });
 
 function workspaceSession(handle: ProjectHandle): WorkspaceSession {

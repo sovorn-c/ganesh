@@ -22,7 +22,9 @@ import type { TuiPort, WorkspaceSession } from "../../src/workspace/workspace-ty
 const roots: string[] = [];
 
 afterEach(() => {
-  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  for (const root of roots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 class ConfirmingTui implements TuiPort {
