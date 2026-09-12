@@ -67,7 +67,7 @@ checks:
   review:
     status: pending_review
     passed: false
-    evidence: Correction pass 2 resolved all review blockers (symlink traversal, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking, transitive dependency deletion, atomic DB and artifact rollback); ready for fresh whole-epic review
+    evidence: Correction passes resolved all review blockers (symlink traversal, fail-closed DB restore validation, materialize/replace idempotency, atomic destination locking with deterministic synchronized barrier concurrency, transitive dependency deletion, atomic DB/artifact rollback, isolated test command IDs); ready for fresh whole-epic review
 summary:
   task_verifications: 20
   task_verifications_passing: 20

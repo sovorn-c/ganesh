@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "191/191 tests passed, including E15 crash recovery, disk-full ENOSPC aborts, corruption detection, and PID write lock exclusivity."
+    evidence: "191/191 tests passed, including E15 crash recovery, disk-full ENOSPC aborts, corruption detection, and deterministic synchronized barrier PID write lock exclusivity."
   typecheck:
     passed: true
     command: npm run typecheck

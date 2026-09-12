@@ -1,7 +1,7 @@
 // story: e15s03 — Crash, Disk-Full, Corruption and Concurrent-Launch Hardening
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, readFileSync, rmSync } from "node:fs";
+import { writeFileSync, readFileSync, rmSync, mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 import {
@@ -199,30 +199,76 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
       const freshHandle = createProject({ rootPath: freshRoot, ownerId: "owner-race" });
       freshHandle.close(); // Ensure activeLocks is clear
 
-      // Spawn 3 concurrent node processes trying to acquire write lock simultaneously
+      const barrierDir = join(freshRoot, "barrier");
+      mkdirSync(barrierDir, { recursive: true });
+
+      // Spawn 3 concurrent node processes synchronized at a barrier
       const script = `
         import { acquireProjectWriteLock } from "./dist/src/project/project-lock.js";
         import { ProjectStoreError } from "./dist/src/project/project-types.js";
+        import { existsSync, writeFileSync, readdirSync } from "node:fs";
+        import { join } from "node:path";
+
+        const rootPath = process.argv[1];
+        const barrierDir = process.argv[2];
+        const pid = process.pid;
+
+        // 1. Signal ready
+        writeFileSync(join(barrierDir, "ready-" + pid), "");
+
+        // 2. Synchronize before acquisition: wait for start gate
+        const startGate = join(barrierDir, "start.gate");
+        while (!existsSync(startGate)) {
+          await new Promise((r) => setTimeout(r, 10));
+        }
+
+        // 3. Race for write lock simultaneously
         try {
-          const lock = acquireProjectWriteLock(process.argv[1]);
-          setTimeout(() => {
-            lock.release();
-            process.exit(0);
-          }, 200);
+          const lock = acquireProjectWriteLock(rootPath);
+          writeFileSync(join(barrierDir, "winner-" + pid), "");
+
+          // Hold winning lock until all other contenders have completed their attempt
+          const deadline = Date.now() + 10000;
+          while (Date.now() < deadline) {
+            const entries = readdirSync(barrierDir);
+            const losers = entries.filter((e) => e.startsWith("locked-"));
+            if (losers.length >= 2) {
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 10));
+          }
+
+          lock.release();
+          process.exit(0);
         } catch (err) {
           if (err instanceof ProjectStoreError && err.code === "project-locked") {
+            writeFileSync(join(barrierDir, "locked-" + pid), "");
             process.exit(42);
           }
+          writeFileSync(join(barrierDir, "error-" + pid), String(err));
           process.exit(1);
         }
       `;
 
       const runners = Array.from({ length: 3 }, () => {
         return new Promise<number>((resolve) => {
-          const child = spawn(process.argv[0], ["--input-type=module", "-e", script, freshRoot]);
+          const child = spawn(process.argv[0], ["--input-type=module", "-e", script, freshRoot, barrierDir]);
           child.on("close", (code) => resolve(code ?? 1));
         });
       });
+
+      // Wait until all 3 children are alive and ready before opening the start gate
+      const readyDeadline = Date.now() + 10000;
+      while (Date.now() < readyDeadline) {
+        const readyCount = readdirSync(barrierDir).filter((e) => e.startsWith("ready-")).length;
+        if (readyCount >= 3) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 10));
+      }
+
+      // Open start gate to release all 3 contenders simultaneously
+      writeFileSync(join(barrierDir, "start.gate"), "");
 
       const exitCodes = await Promise.all(runners);
       const successes = exitCodes.filter((c) => c === 0).length;
