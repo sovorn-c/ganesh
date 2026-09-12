@@ -31,10 +31,48 @@ test("e08s01 review protocol, query version, landscape, corpus identity, reopen 
     strictEqual(listReviewProtocols(fixture.handle, owner(fixture.handle)).length, 1);
     strictEqual(listQueryVersions(fixture.handle, owner(fixture.handle), protocol.id).length, 2);
     strictEqual(listCorpusRecords(fixture.handle, owner(fixture.handle), protocol.id)[0]?.id, corpus.id);
+    const identifiedQuery = recordQueryVersion(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-query-id-retry", id: "query-one", protocolVersionId: protocol.id, expression: "identified query"
+    });
+    strictEqual(recordQueryVersion(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-query-id-retry", id: "query-one", protocolVersionId: protocol.id, expression: "identified query"
+    }).id, identifiedQuery.id);
+    throws(() => recordQueryVersion(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-query-id-retry", id: "query-two", protocolVersionId: protocol.id, expression: "identified query"
+    }));
+    const identifiedCorpus = recordCorpusIdentity(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-corpus-id-retry", id: "corpus-one", protocolVersionId: protocol.id, bibliographicIdentity: { title: "Identified" }
+    });
+    strictEqual(recordCorpusIdentity(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-corpus-id-retry", id: "corpus-one", protocolVersionId: protocol.id, bibliographicIdentity: { title: "Identified" }
+    }).id, identifiedCorpus.id);
+    throws(() => recordCorpusIdentity(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-corpus-id-retry", id: "corpus-two", protocolVersionId: protocol.id, bibliographicIdentity: { title: "Identified" }
+    }));
     fixture.handle.close();
     const reopened = openProject(fixture.root);
     strictEqual(listReviewProtocols(reopened, owner(reopened))[0]?.id, protocol.id);
     reopened.close();
+  } finally { disposeFixture(fixture); }
+});
+
+test("e08s01 query lineage stays within its protocol", () => {
+  const fixture = projectFixture();
+  try {
+    const { protocol, query } = protocolFixture(fixture.handle);
+    const otherProtocol = recordReviewProtocol(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-other-protocol", eligibility: { population: "other" }
+    });
+    throws(() => recordQueryVersion(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-cross-protocol-lineage", protocolVersionId: otherProtocol.id,
+      parentQueryVersionId: query.id, expression: "cross protocol"
+    }));
+    throws(() => recordQueryVersion(fixture.handle, owner(fixture.handle), {
+      commandId: "literature-cross-protocol-supersedes", protocolVersionId: otherProtocol.id,
+      supersedesQueryVersionId: query.id, expression: "cross protocol"
+    }));
+    strictEqual(listQueryVersions(fixture.handle, owner(fixture.handle), otherProtocol.id).length, 0);
+    strictEqual(protocol.id.length > 0, true);
   } finally { disposeFixture(fixture); }
 });
 

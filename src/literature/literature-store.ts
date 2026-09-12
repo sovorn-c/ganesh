@@ -110,13 +110,14 @@ export function recordQueryVersion(handle: ProjectHandle, capability: unknown, r
   assertWritable(handle); assertLiteratureSchema(handle); requireCapability(handle, capability, ["literature:protocol"], "query recording requires literature:protocol capability");
   const commandId = requireCommand(request.commandId); const expression = requireText(request.expression, "expression");
   const protocol = rowById(handle, "review_protocols", request.protocolVersionId); const origin = originFor(handle, capability, request.origin);
-  const payload = { protocolVersionId: request.protocolVersionId, versionLabel: request.versionLabel ?? "v1", expression, destination: request.destination ?? "local", purpose: request.purpose ?? "literature-search", parentQueryVersionId: request.parentQueryVersionId, supersedesQueryVersionId: request.supersedesQueryVersionId, origin };
+  const parent = request.parentQueryVersionId === undefined ? undefined : rowById(handle, "query_versions", request.parentQueryVersionId);
+  const supersedes = request.supersedesQueryVersionId === undefined ? undefined : rowById(handle, "query_versions", request.supersedesQueryVersionId);
+  if ((parent !== undefined && text(parent, "protocol_version_id") !== request.protocolVersionId) || (supersedes !== undefined && text(supersedes, "protocol_version_id") !== request.protocolVersionId)) {throw new ProjectStoreError("invalid-query-lineage", "query lineage must remain within the protocol version");}
+  const payload = { id: request.id, protocolVersionId: request.protocolVersionId, versionLabel: request.versionLabel ?? "v1", expression, destination: request.destination ?? "local", purpose: request.purpose ?? "literature-search", parentQueryVersionId: request.parentQueryVersionId, supersedesQueryVersionId: request.supersedesQueryVersionId, origin };
   const existing = beginOperation(handle, commandId, payloadHash(payload));
   if (existing?.status === "complete") {return queryRow(rowById(handle, "query_versions", resultIdFor(handle, commandId)));}
   const id = recordId("query", request.id); const versionLabel = request.versionLabel ?? "v1";
-  if (request.parentQueryVersionId) {rowById(handle, "query_versions", request.parentQueryVersionId);}
-  if (request.supersedesQueryVersionId) {rowById(handle, "query_versions", request.supersedesQueryVersionId);}
-  const artifact = registerArtifactVersion(handle, { logicalId: `literature-query-${id}`, version: versionLabel, content: json({ expression, destination: payload.destination, purpose: payload.purpose, protocolVersionId: request.protocolVersionId }), origin: "literature-query", access: "metadata-only" });
+  const artifact = registerArtifactVersion(handle, { logicalId: `literature-query-${id}`, version: versionLabel, content: json({ protocolVersionId: request.protocolVersionId, versionLabel, expression, destination: payload.destination, purpose: payload.purpose, parentQueryVersionId: request.parentQueryVersionId, supersedesQueryVersionId: request.supersedesQueryVersionId, origin }), origin: "literature-query", access: "metadata-only" });
   const createdAt = isoNow();
   transaction(handle.db, () => handle.db.prepare(
     "INSERT INTO query_versions (id, protocol_version_id, version_label, expression, destination, purpose, parent_query_version_id, supersedes_query_version_id, artifact_version_id, origin, command_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -155,7 +156,7 @@ export function recordCorpusIdentity(handle: ProjectHandle, capability: unknown,
   if (request.sourceVersionId !== undefined && handle.db.prepare("SELECT 1 FROM source_versions WHERE artifact_version_id = ?").get(request.sourceVersionId) === undefined) {throw new ProjectStoreError("source-not-found", "source version was not found");}
   const identity = stableObject(request.bibliographicIdentity); if (Object.keys(identity).length === 0) {throw new ProjectStoreError("invalid-corpus", "bibliographic identity is required");}
   const origin = originFor(handle, capability);
-  const payload = { protocolVersionId: request.protocolVersionId, sourceVersionId: request.sourceVersionId, bibliographicIdentity: identity, origin };
+  const payload = { id: request.id, protocolVersionId: request.protocolVersionId, sourceVersionId: request.sourceVersionId, bibliographicIdentity: identity, origin };
   const existing = beginOperation(handle, commandId, payloadHash(payload));
   if (existing?.status === "complete") {return corpusRow(rowById(handle, "corpus_records", resultIdFor(handle, commandId)));}
   const id = recordId("corpus", request.id); const createdAt = isoNow();
