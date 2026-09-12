@@ -1,0 +1,46 @@
+story_id: e15s05
+spec: e15s05-stale-restore-cannot-reinstate-withdrawn-grants.md
+title: Stale Restore Cannot Reinstate Withdrawn Grants
+status: passing
+bcps: 6
+tasks:
+  - id: e15s05-t01
+    description: Add restore-replace that keeps withdrawn and expired grants terminal when overlaying a packet exported while they were active.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s05.*(replace|withdrawn|expired|active)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e15s05-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [restore, revocation, AC-20]
+  - id: e15s05-t02
+    description: Prove requestDisclosure still denies the withdrawn use after replace, including remote export omission.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s05.*(disclosure|deny|remote|export)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e15s05-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [disclosure, privacy, Security Review]
+  - id: e15s05-t03
+    description: Prove withdrawal remains effective across restored branches and snapshot inspection cannot resurrect the grant.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s05.*(branch|snapshot|resurrect|AC-08)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e15s05-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [AC-08, revocation]
+  - id: e15s05-t04
+    description: Preserve not-recalled notices and tombstones through replace, and keep released E01-E08/E14 behavior passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s05.*(recall|tombstone|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: high
+    scenarios: [SC-e15s05-P1-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [privacy, Security Review, regression]

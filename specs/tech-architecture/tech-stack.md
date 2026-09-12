@@ -6,7 +6,7 @@ Use [../execution-status.yaml](../execution-status.yaml) for delivery status and
 
 The current implementation uses TypeScript, Node.js 24, SQLite project state, and local artifact files. Source entrypoints remain at `src/`; implementation modules now live in responsibility folders. Tests now live under `tests/` in matching responsibility folders and use behavior-based names.
 
-The owner-approved organization refactor is implemented, verified, and reviewed on `main`. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E01–E06 and E14 are complete local releases. The E07 plan revision `sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a` is owner-approved; implementation starts only on `/bp-build`.
+The owner-approved organization refactor is implemented, verified, and reviewed on `main`. Public exports, executable entrypoints, SQLite contracts, and observable behavior remain unchanged. E01–E08 and E14 are complete local releases. The E15 plan revision `sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2` is owner-approved; implementation starts only on `/bp-build`.
 
 ## Repository organization contract
 
@@ -20,7 +20,7 @@ Preserve public APIs, runtime behavior, stored data, authority enforcement, and 
 
 ## Planning signals
 
-- Start E07 implementation only from `/bp-build` against the owner-approved exact plan revision.
+- Start E15 implementation only from `/bp-build` against owner-approved plan revision `sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2`.
 - Reuse the existing manifest, lockfile, and Node.js 24 commands.
 - Run applicable checks in the foreground under Node.js 24, not the host Node.js 26.
 - Keep work in the current workspace; use an authorized branch and no automatic commits or pushes.
@@ -87,6 +87,9 @@ Malicious agents and imported material are inside the threat model; a compromise
 
 - A project has one designated owner and zero or more research branches.
 - A source identity can have multiple immutable acquired source versions.
+- A corpus record links bibliographic identity to discovery or screening history and optional acquired source versions.
+- A corpus snapshot is the dated set of records considered in a specified search event.
+- A gap assessment is search-scoped, dated, and cannot claim universal novelty.
 - An evidence item references an exact source version and locator.
 - A claim can have multiple supporting and challenging evidence links.
 - A research artifact can have multiple candidate or committed versions.

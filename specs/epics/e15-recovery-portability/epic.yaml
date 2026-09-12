@@ -17,7 +17,16 @@ boundaries:
     grants and external disclosures are not promised recall.
   excludes:
   - Product outcomes owned by other epics; shared integration remains required.
-  - Story specifications and implementation tasks at blueprint stage.
+  - Markdown/DOCX writing exports, BibTeX/RIS bibliography files, CSV analysis tables
+    and supervisor review packets; E13 owns writing/review exchange and E06 already
+    owns those import formats.
+  - TUI help/command registration, native viewers and launcher intake; E14 stays frozen.
+  - Diagnostic log exports, runbooks and performance budgets; E16 owns those.
+  - Uninstall, signing and distribution; E18 owns those.
+  - Human commitments, scholarly findings and reasoned overrides as writers; E04 owns
+    those rows. E15 may copy permitted history and must not call recordOwnerDecision.
+  - Whole-OS disk exhaustion, remote object-store backup vendors, zip/tar packages
+    and a second database.
 depends_on:
 - e02
 - e03
@@ -45,14 +54,136 @@ wsjf_inputs:
 total_bcps: 34
 bcp_estimate:
   range:
-  - 20
-  - 54
-  confidence: low
-  basis: Uncalibrated epic-level relative BCP estimate from outcome breadth, integrations
-    and failure-path burden; not a tool-computed BCP Plus count. Re-estimate during
-    /bp-plan.
-status: blueprinted
-story_planning: deferred_to_bp_plan
-stories: []
+  - 34
+  - 34
+  confidence: medium
+  basis: Five vertical story slices total 34 BCP after inspection of E02 recoverProject
+    and recovery_checkpoints, E03 requestDisclosure export kind plus withdrawDataUse,
+    E05 lifecycle_operations pending states, E04 listCommitments as a non-writer,
+    ContentStatus unavailable/corrupt/missing, and Node.js 24 stdlib lockfile/hash/copy
+    primitives. No archive, cloud-backup or extra database package is required.
+status: planned
+planning_stage: stories_complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e15s01
+  type: ADDED
+  requirement: Versioned project packet export with integrity and current-permission checks
+  after: An owner-scoped command writes a directory project packet with a structured
+    manifest, schema version, per-file hashes and explicit omission notices. Restricted
+    bytes are omitted. Current disclosure policy is evaluated at export time. Records
+    survive packet inspection after close.
+- story_id: e15s01
+  type: MODIFIED
+  requirement: Ready-project feature schema initialization
+  before: Writable ready-project open idempotently ensured E04, E06, E05, E07 and E08
+    additive tables; schema marker version 1 remained unchanged. createSchema and
+    migrateSchema ensured E03 through E08.
+  after: New-project creation, explicit migration and writable ready-project open also
+    idempotently ensure additive E15 portability tables without changing schema marker
+    version 1. Read-only, migration-required and unknown-future opens never mutate
+    schema; missing E15 tables return portability-schema-unavailable.
+- story_id: e15s03
+  type: ADDED
+  requirement: Crash, disk-full, corruption and concurrent-launch hardening
+  after: Injected crash, ENOSPC and corruption at local write boundaries leave no
+    partial approvals or silent current-reference changes. A pid-reentrant write lock
+    at .ganesh/write.lock admits same-process handles and denies a second live process.
+    Pending lifecycle operations stay pending until current-policy resume.
+- story_id: e15s03
+  type: MODIFIED
+  requirement: Artifact write-failure injection and writable project open
+  before: ArtifactVersionInput.failAt accepted before-finalize, after-finalize-before-register,
+    after-commit and after-register. openProject allowed multiple processes to open
+    the same writable project. recoverProject removed temporary files and retained
+    the last complete database state.
+  after: failAt also accepts disk-full, which aborts with ENOSPC and leaves no new
+    current reference. Writable open and create acquire a pid-reentrant exclusive
+    lockfile; a foreign live pid is blocked. recoverProject still removes temporaries,
+    reports corrupt/missing artifacts without rewriting history, and does not complete
+    pending lifecycle operations.
+- story_id: e15s02
+  type: ADDED
+  requirement: Backup, restore, migrations and restore drills
+  after: An owner-scoped backup writes a consistent database-plus-artifact snapshot
+    with hashes and schema version. Restore into an empty root validates integrity
+    before the destination is ready. A restore drill verifies a snapshot without
+    replacing the live current project. migrateWithBackup records a backup before
+    calling existing migrateSchema.
+- story_id: e15s04
+  type: ADDED
+  requirement: Controlled deletion of derived content and caches
+  after: Authorized deletion unlinks application-controlled originals, derived copies,
+    caches and app-managed backups, writes an evidence tombstone, and keeps permitted
+    non-sensitive decision history. Dependent claims need revalidation for new committed
+    use. Execution that needs removed inputs is blocked. Prior external disclosures
+    are reported as not recalled.
+- story_id: e15s05
+  type: ADDED
+  requirement: Stale restore cannot reinstate withdrawn grants
+  after: Restoring a packet or backup onto a project that already withdrew or expired
+    a grant cannot flip that grant to active. Current disclosure after restore still
+    denies withdrawn uses. Cross-branch snapshots stay isolated. External disclosures
+    remain not-recalled notices.
+stories:
+- id: e15s01
+  title: Versioned Project Export with Integrity and Current Permissions
+  status: passing
+  bcps: 8
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: []
+  spec_file: e15s01-versioned-project-export-integrity-and-permissions.md
+  tasks_file: e15s01-tasks.yaml
+- id: e15s03
+  title: Crash, Disk-Full, Corruption and Concurrent-Launch Hardening
+  status: passing
+  bcps: 7
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: []
+  spec_file: e15s03-crash-disk-full-corruption-and-concurrent-launches.md
+  tasks_file: e15s03-tasks.yaml
+- id: e15s02
+  title: Backup, Restore, Migrations and Restore Drills
+  status: passing
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e15s01
+  - e15s03
+  spec_file: e15s02-backup-restore-migrations-and-restore-drills.md
+  tasks_file: e15s02-tasks.yaml
+- id: e15s04
+  title: Controlled Deletion of Derived Content and Caches
+  status: passing
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e15s03
+  spec_file: e15s04-controlled-deletion-of-derived-content-and-caches.md
+  tasks_file: e15s04-tasks.yaml
+- id: e15s05
+  title: Stale Restore Cannot Reinstate Withdrawn Grants
+  status: passing
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e15s01
+  - e15s02
+  - e15s04
+  spec_file: e15s05-stale-restore-cannot-reinstate-withdrawn-grants.md
+  tasks_file: e15s05-tasks.yaml
 capsule_dir: epics/e15-recovery-portability
+next_skill: bp-review
+plan_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
+plan_approved_at: "2026-09-12T13:38:52Z"
+plan_approval_source: explicit_owner_message
+implementation_authorized: true
 sequence: 10

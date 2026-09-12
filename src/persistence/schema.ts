@@ -106,6 +106,7 @@ export function createSchema(db: DatabaseSync): void {
   createE05Schema(db);
   createE07Schema(db);
   createE08Schema(db);
+  createE15Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -715,6 +716,50 @@ export function createE07Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE15Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS portability_operations (
+      id TEXT PRIMARY KEY,
+      command_id TEXT NOT NULL UNIQUE,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      packet_path TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS evidence_tombstones (
+      id TEXT PRIMARY KEY,
+      artifact_version_id TEXT NOT NULL,
+      content_hash TEXT,
+      reason TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      deleted_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_tombstones_artifact ON evidence_tombstones(artifact_version_id);
+    CREATE TABLE IF NOT EXISTS deletion_events (
+      id TEXT PRIMARY KEY,
+      artifact_version_id TEXT NOT NULL,
+      unlinked_paths TEXT NOT NULL,
+      tombstone_id TEXT NOT NULL REFERENCES evidence_tombstones(id),
+      not_recalled_disclosures TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      payload_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS backup_records (
+      id TEXT PRIMARY KEY,
+      backup_path TEXT NOT NULL,
+      manifest_hash TEXT NOT NULL,
+      schema_version INTEGER NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      payload_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+}
+
 export function createE08Schema(db: DatabaseSync): void {
   configureDatabase(db);
   db.exec(`
@@ -802,6 +847,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE05Schema(db);
       createE07Schema(db);
       createE08Schema(db);
+      createE15Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

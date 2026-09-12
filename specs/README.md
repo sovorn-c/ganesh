@@ -4,7 +4,7 @@
 
 Read [state.yaml](state.yaml) for the next authorized action and [execution-status.yaml](execution-status.yaml) for delivery status. Plans and blueprint audits are not implementation or production evidence.
 
-The owner requested repository organization before E05. The approved source and test migration is implemented, verified, and reviewed on `main`; see [REFACTOR_LATEST.md](REFACTOR_LATEST.md) for scope and [../CONVENTIONS.md](../CONVENTIONS.md) for the rules. E01–E06 and E14 are complete local releases. The E07 plan revision `sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a` is owner-approved; implementation starts on `/bp-build`.
+The owner requested repository organization before E05. The approved source and test migration is implemented, verified, and reviewed on `main`; see [REFACTOR_LATEST.md](REFACTOR_LATEST.md) for scope and [../CONVENTIONS.md](../CONVENTIONS.md) for the rules. E01–E08 and E14 are complete local releases. The E15 plan revision `sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2` is owner-approved; implementation starts on `/bp-build`.
 
 ## Canonical artifacts
 

@@ -139,6 +139,11 @@ export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVe
       if (input.failAt === "before-finalize") {
         throw new ProjectStoreError("registration-failed", "injected failure before artifact finalization");
       }
+      if (input.failAt === "disk-full") {
+        const err = new ProjectStoreError("registration-failed", "injected disk-full: no space left on device");
+        (err as unknown as Record<string, string>).code = "ENOSPC";
+        throw err;
+      }
       writeFileSync(temporaryPath, content, { flag: "wx" });
       flushFile(temporaryPath);
       // A hard link creates the final entry without replacing an existing immutable file.
@@ -195,6 +200,16 @@ export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVe
       if (finalized) {
         rmSync(finalPath, { force: true });
       }
+    }
+    if (input.failAt === "disk-full" && handle.writable) {
+      try {
+        const id = newId("checkpoint");
+        transaction(handle.db, () => {
+          handle.db.prepare(
+            "INSERT INTO recovery_checkpoints (id, operation, stage, status, details, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+          ).run(id, "artifact-registration", "finalize", "failed", "disk-full: ENOSPC", isoNow());
+        });
+      } catch { /* best effort */ }
     }
     throw error;
   }

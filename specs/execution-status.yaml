@@ -9,7 +9,7 @@ development_status:
   e14: done
   e07: done
   e08: done
-  e15: backlog
+  e15: in_progress
   e16: backlog
   e09: backlog
   e10: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e08_complete
-active_epic: none
-active_story: none
-note: E08 was locally released on main under approved plan revision sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50. All four stories and 16 task checks passed; whole-epic review pass 2 passed after one correction. E01-E07 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e15_stories
+active_epic: e15
+active_story: e15s05
+note: E15 build completed on feat/e15-recovery-portability under approved plan revision sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2. All five stories and 20 task checks passed; review is next. E01-E08 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -405,6 +405,55 @@ epics:
         tasks_failing: 0
         verification_evidence: specs/verifications/e08s04-verify.yaml
     verification_evidence: specs/verifications/e08-verify.yaml
+  e15:
+    title: Recovery portability and controlled deletion
+    status: in_progress
+    stories:
+      e15s01:
+        title: Versioned Project Export with Integrity and Current Permissions
+        status: passing
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e15s03:
+        title: Crash, Disk-Full, Corruption and Concurrent-Launch Hardening
+        status: passing
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e15s02:
+        title: Backup, Restore, Migrations and Restore Drills
+        status: passing
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e15s04:
+        title: Controlled Deletion of Derived Content and Caches
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e15s05:
+        title: Stale Restore Cannot Reinstate Withdrawn Grants
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-12T11:04:00Z"

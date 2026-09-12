@@ -1,0 +1,46 @@
+story_id: e15s04
+spec: e15s04-controlled-deletion-of-derived-content-and-caches.md
+title: Controlled Deletion of Derived Content and Caches
+status: passing
+bcps: 6
+tasks:
+  - id: e15s04-t01
+    description: Unlink original, derived, cache and opted-in app-backup bytes and persist an evidence tombstone without prohibited text.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s04.*(tombstone|unlink|derived|cache|backup)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e15s04-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [deletion, privacy, AC-20]
+  - id: e15s04-t02
+    description: Block readiness and work dispatch that need the removed input, and require revalidation for new committed use.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s04.*(readiness|blocked|dispatch|revalidat)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e15s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [readiness, work, AC-20]
+  - id: e15s04-t03
+    description: Report not-recalled external disclosures without claiming provider recall, and prove no new security findings in affected deletion paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s04.*(recall|disclosure|not-recalled)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e15s04-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [privacy, disclosure, Security Review]
+  - id: e15s04-t04
+    description: Deny workers and forged owners, keep permitted decision history, and keep released E01-E08/E14 behavior passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s04.*(worker|forged|history|commitment|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: high
+    scenarios: [SC-e15s04-P1-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [authority, Security Review, regression]

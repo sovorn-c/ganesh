@@ -54,7 +54,7 @@ export interface ArtifactVersionInput {
   readonly dependencies?: readonly DependencyInput[];
   readonly relativePath?: string;
   readonly availability?: "available" | "unavailable";
-  readonly failAt?: "before-finalize" | "after-finalize-before-register" | "after-commit" | "after-register";
+  readonly failAt?: "before-finalize" | "after-finalize-before-register" | "after-commit" | "after-register" | "disk-full";
 }
 
 export interface ArtifactVersionRecord {
@@ -186,6 +186,7 @@ export interface RecoveryResult {
   readonly artifactStatuses: readonly ArtifactInspection[];
   readonly checkpointId: string | null;
   readonly detail: string;
+  readonly uncertainOperationIds?: readonly string[];
 }
 
 export class ProjectStoreError extends Error {

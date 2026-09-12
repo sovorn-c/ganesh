@@ -70,13 +70,24 @@ export function recoverProject(projectRoot: string): RecoveryResult {
     const schema = schemaStatus(handle);
     const temporaryFiles = listTemporaryArtifactFiles(handle);
     const canMutate = handle.writable && schema.status === "supported";
+
+    // Collect pending lifecycle operations regardless of mutability
+    let uncertainOperationIds: string[] = [];
+    try {
+      const pendingRows = handle.db.prepare(
+        "SELECT id FROM lifecycle_operations WHERE status IN ('pending', 'running', 'queued', 'waiting')"
+      ).all() as Array<Record<string, unknown>>;
+      uncertainOperationIds = pendingRows.map((r) => String(r.id));
+    } catch { /* lifecycle table may not exist */ }
+
     if (!canMutate) {
       return {
         status: handle.status,
         removedTemporaryFiles: [],
         artifactStatuses: artifactInspection(handle),
         checkpointId: null,
-        detail: `${schema.status} project opened for inspection; no recovery mutation was attempted`
+        detail: `${schema.status} project opened for inspection; no recovery mutation was attempted`,
+        uncertainOperationIds
       };
     }
 
@@ -95,7 +106,8 @@ export function recoverProject(projectRoot: string): RecoveryResult {
       removedTemporaryFiles: temporaryFiles,
       artifactStatuses: artifactInspection(handle),
       checkpointId,
-      detail: "last complete database state retained; temporary files reconciled"
+      detail: "last complete database state retained; temporary files reconciled",
+      uncertainOperationIds
     };
   } finally {
     handle.close();
