@@ -106,7 +106,7 @@ describe("E14 live work state and access paths", () => {
   it("e14s04 keyboard map and non-colour access paths qualify without hardware claims", () => {
     const bindings = keyboardMap();
     assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+enter")));
-    assert.ok(bindings.some((binding) => binding.keys.includes("alt+s")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+alt+s")));
     assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+alt+right")));
     assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+alt+left")));
     assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver", terminal: "Terminal.app" }).status, "supported");

@@ -125,6 +125,27 @@ describe("E14 workspace launcher", () => {
     assert.equal(existsSync(join(outside, ".ganesh")), false);
   });
 
+  it("e14s01 project-local Pi state rejects symlinked store paths", async () => {
+    const storeRoot = fixtureRoot();
+    const storeOutside = fixtureRoot();
+    symlinkSync(storeOutside, join(storeRoot, ".ganesh"), "dir");
+    const storeRuntime = new FakeRuntimePort();
+    const storeResult = await runWorkspace(request(storeRoot, storeRuntime));
+    assert.equal(storeResult.status, "failed");
+    assert.equal(storeResult.error?.code, "invalid-project");
+    assert.equal(storeRuntime.options.length, 0);
+
+    const agentRoot = fixtureRoot();
+    mkdirSync(join(agentRoot, ".ganesh"));
+    const agentOutside = fixtureRoot();
+    symlinkSync(agentOutside, join(agentRoot, ".ganesh", "pi"), "dir");
+    const agentRuntime = new FakeRuntimePort();
+    const agentResult = await runWorkspace(request(agentRoot, agentRuntime));
+    assert.equal(agentResult.status, "failed");
+    assert.equal(agentResult.error?.code, "invalid-project");
+    assert.equal(agentRuntime.options.length, 0);
+  });
+
   it("e14s01 normal workspace return leaves the project handle available to the caller", async () => {
     const root = fixtureRoot();
     const runtime = new FakeRuntimePort();

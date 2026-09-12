@@ -97,7 +97,7 @@ describe("E14 steering and confirmation", () => {
       "ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-reject", "ganesh-defer",
       "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel"
     ]);
-    assert.deepEqual(shortcuts, ["ctrl+enter", "alt+h", "alt+a", "alt+y", "alt+n", "alt+d", "alt+i", "alt+v", "alt+c", "alt+s", "alt+x", "ctrl+alt+right", "ctrl+alt+left"]);
+    assert.deepEqual(shortcuts, ["ctrl+enter", "ctrl+alt+h", "ctrl+alt+a", "ctrl+alt+y", "ctrl+alt+n", "ctrl+alt+d", "ctrl+alt+i", "ctrl+alt+v", "ctrl+alt+c", "ctrl+alt+s", "ctrl+alt+x", "ctrl+alt+right", "ctrl+alt+left"]);
     const shortcutHandlers = new Map<string, (ctx: ExtensionContext) => void | Promise<void>>();
     registerWorkspaceCommands({
       registerCommand: () => undefined,
@@ -110,12 +110,15 @@ describe("E14 steering and confirmation", () => {
         notify: (message: string) => { shortcutNotifications.push(message); }
       }
     } as unknown as ExtensionContext;
-    await shortcutHandlers.get("alt+h")?.(shortcutContext);
-    await shortcutHandlers.get("alt+s")?.(shortcutContext);
+    for (const shortcut of shortcuts) {
+      await shortcutHandlers.get(shortcut)?.(shortcutContext);
+    }
     await shortcutHandlers.get("ctrl+alt+right")?.(shortcutContext);
+    await shortcutHandlers.get("ctrl+alt+left")?.(shortcutContext);
     assert.ok(shortcutNotifications.some((message) => /ganesh-help/.test(message)));
     assert.ok(shortcutNotifications.some((message) => /Status: no-selection/.test(message)));
-    assert.ok(shortcutNotifications.some((message) => /Focused workspace control/.test(message)));
+    assert.ok(shortcutNotifications.some((message) => /Focused workspace control: help/.test(message)));
+    assert.ok(shortcutNotifications.some((message) => /Focused workspace control: intake\.continue/.test(message)));
     assert.equal(listCommitments(session.handle).length, 0);
     session.handle.close();
   });

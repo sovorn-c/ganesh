@@ -33,7 +33,7 @@
 
 1. Simplified a redundant launcher resolution condition.
 2. Closed the CLI project handle after normal TUI exit, not only `--print-launch` smoke mode.
-3. Replaced a test-only `as unknown as ExtensionAPI` cast with a narrow registrar interface.
+3. Kept the Pi-facing registrar boundary narrow; existing test-only ExtensionContext casts remain isolated to injected fake UI contexts.
 4. Added story/scenario traceability tags and per-story verification evidence.
 
 ## Independent review correction cycle

@@ -143,16 +143,16 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
 
   const shortcuts = [
     ["ctrl+enter", "intake"],
-    ["alt+h", "help"],
-    ["alt+a", "alternatives"],
-    ["alt+y", "approved"],
-    ["alt+n", "rejected"],
-    ["alt+d", "deferred"],
-    ["alt+i", "inspect"],
-    ["alt+v", "viewer"],
-    ["alt+c", "cancel"],
-    ["alt+s", "status"],
-    ["alt+x", "access"],
+    ["ctrl+alt+h", "help"],
+    ["ctrl+alt+a", "alternatives"],
+    ["ctrl+alt+y", "approved"],
+    ["ctrl+alt+n", "rejected"],
+    ["ctrl+alt+d", "deferred"],
+    ["ctrl+alt+i", "inspect"],
+    ["ctrl+alt+v", "viewer"],
+    ["ctrl+alt+c", "cancel"],
+    ["ctrl+alt+s", "status"],
+    ["ctrl+alt+x", "access"],
     ["ctrl+alt+right", "focus-next"],
     ["ctrl+alt+left", "focus-previous"]
   ] as const;

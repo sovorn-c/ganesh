@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, lstatSync, mkdirSync, realpathSync } from "node:fs";
+import { isAbsolute, join, relative } from "node:path";
 import { createOwnerCapability } from "../authority/capability-broker.js";
 import { createProject, openProject } from "../project/project-store.js";
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
@@ -30,6 +30,46 @@ function hasIncompleteStore(root: string): boolean {
   return existsSync(join(root, STORE_DIRECTORY)) && !projectExists(root);
 }
 
+function pathWithin(root: string, candidate: string): boolean {
+  const remainder = relative(root, candidate);
+  return remainder === "" || (!remainder.startsWith("..") && !isAbsolute(remainder));
+}
+
+function rejectSymlink(path: string, description: string): void {
+  try {
+    if (lstatSync(path).isSymbolicLink()) {
+      throw new ProjectStoreError("invalid-project", `${description} must not be a symlink`);
+    }
+  } catch (error) {
+    if (error instanceof ProjectStoreError) {
+      throw error;
+    }
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw new ProjectStoreError("invalid-project", `cannot inspect ${description}`);
+    }
+  }
+}
+
+function validateProjectStoreBoundary(root: string): void {
+  const storePath = join(root, STORE_DIRECTORY);
+  rejectSymlink(storePath, "project store directory");
+  rejectSymlink(join(storePath, "pi"), "project Pi state directory");
+}
+
+function prepareAgentDirectory(root: string): string {
+  const storePath = join(root, STORE_DIRECTORY);
+  const agentDir = join(storePath, "pi");
+  validateProjectStoreBoundary(root);
+  mkdirSync(agentDir, { recursive: true });
+  const projectRealPath = realpathSync(root);
+  const storeRealPath = realpathSync(storePath);
+  const agentRealPath = realpathSync(agentDir);
+  if (!pathWithin(projectRealPath, storeRealPath) || !pathWithin(storeRealPath, agentRealPath)) {
+    throw new ProjectStoreError("invalid-project", "project Pi state must remain inside the project store");
+  }
+  return agentDir;
+}
+
 function errorResult(error: unknown): WorkspaceLaunchResult {
   if (error instanceof ProjectStoreError && error.code === "invalid-project") {
     return failure("invalid-project", error.message);
@@ -46,6 +86,11 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
     return failure(folder.code ?? "launch-failed", folder.message);
   }
   const root = folder.path;
+  try {
+    validateProjectStoreBoundary(root);
+  } catch (error) {
+    return errorResult(error);
+  }
   if (hasIncompleteStore(root)) {
     return failure("invalid-project", "project store exists but its database is missing");
   }
@@ -66,8 +111,7 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
       status = "created";
     }
     const ownerCapability = createOwnerCapability(handle.project.ownerId);
-    const agentDir = join(root, STORE_DIRECTORY, "pi");
-    mkdirSync(agentDir, { recursive: true });
+    const agentDir = prepareAgentDirectory(root);
     const runtimeOptions: WorkspaceRuntimeOptions = {
       cwd: root,
       agentDir,
