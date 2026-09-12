@@ -317,7 +317,7 @@ epics:
     verification_evidence: specs/verifications/e14-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T01:12:00Z"
+  generated_at: "2026-09-12T01:24:03Z"
   rationale: "All 28 stories are traceable with no dark stories; E14 has passing per-story verification evidence across 16 task checks and 114 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
   heuristic_ratio: 0.22
   downgrade_applied: false
