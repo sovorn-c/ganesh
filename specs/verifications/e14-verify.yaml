@@ -1,7 +1,7 @@
 ---
 epic_id: e14
 title: Accessible terminal research workspace
-verified_at: "2026-09-12T02:59:32Z"
+verified_at: "2026-09-12T03:07:00Z"
 verifier: local-release-gate
 branch: feat/e14-terminal-workspace
 runtime: Node.js 24.21.0
@@ -35,7 +35,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 121/121 tests passed, including 23 E14 workspace tests
+    evidence: 122/122 tests passed, including 24 E14 workspace tests
   typecheck:
     passed: true
     command: npm run typecheck
@@ -55,7 +55,7 @@ checks:
 summary:
   task_verifications: 16
   task_verifications_passing: 16
-  tests_passing: 121
+  tests_passing: 122
   review_started: true
   release_started: false
   production_readiness_claimed: false

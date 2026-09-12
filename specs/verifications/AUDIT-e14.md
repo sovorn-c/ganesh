@@ -8,7 +8,7 @@
 ## Verification
 
 - 16/16 E14 task command patterns passed under Node.js 24.21.0; current correction gates also passed.
-- `npm test`: 121/121 passed.
+- `npm test`: 122/122 passed.
 - `npm run build`: passed.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
