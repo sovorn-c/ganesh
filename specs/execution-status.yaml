@@ -19,9 +19,9 @@ development_status:
   e17: backlog
   e18: backlog
 planning_level: e14_complete
-active_epic: e14
+active_epic: none
 active_story: none
-note: E14 correction cycle completed and dual independent iteration-4 review passed on the authorized branch. Local validation and archive/merge are complete; production readiness, remote CI, publishing and deployment remain unclaimed.
+note: E14 correction cycle completed and dual independent iteration-4 review passed before local merge to main. Local validation and archive/merge are complete; production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
