@@ -22,6 +22,11 @@ import type {
 
 const STATEMENT_KINDS: readonly EvidenceStatementKind[] = ["author-claim", "measured-finding", "inference", "human-interpretation"];
 
+function recordOf(value: object): Record<string, unknown> {
+  const entries: Array<readonly [string, unknown]> = Object.entries(value).map(([key, current]) => [key, current]);
+  return Object.fromEntries(entries);
+}
+
 export function evidenceSchemaAvailable(handle: ProjectHandle): boolean {
   const row = handle.db.prepare("SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = 'evidence_items'").get();
   return row !== undefined;
@@ -105,11 +110,11 @@ function locationSnapshot(handle: ProjectHandle, sourceVersionId: string, locati
     }
     const locator = listSourceLocators(handle, sourceVersionId).find((candidate) => candidate.id === location.id);
     if (locator === undefined) {throw new ProjectStoreError("location-not-found", "source locator was not found");}
-    return { ...locator } as unknown as Record<string, unknown>;
+    return recordOf(locator);
   }
   const segment = listSourceSegments(handle, sourceVersionId).find((candidate) => candidate.id === location.id);
   if (segment === undefined) {throw new ProjectStoreError("location-not-found", "source segment was not found");}
-  return { ...segment.locator, segmentId: segment.id } as unknown as Record<string, unknown>;
+  return recordOf({ ...segment.locator, segmentId: segment.id });
 }
 
 export function readLocatedExcerpt(handle: ProjectHandle, capability: unknown, request: LocatedExcerptRequest): LocatedExcerptResult {
@@ -148,7 +153,7 @@ export function readLocatedExcerpt(handle: ProjectHandle, capability: unknown, r
       return deniedExcerpt(request.sourceVersionId, location, "denied: locator byte span is invalid", limitations);
     }
     const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes.slice(start, end));
-    return { status: "allowed", sourceVersionId: request.sourceVersionId, location, text, locator: { ...locator } as unknown as Record<string, unknown>, limitations };
+    return { status: "allowed", sourceVersionId: request.sourceVersionId, location, text, locator: recordOf(locator), limitations };
   } catch {
     return deniedExcerpt(request.sourceVersionId, location, "denied: locator text is not valid UTF-8", limitations);
   }

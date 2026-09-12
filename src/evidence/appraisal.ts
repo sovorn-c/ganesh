@@ -4,7 +4,7 @@ import { isOwnerCapability, isWorkerCapability } from "../authority/capability-b
 import { getSourceVersion } from "../sources/source-store.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
 import { transaction } from "../persistence/schema.js";
-import { buildEvidenceMatrix } from "./claim-store.js";
+import { buildEvidenceMatrix } from "./claim-matrix-store.js";
 import type { EvidenceMatrix } from "./claim-types.js";
 
 export type MethodKind = "reflexive-thematic-analysis" | "quantitative-dependent-observations" | "unspecified";

@@ -4,10 +4,8 @@ import { isOwnerCapability, isWorkerCapability } from "../authority/capability-b
 import { getSourceVersion, listSourceRecords } from "../sources/source-store.js";
 import { inspectSource } from "../sources/source-access.js";
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
-import { recordSharedSourceCorrection } from "../branches/dependency-store.js";
 import { payloadHash } from "../persistence/history-store.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
-import { transaction } from "../persistence/schema.js";
 import { getEvidenceItem, listEvidenceItems } from "./evidence-store.js";
 import type { EvidenceItem } from "./evidence-types.js";
 import type {
@@ -23,12 +21,7 @@ import type {
   ClaimReassessment,
   ClaimRequest,
   ClaimSupportStatus,
-  EvidenceMatrix,
-  EvidenceMatrixRequest,
-  EvidenceMatrixRow,
   LinkClaimEvidenceRequest,
-  ReassessmentResult,
-  SourceNoticeRequest
 } from "./claim-types.js";
 
 export function claimSchemaAvailable(handle: ProjectHandle): boolean {
@@ -39,18 +32,18 @@ export function assertClaimSchema(handle: ProjectHandle): void {
   if (!claimSchemaAvailable(handle)) {throw new ProjectStoreError("evidence-schema-unavailable", "E07 claim tables are unavailable in this project");}
 }
 
-function json<T>(value: unknown, fallback: T): T {
+export function json<T>(value: unknown, fallback: T): T {
   try { return JSON.parse(String(value)) as T; } catch { return fallback; }
 }
 
-function allowed(handle: ProjectHandle, capability: unknown, operations: readonly string[]): boolean {
+export function allowed(handle: ProjectHandle, capability: unknown, operations: readonly string[]): boolean {
   if (isOwnerCapability(capability)) {return capability.ownerId === handle.project.ownerId;}
   return isWorkerCapability(capability)
     && capability.projectId === handle.project.id
     && operations.every((operation) => capability.canPerform(operation));
 }
 
-function claimFromRow(row: Record<string, unknown>): ClaimRecord {
+export function claimFromRow(row: Record<string, unknown>): ClaimRecord {
   return {
     id: stringValue(row.id, "claim id"),
     statement: stringValue(row.statement, "claim statement"),
@@ -64,7 +57,7 @@ function claimFromRow(row: Record<string, unknown>): ClaimRecord {
   };
 }
 
-function linkFromRow(row: Record<string, unknown>, evidence?: EvidenceItem): ClaimEvidenceLink {
+export function linkFromRow(row: Record<string, unknown>, evidence?: EvidenceItem): ClaimEvidenceLink {
   return {
     id: stringValue(row.id, "claim link id"),
     claimId: stringValue(row.claim_id, "claim link claim id"),
@@ -95,7 +88,7 @@ function verificationFromRow(row: Record<string, unknown>): CitationVerification
   };
 }
 
-function reassessmentFromRow(row: Record<string, unknown>): ClaimReassessment {
+export function reassessmentFromRow(row: Record<string, unknown>): ClaimReassessment {
   return {
     id: stringValue(row.id, "reassessment id"),
     claimId: stringValue(row.claim_id, "reassessment claim id"),
@@ -298,74 +291,6 @@ export function listClaims(handle: ProjectHandle, capability: unknown): readonly
   return (handle.db.prepare("SELECT * FROM claims ORDER BY created_at, id").all() as Array<Record<string, unknown>>).map(claimFromRow);
 }
 
-function reassessmentsFor(handle: ProjectHandle, claimId: string): readonly ClaimReassessment[] {
+export function reassessmentsFor(handle: ProjectHandle, claimId: string): readonly ClaimReassessment[] {
   return (handle.db.prepare("SELECT * FROM claim_reassessments WHERE claim_id = ? ORDER BY created_at, id").all(claimId) as Array<Record<string, unknown>>).map(reassessmentFromRow);
-}
-
-export function listClaimReassessments(handle: ProjectHandle, claimId: string): readonly ClaimReassessment[];
-export function listClaimReassessments(handle: ProjectHandle, capability: unknown, claimId: string): readonly ClaimReassessment[];
-export function listClaimReassessments(handle: ProjectHandle, capabilityOrClaimId: unknown, maybeClaimId?: string): readonly ClaimReassessment[] {
-  assertClaimSchema(handle);
-  const claimId = typeof capabilityOrClaimId === "string" ? capabilityOrClaimId : maybeClaimId;
-  if (claimId === undefined) {throw new ProjectStoreError("invalid-claim", "claim id is required");}
-  if (typeof capabilityOrClaimId !== "string" && !allowed(handle, capabilityOrClaimId, ["claim:inspect"]) && !allowed(handle, capabilityOrClaimId, ["evidence:inspect"])) {throw new ProjectStoreError("forbidden", "claim inspection requires a capability");}
-  return reassessmentsFor(handle, claimId);
-}
-
-export function buildEvidenceMatrix(handle: ProjectHandle, capability: unknown, request: EvidenceMatrixRequest = {}): EvidenceMatrix {
-  assertClaimSchema(handle);
-  if (!allowed(handle, capability, ["claim:inspect"]) && !allowed(handle, capability, ["evidence:inspect"])) {throw new ProjectStoreError("forbidden", "matrix inspection requires claim:inspect capability");}
-  const all = listClaims(handle, capability);
-  const selected = request.claimIds === undefined ? all : all.filter((claim) => request.claimIds?.includes(claim.id));
-  const rows: EvidenceMatrixRow[] = selected.map((claim) => {
-    const links = (handle.db.prepare("SELECT * FROM claim_evidence_links WHERE claim_id = ? ORDER BY created_at, id").all(claim.id) as Array<Record<string, unknown>>).map((row) => linkFromRow(row, getEvidenceItem(handle, capability, String(row.evidence_item_id))));
-    const supporting = links.filter((link) => link.role === "supporting");
-    const challenging = links.filter((link) => link.role === "challenging");
-    const limitations = [...new Set([
-      ...links.flatMap((link) => [
-        ...(link.evidence?.limitations ?? []),
-        ...(link.qualification === "" ? [] : [link.qualification]),
-        ...(link.verificationStatus === "unverified" || link.verificationStatus === "substantively-supported" ? [] : [`verification-${link.verificationStatus}`])
-      ]),
-      ...((handle.db.prepare("SELECT limitations FROM citation_verifications WHERE claim_id = ?").all(claim.id) as Array<Record<string, unknown>>).flatMap((row) => json<string[]>(row.limitations, [])))
-    ])];
-    const disagreements: Record<string, unknown>[] = [];
-    if (supporting.length > 0 && challenging.length > 0) {disagreements.push({ kind: "supporting-and-challenging", supportingCount: supporting.length, challengingCount: challenging.length });}
-    return { claim, supporting, challenging, disagreements, limitations, reassessments: [...reassessmentsFor(handle, claim.id)] };
-  });
-  return { rows, generatedAt: isoNow() };
-}
-
-export function applySourceNotice(handle: ProjectHandle, capability: unknown, request: SourceNoticeRequest): ReassessmentResult {
-  assertWritable(handle);
-  assertClaimSchema(handle);
-  if (!allowed(handle, capability, ["claim:record", "evidence:inspect"])) {throw new ProjectStoreError("forbidden", "source notice requires claim:record and evidence:inspect capability");}
-  const notice = request.notice ?? request.message ?? "";
-  if (notice.trim() === "") {throw new ProjectStoreError("invalid-notice", "source notice must not be empty");}
-  getSourceVersion(handle, request.sourceVersionId);
-  const prior = handle.db.prepare("SELECT * FROM claim_reassessments WHERE notice_command_id = ? ORDER BY claim_id").all(request.commandId) as Array<Record<string, unknown>>;
-  if (prior.length > 0) {
-    return { status: "duplicate", commandId: request.commandId, sourceVersionId: request.sourceVersionId, claimIds: prior.map((row) => String(row.claim_id)), reassessments: prior.map(reassessmentFromRow) };
-  }
-  recordSharedSourceCorrection(handle, {
-    sourceVersionId: request.sourceVersionId,
-    notice: `${request.kind ?? "correction"}: ${notice}`,
-    commandId: request.commandId,
-    actor: request.actor
-  });
-  const claimRows = handle.db.prepare("SELECT DISTINCT c.* FROM claims c JOIN claim_evidence_links l ON l.claim_id = c.id JOIN evidence_items e ON e.id = l.evidence_item_id WHERE e.source_version_id = ? ORDER BY c.id").all(request.sourceVersionId) as Array<Record<string, unknown>>;
-  const reassessments: ClaimReassessment[] = [];
-  transaction(handle.db, () => {
-    for (const row of claimRows) {
-      const claim = claimFromRow(row);
-      const reassessment: ClaimReassessment = {
-        id: newId("reassessment"), claimId: claim.id, sourceVersionId: request.sourceVersionId, noticeCommandId: request.commandId,
-        previousSupport: claim.currentSupport, currentSupport: "needs-reassessment", reason: notice, createdAt: isoNow()
-      };
-      handle.db.prepare("INSERT INTO claim_reassessments (id, claim_id, source_version_id, notice_command_id, previous_support, current_support, reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(reassessment.id, reassessment.claimId, reassessment.sourceVersionId, reassessment.noticeCommandId, reassessment.previousSupport, reassessment.currentSupport, reassessment.reason, reassessment.createdAt);
-      handle.db.prepare("UPDATE claims SET current_support = 'needs-reassessment', updated_at = ? WHERE id = ?").run(reassessment.createdAt, claim.id);
-      reassessments.push(reassessment);
-    }
-  });
-  return { status: "applied", commandId: request.commandId, sourceVersionId: request.sourceVersionId, claimIds: reassessments.map((item) => item.claimId), reassessments };
 }

@@ -104,4 +104,5 @@ export * from "./evidence/evidence-types.js";
 export * from "./evidence/evidence-store.js";
 export * from "./evidence/claim-types.js";
 export * from "./evidence/claim-store.js";
+export * from "./evidence/claim-matrix-store.js";
 export * from "./evidence/appraisal.js";
