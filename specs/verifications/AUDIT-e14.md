@@ -7,8 +7,8 @@
 
 ## Verification
 
-- 16/16 E14 task command patterns passed under Node.js 24.21.0.
-- `npm test`: 114/114 passed.
+- 16/16 E14 task command patterns passed under Node.js 24.21.0; current correction gates also passed.
+- `npm test`: 121/121 passed.
 - `npm run build`: passed.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
@@ -24,7 +24,7 @@
 - Correctness: PASS — launcher/intake, steering, evidence, live-work status and access-path behavior are covered by public-boundary tests.
 - Security: PASS — owner/worker authority, path containment, source handoff, argument-vector spawning and project-local runtime state were reviewed; no high-confidence new finding.
 - Scope: PASS — E14 workspace adapters remain thin and reuse E02-E06 authorities; no provider spend, web UI, second TUI toolkit, or global Pi mutation added.
-- Types and safety: PASS — no new `any`, suppression directives, or unsafe casts; workspace command registration accepts a narrow injected registrar interface.
+- Types and safety: PASS — no new `any` or suppression directives; workspace command registration accepts a narrow injected registrar interface. Existing test-only casts remain isolated to Pi test context construction.
 - Test quality: PASS — tests use injected runtime/TUI/viewer fakes and do not invoke `InteractiveMode.run()`.
 - Maintainability: PASS — workspace responsibilities are separated into focused modules; all changed workspace source files are below 300 lines.
 - Resource lifecycle: PASS — CLI closes the project handle after both TTY and non-TTY workspace runs.
@@ -38,8 +38,8 @@
 
 ## Independent review correction cycle
 
-The initial self-audit PASS was superseded by two independent read-only reviews. They blocked the release for project-extension trust, Pi process-exit cleanup, unreachable live status and access/keyboard paths, duplicate registered confirmation command IDs, symlinked-parent containment, contract cancellation reachability, and stale verification targets. The authorized correction cycle addresses those findings on `feat/e14-terminal-workspace`; final release evidence must be regenerated after the correction review.
+The initial self-audit PASS was superseded by two independent read-only reviews. They blocked the release for project-extension trust, Pi process-exit cleanup, unreachable live status and access/keyboard paths, duplicate registered confirmation command IDs, symlinked-parent containment, contract cancellation reachability, and stale verification targets. The authorized correction cycle addresses those findings on `feat/e14-terminal-workspace`; independent iteration-3 review is pending.
 
 ## Verdict
 
-**CORRECTION REQUIRED.** The initial implementation review was not sufficient for final release. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.
+**INDEPENDENT REVIEW PENDING.** Current local validation is complete; final release remains gated on both independent iteration-3 reviewers. Production readiness, publishing, deployment, remote CI, and scholarly validity are not claimed.
