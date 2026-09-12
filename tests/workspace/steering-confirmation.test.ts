@@ -97,7 +97,7 @@ describe("E14 steering and confirmation", () => {
       "ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-reject", "ganesh-defer",
       "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel"
     ]);
-    assert.deepEqual(shortcuts, ["?", "a", "y", "n", "d", "i", "v", "c", "s", "x"]);
+    assert.deepEqual(shortcuts, ["ctrl+enter", "ctrl+h", "ctrl+a", "ctrl+y", "ctrl+n", "ctrl+d", "ctrl+i", "ctrl+v", "ctrl+x", "ctrl+s", "ctrl+shift+x"]);
     const shortcutHandlers = new Map<string, (ctx: ExtensionContext) => void | Promise<void>>();
     registerWorkspaceCommands({
       registerCommand: () => undefined,
@@ -110,8 +110,8 @@ describe("E14 steering and confirmation", () => {
         notify: (message: string) => { shortcutNotifications.push(message); }
       }
     } as unknown as ExtensionContext;
-    await shortcutHandlers.get("?")?.(shortcutContext);
-    await shortcutHandlers.get("s")?.(shortcutContext);
+    await shortcutHandlers.get("ctrl+h")?.(shortcutContext);
+    await shortcutHandlers.get("ctrl+s")?.(shortcutContext);
     assert.ok(shortcutNotifications.some((message) => /ganesh-help/.test(message)));
     assert.ok(shortcutNotifications.some((message) => /Status: no-selection/.test(message)));
     assert.equal(listCommitments(session.handle).length, 0);
@@ -192,6 +192,8 @@ describe("E14 steering and confirmation", () => {
     updateBranchReference(session.handle, { branchId: branch.id, logicalId: "question", artifactVersionId: alternative.id, expectedVersion: 0, commandId: "alternative-update" });
     const help = presentHelp(session);
     assert.match(help.text, /ganesh-confirm/);
+    assert.match(help.text, /ganesh-reject/);
+    assert.match(help.text, /ganesh-defer/);
     assert.match(help.text, /ganesh-viewer/);
     assert.match(help.text, /ganesh-status/);
     assert.match(help.text, /Keyboard shortcuts/);

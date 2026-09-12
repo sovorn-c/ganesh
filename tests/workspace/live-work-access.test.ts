@@ -4,6 +4,7 @@ import { strict as assert } from "node:assert";
 import { afterEach, describe, it } from "node:test";
 import {
   acceptSubmission,
+  authorizeContract,
   createOwnerCapability,
   dispatchRun,
   getRun,
@@ -11,6 +12,7 @@ import {
   listRuns,
   queueRun,
   pauseRun,
+  reviseContract,
   qualifyAccessPath,
   keyboardMap,
   type ProjectHandle
@@ -103,14 +105,31 @@ describe("E14 live work state and access paths", () => {
 
   it("e14s04 keyboard map and non-colour access paths qualify without hardware claims", () => {
     const bindings = keyboardMap();
-    assert.ok(bindings.some((binding) => binding.keys.includes("?")));
-    assert.ok(bindings.some((binding) => binding.keys.includes("s")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+enter")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("ctrl+s")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("tab")));
+    assert.ok(bindings.some((binding) => binding.keys.includes("shift+tab")));
     assert.equal(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver", terminal: "Terminal.app" }).status, "supported");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: false, utf8: true }).reason, "colour-only-status");
     assert.deepEqual(qualifyAccessPath({ keyboard: false, textStatus: true, utf8: true }).reason, "no-keyboard");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: false }).reason, "non-utf8-terminal");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "Other", terminal: "Terminal.app" }).reason, "unsupported-screen-reader-pairing");
     assert.deepEqual(qualifyAccessPath({ keyboard: true, textStatus: true, utf8: true, textTerminal: true, keyboardMapComplete: true, pointerOnly: false, screenReader: "VoiceOver" }).reason, "unsupported-screen-reader-pairing");
+  });
+
+  it("e14s04 contract version status does not mix run histories", () => {
+    const fixture = projectFixture();
+    fixtures.push(fixture);
+    const owner = createOwnerCapability("owner-test");
+    const input = classifiedInput(fixture.handle);
+    const firstContract = contract(fixture.handle, owner, [input.id]);
+    const firstRun = queueRun(fixture.handle, owner, { contractId: firstContract.id, commandId: "workspace-version-1", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const revised = reviseContract(fixture.handle, owner, { contractId: firstContract.id, version: firstContract.version });
+    const secondContract = authorizeContract(fixture.handle, owner, { contractId: revised.id, version: revised.version });
+    const secondRun = queueRun(fixture.handle, owner, { contractId: secondContract.id, commandId: "workspace-version-2", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    const session = workspaceSession(fixture.handle);
+    assert.equal(presentWorkStatus(session, { contractId: firstContract.id, contractVersion: firstContract.version }).runId, firstRun.id);
+    assert.equal(presentWorkStatus(session, { contractId: secondContract.id, contractVersion: secondContract.version }).runId, secondRun.id);
   });
 
   it("e14s04 empty status selects the latest live work item", () => {

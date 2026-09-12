@@ -27,6 +27,8 @@ const HELP_ACTIONS: readonly HelpAction[] = [
   { command: "/ganesh-help", label: "Help", description: "show workspace actions and keyboard guidance" },
   { command: "/ganesh-alternatives", label: "Alternatives", description: "inspect branch candidates and impacts without adopting them" },
   { command: "/ganesh-confirm", label: "Confirm exact version", description: "review and confirm one displayed decision packet" },
+  { command: "/ganesh-reject", label: "Reject exact version", description: "record an explicit owner rejection for one displayed decision packet" },
+  { command: "/ganesh-defer", label: "Defer exact version", description: "record an explicit owner deferral for one displayed decision packet" },
   { command: "/ganesh-inspect", label: "Inspect evidence", description: "read source access, extraction, integrity and locator limits" },
   { command: "/ganesh-viewer", label: "Open local viewer", description: "request an authorized native viewer for saved evidence" },
   { command: "/ganesh-status", label: "Work status", description: "show readable status and remaining budget" },

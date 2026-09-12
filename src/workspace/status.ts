@@ -48,9 +48,10 @@ function latestRun(runs: readonly WorkRunRecord[]): WorkRunRecord | undefined {
 
 function selectedRun(session: WorkspaceSession, request: WorkStatusRequest): WorkRunRecord | undefined {
   if (request.runId !== undefined) {
-    return getRun(session.handle, request.runId) ?? undefined;
+    const run = getRun(session.handle, request.runId) ?? undefined;
+    return run !== undefined && (request.contractVersion === undefined || run.contractVersion === request.contractVersion) ? run : undefined;
   }
-  const runs = listRuns(session.handle, request.contractId);
+  const runs = listRuns(session.handle, request.contractId).filter((run) => request.contractVersion === undefined || run.contractVersion === request.contractVersion);
   const active = runs.filter((run) => run.status === "queued" || run.status === "running" || run.status === "waiting-for-human" || run.status === "blocked");
   return latestRun(active.length > 0 ? active : runs);
 }

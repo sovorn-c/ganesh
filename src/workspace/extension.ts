@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionContext, ExtensionCommandContext, InlineExtension } from "@earendil-works/pi-coding-agent";
 import type { DecisionAction } from "../decisions/decision-types.js";
 import { qualifyAccessPath } from "./access-path.js";
+import { keyboardMapComplete } from "./keyboard.js";
 import { confirmExactVersion } from "./confirmation.js";
 import { openLocalViewer, presentInspection, nativeLocalViewerPort } from "./evidence.js";
 import { cancelFromWorkspace, presentWorkStatus } from "./status.js";
@@ -19,7 +20,7 @@ function terminalAccessPath() {
     keyboard: process.stdin.isTTY === true,
     textStatus: true,
     utf8: /utf-?8/i.test(locale),
-    keyboardMapComplete: true,
+    keyboardMapComplete: keyboardMapComplete(),
     textTerminal: process.stdout.isTTY === true,
     pointerOnly: false,
     ...(process.env.TERM === undefined ? {} : { terminal: process.env.TERM })
@@ -131,21 +132,26 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
   });
 
   const shortcuts = [
-    ["?", "help"],
-    ["a", "alternatives"],
-    ["y", "approved"],
-    ["n", "rejected"],
-    ["d", "deferred"],
-    ["i", "inspect"],
-    ["v", "viewer"],
-    ["c", "cancel"],
-    ["s", "status"],
-    ["x", "access"]
+    ["ctrl+enter", "intake"],
+    ["ctrl+h", "help"],
+    ["ctrl+a", "alternatives"],
+    ["ctrl+y", "approved"],
+    ["ctrl+n", "rejected"],
+    ["ctrl+d", "deferred"],
+    ["ctrl+i", "inspect"],
+    ["ctrl+v", "viewer"],
+    ["ctrl+x", "cancel"],
+    ["ctrl+s", "status"],
+    ["ctrl+shift+x", "access"]
   ] as const;
   for (const [shortcut, action] of shortcuts) {
     pi.registerShortcut(shortcut, {
       description: `Run the Ganesh ${action} action`,
       handler: async (ctx) => {
+        if (action === "intake") {
+          ctx.ui.notify("Current project records are ready; no stage pipeline is required.", "info");
+          return;
+        }
         if (action === "help") {
           ctx.ui.notify(presentHelp(session).text, "info");
           return;
