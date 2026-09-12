@@ -66,7 +66,7 @@ export * from "./sources/structured-parser.js";
 export * from "./sources/source-matching.js";
 export * from "./sources/source-access.js";
 export { FULL_ACCESS_NOTICE } from "./runtime/preflight-constants.js";
-export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema } from "./persistence/schema.js";
+export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema } from "./persistence/schema.js";
 export * from "./decisions/decision-types.js";
 export * from "./decisions/decision-store.js";
 export * from "./decisions/decision-lifecycle-store.js";
@@ -100,3 +100,18 @@ export * from "./workspace/evidence.js";
 export * from "./workspace/status.js";
 export * from "./workspace/keyboard.js";
 export * from "./workspace/access-path.js";
+export * from "./evidence/evidence-types.js";
+export {
+  evidenceSchemaAvailable,
+  assertEvidenceSchema,
+  readLocatedExcerpt,
+  inspectEvidenceOperation,
+  recordEvidenceItem,
+  ingestEvidenceCandidate,
+  getEvidenceItem,
+  listEvidenceItems
+} from "./evidence/evidence-store.js";
+export * from "./evidence/claim-types.js";
+export * from "./evidence/claim-store.js";
+export * from "./evidence/claim-matrix-store.js";
+export * from "./evidence/appraisal.js";

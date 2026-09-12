@@ -85,3 +85,20 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Isolation:** Pi state is bound to `<project>/.ganesh/pi`; the workspace does not mutate global `~/.pi` configuration. Runtime loading sets `noExtensions: true` and supplies only the inline Ganesh extension. Runtime and TUI dependencies are injected in tests, with no live provider spend.
 - **Correction state:** The initial self-audit was superseded by independent reviews that identified reachable-status/keyboard wiring, duplicate command IDs, process lifecycle, project-extension trust and symlinked-parent gaps. The authorized correction cycle adds explicit non-conflicting Pi shortcuts and commands, stable confirmation IDs, process-exit cleanup, `noExtensions`, realpath containment for both project store and Pi state, and fail-closed access qualification.
 - **Verdict:** Dual independent iteration-4 review PASS; no unresolved high-confidence security finding identified. This is a local implementation gate, not a production-readiness or scholarly-validity claim; remote CI, publishing, deployment and the separate `release-check` gate remain outside this local release.
+
+## e07 security review — local build spot check
+
+- **Scope:** E07 evidence items, claim records, citation verification, matrix/reassessment overlays, appraisal/synthesis persistence, additive schema initialization, public exports, and capability/project boundaries on `feat/e07-evidence-claims` at `fb3b7be`.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev` reported `found 0 vulnerabilities`.
+- **Authority and persistence:** E07 recording, inspection, linking, notice, appraisal, and synthesis paths require the existing owner/worker capability checks and project binding. Changed SQL uses prepared statements with bound values; schema DDL is developer-authored and additive.
+- **Input and execution boundaries:** The changed E07 source imports no shell, network client, dynamic code execution, or unsafe deserializer. Credential-shaped literal scanning found no matches. The repository's documented CWE fixture-sync helper is absent, so that auxiliary preflight could not run; no high-confidence finding was identified by the local changed-file spot check.
+- **Process limitation:** Independent `pi-fork` review was not run because the `pi-fork` executable/extension is unavailable in this session. This section is local security evidence only, not an independent review or release approval.
+
+## e07 security review — final local release gate
+
+- **Scope:** E07 branch `feat/e07-evidence-claims` at reviewed commit `7fd0116`, covering located evidence, citation identity/support separation, claim and evidence authority, matrix/source-notice reassessment, appraisal/synthesis, retry idempotency, schema guards and the fallback corrections.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev --audit-level=high` reported `found 0 vulnerabilities`.
+- **Boundary checks:** E07 changed source uses prepared SQL and imports no shell, network client, dynamic code execution or unsafe deserializer. Citation identity is derived only from persisted E06 bibliographic records; caller metadata is ignored. Worker-origin claims/appraisals remain `specialist-proposed`, and owner commitment APIs are not called.
+- **Correction checks:** Source-notice reassessment overlays survive support recomputation; empty command IDs are rejected; appraisal/synthesis reads guard missing E07 schema; complete command payload conflicts reject changed retries. Regression tests cover each boundary.
+- **Tooling limitation:** `scripts/verify-cwe-fixture-sync.sh` is absent from this checkout, so that auxiliary fixture-sync check could not run. This is not treated as a product security finding.
+- **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for the reviewed local E07 merge. This is local security evidence only, not production-readiness or scholarly-validity approval; remote CI and the separate `release-check` gate remain outside this local release.
