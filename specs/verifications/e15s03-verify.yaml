@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "191/191 tests passed, including E15 crash recovery, disk-full ENOSPC aborts, corruption detection, and deterministic synchronized barrier PID write lock exclusivity."
+    evidence: "197/197 tests passed, including E15 crash recovery, disk-full ENOSPC aborts, corruption detection, and deterministic synchronized barrier PID write lock exclusivity."
   typecheck:
     passed: true
     command: npm run typecheck
@@ -27,7 +27,7 @@ phases:
     command: npm run preflight
     evidence: "Exit 0; execution-mode not_configured remained a documented non-blocking warning."
   review:
-    status: passed
-    evidence: "Review findings resolved and verified against current branch contents."
+    status: pending_review
+    evidence: "Review findings resolved and verified against current branch contents; pending whole-epic review."
 gaps:
   closed: true

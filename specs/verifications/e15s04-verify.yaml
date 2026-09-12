@@ -12,7 +12,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "194/194 tests passed, including E15 controlled deletion unlinking with strict no-follow realpath containment, targeted cache deletion preserving unrelated caches, tombstone recording, execution blocking, and external not-recalled reporting."
+    evidence: "197/197 tests passed, including E15 controlled deletion unlinking with strict no-follow realpath containment, targeted cache deletion preserving unrelated caches and overlapping IDs, tombstone recording, execution blocking, and external not-recalled reporting."
   typecheck:
     passed: true
     command: npm run typecheck
@@ -27,7 +27,7 @@ phases:
     command: npm run preflight
     evidence: "Exit 0; execution-mode not_configured remained a documented non-blocking warning."
   review:
-    status: passed
-    evidence: "Review findings resolved and verified against current branch contents."
+    status: pending_review
+    evidence: "Review findings resolved and verified against current branch contents; pending whole-epic review."
 gaps:
   closed: true

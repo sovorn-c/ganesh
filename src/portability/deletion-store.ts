@@ -128,16 +128,30 @@ export function deleteArtifactContent(
         }
       } catch { /* dependencies table might not exist in old schemas */ }
 
-      // B. Derived materials table
+      // B. Derived materials table: exact parsed membership
       try {
         const derivedRows = handle.db.prepare(
-          "SELECT candidate_version_id FROM derived_materials WHERE source_version_ids LIKE ?"
-        ).all(`%${current}%`) as Array<Record<string, unknown>>;
+          "SELECT candidate_version_id, source_version_ids FROM derived_materials WHERE source_version_ids IS NOT NULL"
+        ).all() as Array<{ candidate_version_id?: string; source_version_ids?: string }>;
         for (const d of derivedRows) {
           const candId = d.candidate_version_id ? String(d.candidate_version_id) : null;
-          if (candId && !allAffectedVersionIds.has(candId)) {
-            allAffectedVersionIds.add(candId);
-            queue.push(candId);
+          if (candId && !allAffectedVersionIds.has(candId) && d.source_version_ids) {
+            let matches = false;
+            try {
+              const parsed = JSON.parse(d.source_version_ids);
+              if (Array.isArray(parsed) && parsed.some(x => String(x) === current)) {
+                matches = true;
+              }
+            } catch {
+              const tokens = d.source_version_ids.split(/[,\s[\]"']+/).filter(Boolean);
+              if (tokens.includes(current)) {
+                matches = true;
+              }
+            }
+            if (matches) {
+              allAffectedVersionIds.add(candId);
+              queue.push(candId);
+            }
           }
         }
       } catch { /* derived_materials table might not exist */ }
@@ -234,8 +248,16 @@ export function deleteArtifactContent(
               if (safeDir) {
                 scanForCache(safeDir);
               }
-            } else if (entry.name.includes(".cache")) {
-              const matchesAffected = Array.from(affectedTokens).some(tok => entry.name.includes(tok));
+            } else if (entry.name.includes(".cache") || dir.split(/[\\/]+/).includes("cache")) {
+              // Exact stem / token membership: never substring-match overlapping IDs
+              const stems = new Set<string>();
+              stems.add(entry.name.replace(/\.cache.*$/, ""));
+              const lastDot = entry.name.lastIndexOf(".");
+              if (lastDot > 0) {
+                stems.add(entry.name.slice(0, lastDot));
+              }
+              stems.add(entry.name);
+              const matchesAffected = Array.from(stems).some(s => s && affectedTokens.has(s));
               if (matchesAffected) {
                 const safeCachePath = safeContainedPath(storeRoot, p);
                 if (safeCachePath) {
@@ -250,14 +272,26 @@ export function deleteArtifactContent(
       scanForCache(artifactRoot);
     }
 
-    // 4. Collect not-recalled disclosures across all affected versions
+    // 4. Collect not-recalled disclosures across all affected versions with exact parsed membership
     const notRecalledDisclosures: NotRecalledDisclosure[] = [];
-    for (const vId of allAffectedVersionIds) {
-      try {
-        const disclosureRows = handle.db.prepare(
-          "SELECT id, destination, purpose FROM disclosure_decisions WHERE source_version_ids LIKE ? AND status = 'allow' AND destination != 'local'"
-        ).all(`%${vId}%`) as Array<Record<string, unknown>>;
-        for (const d of disclosureRows) {
+    try {
+      const disclosureRows = handle.db.prepare(
+        "SELECT id, destination, purpose, source_version_ids FROM disclosure_decisions WHERE status = 'allow' AND destination != 'local' AND source_version_ids IS NOT NULL"
+      ).all() as Array<{ id: string; destination: string; purpose: string; source_version_ids: string }>;
+      for (const d of disclosureRows) {
+        let matches = false;
+        try {
+          const parsed = JSON.parse(d.source_version_ids);
+          if (Array.isArray(parsed) && parsed.some(x => allAffectedVersionIds.has(String(x)))) {
+            matches = true;
+          }
+        } catch {
+          const tokens = d.source_version_ids.split(/[,\s[\]"']+/).filter(Boolean);
+          if (tokens.some(tok => allAffectedVersionIds.has(tok))) {
+            matches = true;
+          }
+        }
+        if (matches) {
           const dId = String(d.id);
           if (!notRecalledDisclosures.some(x => x.disclosureId === dId)) {
             notRecalledDisclosures.push({
@@ -268,8 +302,8 @@ export function deleteArtifactContent(
             });
           }
         }
-      } catch { /* disclosure table may not exist */ }
-    }
+      }
+    } catch { /* disclosure table may not exist */ }
 
     // 5. Persist tombstones, deletion event, and mark all affected versions unavailable in one transaction
     const deletionEventId = newId("deletion");

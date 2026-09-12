@@ -68,8 +68,8 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
           }
         }
       };
-    } catch (err: any) {
-      if (err?.code !== "EEXIST") {
+    } catch (err: unknown) {
+      if ((err as NodeJS.ErrnoException)?.code !== "EEXIST") {
         throw err;
       }
     }

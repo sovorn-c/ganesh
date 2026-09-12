@@ -18,6 +18,12 @@ The approved refactor plan mapped existing files to responsibilities, inspected 
 
 Preserve public APIs, runtime behavior, stored data, authority enforcement, and existing test coverage. Update active verification paths, test discovery, and tooling in the same migration; keep historical evidence truthful.
 
+### Source file size exceptions
+
+Per `CONVENTIONS.md`, source files should remain below 300 lines unless a documented exception applies. Two cohesive E15 portability stores have approved exceptions:
+- `src/portability/restore-store.ts` (~830 lines): Retained as a cohesive transactional restore engine to preserve fail-closed atomic staging, capability protection, and monotonic grant/tombstone re-application without cross-module failure gaps.
+- `src/portability/deletion-store.ts` (~360 lines): Retained as a cohesive cascading deletion engine to ensure atomic tombstoning, reachable dependency unlinking, derived material cleanup, and strict root containment operate within a single coordinated transaction.
+
 ## Planning signals
 
 - Start E15 implementation only from `/bp-build` against owner-approved plan revision `sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2`.
