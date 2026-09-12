@@ -1,0 +1,59 @@
+---
+epic_id: e05
+title: Bounded autonomous work and specialist coordination
+verified_at: "2026-09-11T21:57:33Z"
+verifier: local-release-gate
+branch: main
+runtime: Node.js 24.21.0
+status: passed
+stories:
+  e05s01:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e05s01-verify.yaml
+  e05s02:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e05s02-verify.yaml
+  e05s03:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e05s03-verify.yaml
+  e05s04:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e05s04-verify.yaml
+  e05s05:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    evidence: specs/verifications/e05s05-verify.yaml
+checks:
+  tests:
+    passed: true
+    command: npm test
+    evidence: 98/98 tests passed
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: Node.js 24 ready; execution mode not_configured remained a documented non-blocking warning
+  security:
+    passed: true
+    evidence: specs/security/REVIEW.md E05 local release gate
+summary:
+  task_verifications: 20
+  task_verifications_passing: 20
+  production_readiness_claimed: false

@@ -1,0 +1,46 @@
+story_id: e14s04
+spec: e14s04-accessible-live-work-state.md
+title: Accessible Live Work State and Access-Path Qualification
+status: passing
+bcps: 4
+tasks:
+  - id: e14s04-t01
+    description: Present working, waiting-for-human, blocked, remaining budget and uncertain flags as readable text, and wire workspace cancel to existing E05 cancelRun and cancelContract APIs, with no new security findings in affected paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e14s04.*(working|waiting|blocked|budget|cancel)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e14s04-P0-01, SC-e14s04-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [workspace, work-status, cancellation]
+  - id: e14s04-t02
+    description: Publish a keyboard-only map with focus labels covering launch intake, help, exact-version confirmation, evidence inspect and cancel.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e14s04.*(keyboard|focus|map)' dist/tests/*/*.test.js"
+    risk: P0
+    security: none
+    scenarios: [SC-e14s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [workspace, accessibility, keyboard]
+  - id: e14s04-t03
+    description: Qualify supported versus blocked access paths, including colour-only status, no-keyboard and non-text terminals, without claiming an accessible session when blocked.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e14s04.*(access.path|blocker|unsupported|colour|color|screen.reader)' dist/tests/*/*.test.js"
+    risk: P0
+    security: low
+    scenarios: [SC-e14s04-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [workspace, accessibility, access-path]
+  - id: e14s04-t04
+    description: Prove no new security findings in affected paths and all released E01-E06 behavior remains passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e14s04.*(regression|security)' dist/tests/*/*.test.js"
+    risk: P1
+    security: medium
+    scenarios: [SC-e14s04-P0-01, SC-e14s04-P1-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [regression, Security Review]

@@ -2,6 +2,9 @@
   "name": "ganesh",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "ganesh": "dist/src/cli.js"
+  },
   "description": "Local-first research supervision assistant",
   "type": "module",
   "engines": {
@@ -10,7 +13,7 @@
   "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "npm run build && node dist/src/cli.js",
-    "test": "npm run build && node --test dist/tests/*/*.test.js",
+    "test": "npm run build && node --test --test-concurrency=1 dist/tests/*/*.test.js",
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",

@@ -1,0 +1,46 @@
+---
+story_id: e14s01
+verified_at: "2026-09-12T01:12:00Z"
+verifier: verify-work
+branch: feat/e14-terminal-workspace
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  smoke:
+    passed: true
+    command: "node dist/src/cli.js --print-launch <temporary-project-folder>"
+    evidence: "Created a project-local .ganesh/pi runtime state without a global ~/.pi write."
+  build:
+    passed: true
+    command: npm run build
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  tests:
+    passed: true
+    command: "node --test --test-name-pattern='e14s01.*' dist/tests/*/*.test.js"
+    evidence: "4/4 E14s01 behavior tests passed; npm test passed with 114/114 tests."
+  terminal_verdict:
+    command: "npm test"
+    exit_code: 0
+    captured_at: "2026-09-12T01:10:00Z"
+    note: "Single contiguous run under Node.js 24.21.0."
+  manual:
+    steps:
+      - step: "Launch a temporary project folder through the product CLI."
+        expected: "The workspace creates durable local state and reports current records."
+        actual: "Created .ganesh/project.sqlite, .ganesh/artifacts and .ganesh/pi; reported current records ready."
+        passed: true
+      - step: "Submit missing, non-directory, unreadable and escaping intake paths through the injected launcher boundary."
+        expected: "Each path fails closed without project creation or global Pi configuration mutation."
+        actual: "All fail-closed cases passed in launcher-intake tests."
+        passed: true
+  security:
+    passed: true
+    evidence: "Path containment, local-state binding and owner capability boundaries reviewed; no high-confidence new finding."
+  gaps:
+    closed: true
+    count: 0

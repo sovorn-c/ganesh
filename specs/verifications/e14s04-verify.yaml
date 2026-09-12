@@ -1,0 +1,42 @@
+---
+story_id: e14s04
+verified_at: "2026-09-12T01:12:00Z"
+verifier: verify-work
+branch: feat/e14-terminal-workspace
+runtime: Node.js 24.21.0
+status: passed
+phases:
+  build:
+    passed: true
+    command: npm run build
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  tests:
+    passed: true
+    command: "node --test --test-name-pattern='e14s04.*' dist/tests/*/*.test.js"
+    evidence: "4/4 E14s04 behavior tests passed; npm test passed with 114/114 tests."
+  terminal_verdict:
+    command: "npm test"
+    exit_code: 0
+    captured_at: "2026-09-12T01:10:00Z"
+    note: "Single contiguous run under Node.js 24.21.0."
+  manual:
+    steps:
+      - step: "Present working, waiting-for-human and blocked work states."
+        expected: "Readable text includes status, remaining budget, spend certainty and cancellation state."
+        actual: "Live-work status tests passed for all bounded states and cancellation fences."
+        passed: true
+      - step: "Qualify keyboard, text, UTF-8 and screen-reader access paths."
+        expected: "Supported paths are explicit and blocked paths name the concrete blocker."
+        actual: "Keyboard map and blocked access-path tests passed without hardware claims."
+        passed: true
+  security:
+    passed: true
+    evidence: "Workspace cancellation delegates to E05 owner-gated APIs; no high-confidence new finding."
+  gaps:
+    closed: true
+    count: 0

@@ -75,3 +75,12 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Persistence and SQL:** E05 queries in `src/work/work-runtime.ts`, `src/work/work-store.ts`, `src/work/budget-ledger.ts`, and `src/work/specialist-coordination.ts` use prepared statements with bound values; no attacker-controlled SQL interpolation was found.
 - **Execution and secrets:** E05 source imports no `child_process`, network client, dynamic code execution, or credential-shaped literal. Provider tests use injected fakes; no network or live provider is opened.
 - **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for the E05 local merge. This is a local security gate, not a production-readiness or scholarly-validity claim; remote CI and the separate `release-check` gate remain outside this local release.
+
+## e14 security review — local implementation gate
+
+- **Scope:** Current E14 workspace implementation on `feat/e14-terminal-workspace`, covering project-folder intake, project-local Pi runtime binding, trusted exact-version confirmation, source inspection and local viewer handoff, live work status/cancellation, keyboard maps, and access-path qualification.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --audit-level=high` reported `found 0 vulnerabilities`.
+- **Authority and policy:** Workspace confirmation and cancellation delegate to existing E04/E05 owner-gated APIs. Forged, worker, chat and unbound paths are rejected by tests; no new authority source was introduced.
+- **Path and process boundaries:** Intake rejects missing, non-directory, unreadable, symlink and escaping folders. Viewer handoff requires current source authorization, verified integrity, local destination, artifact-root containment, and argument-vector spawning with `shell: false`.
+- **Isolation:** Pi state is bound to `<project>/.ganesh/pi`; the workspace does not mutate global `~/.pi` configuration. Runtime and TUI dependencies are injected in tests, with no live provider spend.
+- **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for E14. This is a local implementation gate, not a production-readiness or scholarly-validity claim; remote CI, publishing, deployment and the separate `release-check` gate remain outside this local release.
