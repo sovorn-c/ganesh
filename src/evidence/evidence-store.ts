@@ -248,12 +248,25 @@ export function ingestEvidenceCandidate(handle: ProjectHandle, capability: unkno
   });
 }
 
-export function getEvidenceItem(handle: ProjectHandle, capability: unknown, evidenceItemId: string): EvidenceItem {
-  assertEvidenceSchema(handle);
-  if (!allowed(handle, capability, "evidence:inspect")) {throw new ProjectStoreError("forbidden", "evidence inspection requires evidence:inspect capability");}
+function evidenceItemById(handle: ProjectHandle, evidenceItemId: string): EvidenceItem {
   const row = handle.db.prepare("SELECT * FROM evidence_items WHERE id = ?").get(evidenceItemId) as Record<string, unknown> | undefined;
   if (row === undefined) {throw new ProjectStoreError("evidence-not-found", "evidence item was not found");}
   return itemFromRow(row);
+}
+
+export function getEvidenceItem(handle: ProjectHandle, capability: unknown, evidenceItemId: string): EvidenceItem {
+  assertEvidenceSchema(handle);
+  if (!allowed(handle, capability, "evidence:inspect")) {throw new ProjectStoreError("forbidden", "evidence inspection requires evidence:inspect capability");}
+  return evidenceItemById(handle, evidenceItemId);
+}
+
+/** Read only evidence linked to a claim through the claim inspection boundary. */
+export function readClaimLinkedEvidence(handle: ProjectHandle, capability: unknown, claimId: string, evidenceItemId: string): EvidenceItem {
+  assertEvidenceSchema(handle);
+  if (!allowed(handle, capability, "claim:inspect") && !allowed(handle, capability, "evidence:inspect")) {throw new ProjectStoreError("forbidden", "claim-linked evidence requires claim:inspect capability");}
+  const link = handle.db.prepare("SELECT 1 AS linked FROM claim_evidence_links WHERE claim_id = ? AND evidence_item_id = ?").get(claimId, evidenceItemId);
+  if (link === undefined) {throw new ProjectStoreError("evidence-not-found", "evidence item is not linked to the claim");}
+  return evidenceItemById(handle, evidenceItemId);
 }
 
 export function listEvidenceItems(handle: ProjectHandle, capability: unknown, filter: EvidenceItemFilter = {}): readonly EvidenceItem[] {

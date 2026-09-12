@@ -1,10 +1,12 @@
 // story: e07s03
 // scenario: SC-e07s03-P0-01, SC-e07s03-P0-02, SC-e07s03-P0-03, SC-e07s03-P1-04
-import { strictEqual } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 import { test } from "node:test";
 import {
+  ProjectStoreError,
   applySourceNotice,
   buildEvidenceMatrix,
+  getEvidenceItem,
   inspectClaim,
   linkClaimEvidence,
   recordClaim,
@@ -34,6 +36,10 @@ test("e07s03 matrix retains disagreement and limitation cells", () => {
     strictEqual(row?.challenging.length, 1);
     strictEqual(row?.disagreements.length, 1);
     strictEqual(row?.limitations.includes("limited sample"), true);
+    const claimOnly = evidenceWorker(fixture.handle, ["claim:inspect"]);
+    strictEqual(buildEvidenceMatrix(fixture.handle, claimOnly).rows[0]?.supporting.length, 1);
+    strictEqual(inspectClaim(fixture.handle, claimOnly, claim.id).links.length, 2);
+    throws(() => getEvidenceItem(fixture.handle, claimOnly, first.id), (error: unknown) => error instanceof ProjectStoreError && error.code === "forbidden");
   } finally {
     disposeFixture(fixture);
   }
@@ -64,6 +70,9 @@ test("e07s03 source notices add reassessment overlays without rewriting links", 
     strictEqual(inspectClaim(fixture.handle, capability, untouched.id).claim.currentSupport, "substantively-supported");
     strictEqual(inspectClaim(fixture.handle, capability, changed.id).links[0]?.verificationStatus, before.links[0]?.verificationStatus);
     strictEqual(inspectClaim(fixture.handle, capability, changed.id).reassessments[0]?.previousSupport, before.claim.currentSupport);
+    strictEqual(applySourceNotice(fixture.handle, capability, { commandId: "e07s03-retraction", sourceVersionId: affected.result.artifactVersionId, notice: "source retracted", kind: "retraction" }).status, "duplicate");
+    throws(() => applySourceNotice(fixture.handle, capability, { commandId: "e07s03-retraction", sourceVersionId: affected.result.artifactVersionId, notice: "source changed", kind: "retraction" }), (error: unknown) => error instanceof ProjectStoreError && error.code === "duplicate-command");
+    throws(() => applySourceNotice(fixture.handle, capability, { commandId: "e07s03-retraction", sourceVersionId: affected.result.artifactVersionId, notice: "source retracted", kind: "correction" }), (error: unknown) => error instanceof ProjectStoreError && error.code === "duplicate-command");
   } finally {
     disposeFixture(fixture);
   }

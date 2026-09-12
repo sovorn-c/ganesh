@@ -101,7 +101,16 @@ export * from "./workspace/status.js";
 export * from "./workspace/keyboard.js";
 export * from "./workspace/access-path.js";
 export * from "./evidence/evidence-types.js";
-export * from "./evidence/evidence-store.js";
+export {
+  evidenceSchemaAvailable,
+  assertEvidenceSchema,
+  readLocatedExcerpt,
+  inspectEvidenceOperation,
+  recordEvidenceItem,
+  ingestEvidenceCandidate,
+  getEvidenceItem,
+  listEvidenceItems
+} from "./evidence/evidence-store.js";
 export * from "./evidence/claim-types.js";
 export * from "./evidence/claim-store.js";
 export * from "./evidence/claim-matrix-store.js";

@@ -185,8 +185,14 @@ export function synthesizeClaims(handle: ProjectHandle, capability: unknown, req
     disagreements, limitations, reassessmentFlags, qualifications,
     commandId: request.commandId, createdAt: isoNow()
   };
+  const requestedPayload = payloadHash({ claimIds: record.claimIds, summary: record.summary, disagreements: record.disagreements, limitations: record.limitations, reassessmentFlags: record.reassessmentFlags, qualifications: record.qualifications });
   const existing = handle.db.prepare("SELECT * FROM syntheses WHERE command_id = ?").get(request.commandId) as Record<string, unknown> | undefined;
-  if (existing !== undefined) {return synthesisFromRow(existing);}
+  if (existing !== undefined) {
+    const old = synthesisFromRow(existing);
+    const existingPayload = payloadHash({ claimIds: old.claimIds, summary: old.summary, disagreements: old.disagreements, limitations: old.limitations, reassessmentFlags: old.reassessmentFlags, qualifications: old.qualifications });
+    if (requestedPayload !== existingPayload) {throw new ProjectStoreError("synthesis-payload-conflict", "command ID was reused with a different synthesis");}
+    return old;
+  }
   transaction(handle.db, () => handle.db.prepare("INSERT INTO syntheses (id, claim_ids, summary, disagreements, limitations, reassessment_flags, qualifications, command_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(record.id, JSON.stringify(record.claimIds), record.summary, JSON.stringify(record.disagreements), JSON.stringify(record.limitations), JSON.stringify(record.reassessmentFlags), JSON.stringify(record.qualifications), record.commandId, record.createdAt));
   return record;
 }

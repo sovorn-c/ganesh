@@ -4,7 +4,7 @@ import { getSourceVersion } from "../sources/source-store.js";
 import { recordSharedSourceCorrection } from "../branches/dependency-store.js";
 import { isoNow, newId } from "../persistence/storage-utils.js";
 import { transaction } from "../persistence/schema.js";
-import { getEvidenceItem } from "./evidence-store.js";
+import { readClaimLinkedEvidence } from "./evidence-store.js";
 import {
   allowed,
   assertClaimSchema,
@@ -56,7 +56,7 @@ function assertCapability(handle: ProjectHandle, capability: unknown, operations
 
 function matrixRow(handle: ProjectHandle, capability: unknown, claimId: string, claim: EvidenceMatrixRow["claim"]): EvidenceMatrixRow {
   const rows = handle.db.prepare("SELECT * FROM claim_evidence_links WHERE claim_id = ? ORDER BY created_at, id").all(claimId) as Array<Record<string, unknown>>;
-  const links = rows.map((row) => linkFromRow(row, getEvidenceItem(handle, capability, String(row.evidence_item_id))));
+  const links = rows.map((row) => linkFromRow(row, readClaimLinkedEvidence(handle, capability, claimId, String(row.evidence_item_id))));
   const supporting = links.filter((link) => link.role === "supporting");
   const challenging = links.filter((link) => link.role === "challenging");
   const limitations = matrixLimitations(handle, claimId, links);
@@ -82,14 +82,15 @@ export function applySourceNotice(handle: ProjectHandle, capability: unknown, re
   const notice = request.notice ?? request.message ?? "";
   if (notice.trim() === "") {throw new ProjectStoreError("invalid-notice", "source notice must not be empty");}
   getSourceVersion(handle, request.sourceVersionId);
-  const prior = handle.db.prepare("SELECT * FROM claim_reassessments WHERE notice_command_id = ? ORDER BY claim_id").all(request.commandId) as Array<Record<string, unknown>>;
-  if (prior.length > 0) {return duplicateNotice(request, prior);}
+  const existingCorrection = handle.db.prepare("SELECT 1 AS present FROM history WHERE command_id = ?").get(request.commandId);
   recordSharedSourceCorrection(handle, {
     sourceVersionId: request.sourceVersionId,
     notice: `${request.kind ?? "correction"}: ${notice}`,
     commandId: request.commandId,
     actor: request.actor
   });
+  const prior = handle.db.prepare("SELECT * FROM claim_reassessments WHERE notice_command_id = ? ORDER BY claim_id").all(request.commandId) as Array<Record<string, unknown>>;
+  if (existingCorrection !== undefined || prior.length > 0) {return duplicateNotice(request, prior);}
   const claimRows = linkedClaims(handle, request.sourceVersionId);
   const reassessments: ClaimReassessment[] = [];
   transaction(handle.db, () => {

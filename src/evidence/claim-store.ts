@@ -6,7 +6,7 @@ import { inspectSource } from "../sources/source-access.js";
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
 import { payloadHash } from "../persistence/history-store.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
-import { getEvidenceItem, listEvidenceItems } from "./evidence-store.js";
+import { getEvidenceItem, listEvidenceItems, readClaimLinkedEvidence } from "./evidence-store.js";
 import type { EvidenceItem } from "./evidence-types.js";
 import type {
   CitationAccessStatus,
@@ -306,7 +306,7 @@ export function inspectClaim(handle: ProjectHandle, capability: unknown, claimId
   if (!allowed(handle, capability, ["claim:inspect"]) && !allowed(handle, capability, ["evidence:inspect"])) {throw new ProjectStoreError("forbidden", "claim inspection requires claim:inspect capability");}
   const claim = claimById(handle, claimId);
   const rows = handle.db.prepare("SELECT * FROM claim_evidence_links WHERE claim_id = ? ORDER BY created_at, id").all(claimId) as Array<Record<string, unknown>>;
-  const links = rows.map((row) => linkFromRow(row, getEvidenceItem(handle, capability, String(row.evidence_item_id))));
+  const links = rows.map((row) => linkFromRow(row, readClaimLinkedEvidence(handle, capability, claimId, String(row.evidence_item_id))));
   const verifications = (handle.db.prepare("SELECT * FROM citation_verifications WHERE claim_id = ? ORDER BY created_at, id").all(claimId) as Array<Record<string, unknown>>).map(verificationFromRow);
   const reassessments = (handle.db.prepare("SELECT * FROM claim_reassessments WHERE claim_id = ? ORDER BY created_at, id").all(claimId) as Array<Record<string, unknown>>).map(reassessmentFromRow);
   return { claim, links, verifications, reassessments };

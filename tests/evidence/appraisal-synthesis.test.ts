@@ -3,6 +3,7 @@
 import { strictEqual, throws } from "node:assert";
 import { test } from "node:test";
 import {
+  ProjectStoreError,
   applySourceNotice,
   listCommitments,
   listScholarlyFindings,
@@ -47,6 +48,31 @@ test("e07s04 appraisal provenance and retries remain bounded", () => {
       commandId: "e07s04-appraisal-retry", sourceVersionId: source.result.artifactVersionId,
       methodKind: "quantitative-dependent-observations", origin: "owner-recorded"
     }));
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e07s04 synthesis retries reject complete payload conflicts", () => {
+  const fixture = projectFixture();
+  try {
+    const imported = importText(fixture.handle, "e07s04-synthesis-retry");
+    const capability = evidenceWorker(fixture.handle);
+    const evidence = recordEvidenceItem(fixture.handle, capability, {
+      commandId: "e07s04-synthesis-evidence", sourceVersionId: imported.result.artifactVersionId,
+      location: { kind: "source-locator", id: imported.locator.id }, statementKind: "measured-finding", includeExcerpt: true
+    });
+    const firstClaim = recordClaim(fixture.handle, capability, { commandId: "e07s04-synthesis-first-claim", statement: "first synthesis claim" });
+    const secondClaim = recordClaim(fixture.handle, capability, { commandId: "e07s04-synthesis-second-claim", statement: "second synthesis claim" });
+    linkClaimEvidence(fixture.handle, capability, { commandId: "e07s04-synthesis-first-link", claimId: firstClaim.id, evidenceItemId: evidence.id, role: "supporting" });
+    linkClaimEvidence(fixture.handle, capability, { commandId: "e07s04-synthesis-second-link", claimId: secondClaim.id, evidenceItemId: evidence.id, role: "supporting" });
+    const request = { commandId: "e07s04-synthesis-retry", claimIds: [firstClaim.id], summary: "bounded summary", qualifications: ["bounded"] };
+    const first = synthesizeClaims(fixture.handle, capability, request);
+    strictEqual(synthesizeClaims(fixture.handle, capability, request).id, first.id);
+    const conflict = (error: unknown) => error instanceof ProjectStoreError && error.code === "synthesis-payload-conflict";
+    throws(() => synthesizeClaims(fixture.handle, capability, { ...request, summary: "changed summary" }), conflict);
+    throws(() => synthesizeClaims(fixture.handle, capability, { ...request, qualifications: ["changed"] }), conflict);
+    throws(() => synthesizeClaims(fixture.handle, capability, { ...request, claimIds: [secondClaim.id] }), conflict);
   } finally {
     disposeFixture(fixture);
   }
