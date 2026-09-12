@@ -8,7 +8,7 @@ development_status:
   e05: done
   e14: done
   e07: done
-  e08: backlog
+  e08: in_progress
   e15: backlog
   e16: backlog
   e09: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e07_complete
-active_epic: none
-active_story: none
-note: E07 was locally released on main under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; the post-fallback whole-epic review passed. E01-E06 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e08_stories
+active_epic: e08
+active_story: e08s04
+note: E08 build completed on feat/e08-literature-contribution under approved plan revision sha256:f7219ad3fdda4ba0df8f4bb47888a03dc60bd34af2ac91b112a7ea5447feef50. All four stories and 16 task checks passed; review is next. E01-E07 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -360,9 +360,49 @@ epics:
         tasks_failing: 0
         verification_evidence: specs/verifications/e07s04-verify.yaml
     verification_evidence: specs/verifications/e07-verify.yaml
+  e08:
+    title: Literature discovery and contribution challenge
+    status: in_progress
+    stories:
+      e08s01:
+        title: Review Protocol, Query Versions and Landscape Map
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e08s02:
+        title: Authorized Retrieval, Citation Exploration and Honest Coverage
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_failing: 0
+        tasks_passing: 4
+      e08s03:
+        title: Screening, Eligibility Amendments and Uncertainty Queue
+        status: passing
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e08s04:
+        title: Gap and Contribution Challenge with Counter-Search
+        status: passing
+        planning_status: ready
+        bcps: 4
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T07:03:26Z"
-  rationale: "All 32 stories are traceable with no dark stories; E07 has passing per-story verification evidence across 16 task checks and 134 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
-  heuristic_ratio: 0.22
+  generated_at: "2026-09-12T11:04:00Z"
+  rationale: "All 36 stories are traceable with no dark stories; E08 has passing per-story verification evidence across 16 task checks and 146 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags and six orphan tags remain informational. Completeness critic: BLOCKER=0 WARNING=0."
+  heuristic_ratio: 0.27
   downgrade_applied: false

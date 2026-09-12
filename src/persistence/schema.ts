@@ -105,6 +105,7 @@ export function createSchema(db: DatabaseSync): void {
   createE06Schema(db);
   createE05Schema(db);
   createE07Schema(db);
+  createE08Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -714,6 +715,76 @@ export function createE07Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE08Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS literature_operations (
+      command_id TEXT PRIMARY KEY, payload_hash TEXT NOT NULL, result_id TEXT, result_kind TEXT,
+      status TEXT NOT NULL, error_code TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS review_protocols (
+      id TEXT PRIMARY KEY, version_label TEXT NOT NULL, artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      eligibility TEXT NOT NULL, scope TEXT NOT NULL, origin TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS query_versions (
+      id TEXT PRIMARY KEY, protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id), version_label TEXT NOT NULL,
+      expression TEXT NOT NULL, destination TEXT NOT NULL, purpose TEXT NOT NULL, parent_query_version_id TEXT,
+      supersedes_query_version_id TEXT, artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id), origin TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS landscape_maps (
+      id TEXT PRIMARY KEY, protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id), query_version_ids TEXT NOT NULL,
+      description TEXT NOT NULL, searched_at TEXT NOT NULL, origin TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS corpus_records (
+      id TEXT PRIMARY KEY, protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id), source_version_id TEXT,
+      bibliographic_identity TEXT NOT NULL, origin TEXT NOT NULL, created_at TEXT NOT NULL, command_id TEXT UNIQUE
+    );
+    CREATE TABLE IF NOT EXISTS search_events (
+      id TEXT PRIMARY KEY, protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id), query_version_id TEXT NOT NULL REFERENCES query_versions(id),
+      searched_at TEXT NOT NULL, destination TEXT NOT NULL, purpose TEXT NOT NULL, status TEXT NOT NULL, live_rerun_of TEXT,
+      coverage_limits TEXT NOT NULL, adapter_code TEXT, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS corpus_snapshots (
+      id TEXT PRIMARY KEY, search_event_id TEXT NOT NULL REFERENCES search_events(id), corpus_record_ids TEXT NOT NULL, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS citation_edges (
+      id TEXT PRIMARY KEY, from_record_id TEXT NOT NULL REFERENCES corpus_records(id), to_record_id TEXT NOT NULL REFERENCES corpus_records(id),
+      relation TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(from_record_id, to_record_id, relation)
+    );
+    CREATE TABLE IF NOT EXISTS screening_decisions (
+      id TEXT PRIMARY KEY, corpus_record_id TEXT NOT NULL REFERENCES corpus_records(id), protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id),
+      criterion_id TEXT NOT NULL, decision TEXT NOT NULL, reason TEXT NOT NULL, superseded_by_decision_id TEXT,
+      command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS eligibility_amendments (
+      id TEXT PRIMARY KEY, from_protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id), to_protocol_version_id TEXT NOT NULL REFERENCES review_protocols(id),
+      rationale TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS uncertainty_queue (
+      id TEXT PRIMARY KEY, decision_id TEXT NOT NULL REFERENCES screening_decisions(id), corpus_record_id TEXT NOT NULL REFERENCES corpus_records(id),
+      status TEXT NOT NULL, resolved_by_decision_id TEXT, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS gap_assessments (
+      id TEXT PRIMARY KEY, snapshot_id TEXT NOT NULL REFERENCES corpus_snapshots(id), query_version_ids TEXT NOT NULL, searched_at TEXT NOT NULL,
+      proposition TEXT NOT NULL, status TEXT NOT NULL, qualifications TEXT NOT NULL, origin TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS contribution_proposals (
+      id TEXT PRIMARY KEY, gap_id TEXT NOT NULL REFERENCES gap_assessments(id), proposition TEXT NOT NULL, qualifications TEXT NOT NULL,
+      origin TEXT NOT NULL, command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS counter_searches (
+      id TEXT PRIMARY KEY, gap_id TEXT NOT NULL REFERENCES gap_assessments(id), search_event_id TEXT NOT NULL REFERENCES search_events(id),
+      contrary_record_ids TEXT NOT NULL, challenging_evidence_item_ids TEXT NOT NULL, status TEXT NOT NULL, qualification TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_literature_query_protocol ON query_versions(protocol_version_id);
+    CREATE INDEX IF NOT EXISTS idx_literature_corpus_protocol ON corpus_records(protocol_version_id);
+    CREATE INDEX IF NOT EXISTS idx_literature_screening_record ON screening_decisions(corpus_record_id);
+    CREATE INDEX IF NOT EXISTS idx_literature_gaps_snapshot ON gap_assessments(snapshot_id);
+  `);
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -730,6 +801,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE06Schema(db);
       createE05Schema(db);
       createE07Schema(db);
+      createE08Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

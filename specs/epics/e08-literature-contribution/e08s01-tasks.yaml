@@ -1,0 +1,46 @@
+story_id: e08s01
+spec: e08s01-review-protocol-query-versions-and-landscape.md
+title: Review Protocol, Query Versions and Landscape Map
+status: passing
+bcps: 6
+tasks:
+  - id: e08s01-t01
+    description: Add literature protocol, query, landscape, corpus-identity and operation types, exact v1 additive E08 schema initialization paths, atomic command/payload completion and retry/recovery coverage, reusing registerArtifactVersion.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s01.*(schema|review protocol|query version|reopen|migration|atomic|retry|recovery)' dist/tests/*/*.test.js"
+    risk: P0
+    security: low
+    scenarios: [SC-e08s01-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [literature, persistence, provenance]
+  - id: e08s01-t02
+    description: Harden capability-scoped literature recording against forged, wrong-project and missing-operation callers, and prove no new security findings in affected authority paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s01.*(capability|project|forg|denied|authority)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e08s01-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [authority, project-isolation, Security Review]
+  - id: e08s01-t03
+    description: Bind landscape maps to exact protocol and query versions and reject maps that omit query versions or name a query from another protocol.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e08s01.*(landscape|protocol version|query version|unbound)' dist/tests/*/*.test.js"
+    risk: P0
+    security: low
+    scenarios: [SC-e08s01-P0-03, SC-e08s01-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [literature, landscape, research-integrity]
+  - id: e08s01-t04
+    description: Ingest Discovery-role candidates as proposed origin only, record owner-supplied corpus identities, and keep released E01-E07/E14 behavior passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e08s01.*(specialist|corpus identity|regression)' dist/tests/*/*.test.js"
+    risk: P1
+    security: medium
+    scenarios: [SC-e08s01-P1-04]
+    status: passing
+    allure:
+      severity: high
+      categories: [authority, research-integrity, regression]
