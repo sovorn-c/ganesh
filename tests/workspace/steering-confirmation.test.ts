@@ -42,9 +42,10 @@ async function sessionFixture(tui = new ConfirmingTui()): Promise<WorkspaceSessi
   return result.session;
 }
 
-function packet(session: WorkspaceSession, versionId: string, id = "packet-test") {
+function packet(session: WorkspaceSession, versionId: string, id = "packet-test", branchId?: string) {
   return createDecisionPacket(session.handle, {
     id,
+    branchId,
     question: "Which exact version should the owner confirm?",
     candidateVersionIds: [versionId],
     dependencyVersionIds: []
@@ -90,10 +91,11 @@ describe("E14 steering and confirmation", () => {
   });
 
   it("e14s02 stale packet refreshes and duplicate command does not duplicate commitment", async () => {
-    const tui = new ConfirmingTui([true, true]);
+    const tui = new ConfirmingTui([true, true, true]);
     const session = await sessionFixture(tui);
     const first = artifact(session.handle, "question", "1", "candidate");
     const second = artifact(session.handle, "question", "2", "new candidate");
+    createBranch(session.handle, { branchId: "stable", name: "stable" });
     const created = packet(session, first.id, "packet-stale");
     updateBranchReference(session.handle, { branchId: "main", logicalId: "question", artifactVersionId: second.id, expectedVersion: 0, commandId: "advance-question" });
     const stale = await confirmExactVersion(session, {
@@ -103,14 +105,16 @@ describe("E14 steering and confirmation", () => {
     assert.ok(stale.refreshedPacket);
     assert.equal(listCommitments(session.handle, created.id).length, 0);
 
+    const stablePacket = packet(session, first.id, "packet-duplicate", "stable");
     const stable = await confirmExactVersion(session, {
-      packetId: created.id, packetVersion: 1, selectedCandidateVersionIds: [first.id], commandId: "duplicate-confirm"
+      packetId: stablePacket.id, packetVersion: 1, selectedCandidateVersionIds: [first.id], commandId: "duplicate-confirm"
     }, tui);
     const duplicate = await confirmExactVersion(session, {
-      packetId: created.id, packetVersion: 1, selectedCandidateVersionIds: [first.id], commandId: "duplicate-confirm"
+      packetId: stablePacket.id, packetVersion: 1, selectedCandidateVersionIds: [first.id], commandId: "duplicate-confirm"
     }, tui);
-    assert.equal(stable.status, "stale");
-    assert.equal(duplicate.status, "stale");
+    assert.equal(stable.status, "committed");
+    assert.equal(duplicate.status, "duplicate");
+    assert.equal(listCommitments(session.handle, stablePacket.id).length, 1);
     session.handle.close();
   });
 
