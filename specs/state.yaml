@@ -1,17 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: review
-active_epic: e07
-active_story: e07s04
+active_flow: release
+active_epic: none
+active_story: none
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: bp-plan
+  next_command: "/bp-plan"
   summary: >-
-    E07 build complete on feat/e07-evidence-claims under approved plan revision
+    E07 was locally released on main under approved plan revision
     sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a.
-    All four stories and 16 task checks passed; local self-audit is complete and
-    independent pi-fork review is pending because that facility is unavailable.
-    Production readiness, remote CI, publishing and deployment remain unclaimed.
+    All four stories and 16 task checks passed; post-fallback whole-epic review
+    passed. Production readiness, remote CI, publishing and deployment remain
+    unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -35,7 +35,7 @@ discovery:
   e14_build: complete
   e14_review: complete_local_release
   e07_build: complete
-  e07_review: pending
+  e07_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -188,7 +188,7 @@ blueprint:
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
   first_eligible_epic: e07
   first_tracer_bullet_epic: e05
-  selected_epic: e07
+  selected_epic: none
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
@@ -217,7 +217,7 @@ blueprint:
   implementation_start: not_authorized
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e06_e14_complete;e07_approved_pending_bp_build;e08_e18_deferred_to_bp_plan
+  story_planning: e01_e06_e07_e14_complete;e08_e18_deferred_to_bp_plan
   e07_plan: approved_exact_revision
   e07_plan_revision: sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a
   e07_plan_approved_at: '2026-09-12T04:19:56Z'

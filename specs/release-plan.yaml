@@ -119,8 +119,8 @@ epics:
   - R14
 - id: e07
   title: Located evidence and accountable claims
-  capsule_dir: epics/e07-evidence-claims
-  file: epics/e07-evidence-claims/epic.yaml
+  capsule_dir: epics/archive/e07-evidence-claims
+  file: epics/archive/e07-evidence-claims/epic.yaml
   sequence: 8
   depends_on:
   - e05

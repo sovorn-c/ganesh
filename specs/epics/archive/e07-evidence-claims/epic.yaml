@@ -50,7 +50,7 @@ bcp_estimate:
   basis: Four vertical story slices total 21 BCP after inspection of E02 shared-source
     notices, E04 scholarly findings, E05 evidence-role candidates, E06 locators/access
     states and E14 source-inspection presenters. No new parser or NLP package is required.
-status: planned
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -93,7 +93,7 @@ requirement_deltas:
 stories:
 - id: e07s01
   title: Located Evidence Items and Statement Kinds
-  status: passing
+  status: done
   bcps: 6
   risk: P0
   delta: "ADDED + MODIFIED"
@@ -102,7 +102,7 @@ stories:
   tasks_file: e07s01-tasks.yaml
 - id: e07s02
   title: Claim Records and Citation Verification
-  status: passing
+  status: done
   bcps: 6
   risk: P0
   delta: ADDED
@@ -111,7 +111,7 @@ stories:
   tasks_file: e07s02-tasks.yaml
 - id: e07s03
   title: Evidence Matrix and Source-Notice Reassessment
-  status: passing
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
@@ -120,15 +120,15 @@ stories:
   tasks_file: e07s03-tasks.yaml
 - id: e07s04
   title: Method-Appropriate Appraisal and Qualified Synthesis
-  status: passing
+  status: done
   bcps: 4
   risk: P0
   delta: ADDED
   depends_on: [e07s01, e07s02, e07s03]
   spec_file: e07s04-method-appropriate-appraisal-and-qualified-synthesis.md
   tasks_file: e07s04-tasks.yaml
-capsule_dir: epics/e07-evidence-claims
-next_skill: bp-review
+capsule_dir: epics/archive/e07-evidence-claims
+next_skill: bp-plan
 plan_revision: sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a
 plan_approval: approved_exact_revision
 plan_approval_revision: sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a

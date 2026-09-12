@@ -1,7 +1,7 @@
 story_id: e07s04
 verified_at: "2026-09-12T05:16:52Z"
 verifier: bp-review-local
-reviewed_commits: [fb3b7be, dcf72f0]
+reviewed_commits: [fb3b7be, dcf72f0, ca40743, 7fd0116]
 branch: feat/e07-evidence-claims
 runtime: Node.js 24.21.0
 status: passed
@@ -33,7 +33,7 @@ phases:
     exit_code: 0
     evidence: "Single contiguous Node.js 24.21.0 run; 130/130 tests passed."
   review:
-    status: pending
-    evidence: "Independent pi-fork review is required and was unavailable in this session."
+    status: passed
+    evidence: "Post-fallback fresh whole-epic pi-fork review passed against the reviewed current contents."
 gaps:
   closed: true

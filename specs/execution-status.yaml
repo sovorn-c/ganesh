@@ -7,7 +7,7 @@ development_status:
   e06: done
   e05: done
   e14: done
-  e07: in_progress
+  e07: done
   e08: backlog
   e15: backlog
   e16: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e07_story_plan
-active_epic: e07
-active_story: e07s04
-note: E07 build completed on feat/e07-evidence-claims under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; local self-audit is complete and independent pi-fork review is pending because that facility is unavailable. E14 remains a complete local release. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e07_complete
+active_epic: none
+active_story: none
+note: E07 was locally released on main under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; the post-fallback whole-epic review passed. E01-E06 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -317,11 +317,11 @@ epics:
     verification_evidence: specs/verifications/e14-verify.yaml
   e07:
     title: Located evidence and accountable claims
-    status: in_progress
+    status: complete
     stories:
       e07s01:
         title: Located Evidence Items and Statement Kinds
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
@@ -331,7 +331,7 @@ epics:
         verification_evidence: specs/verifications/e07s01-verify.yaml
       e07s02:
         title: Claim Records and Citation Verification
-        status: passing
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
@@ -341,7 +341,7 @@ epics:
         verification_evidence: specs/verifications/e07s02-verify.yaml
       e07s03:
         title: Evidence Matrix and Source-Notice Reassessment
-        status: passing
+        status: done
         planning_status: ready
         bcps: 5
         risk: P0
@@ -351,7 +351,7 @@ epics:
         verification_evidence: specs/verifications/e07s03-verify.yaml
       e07s04:
         title: Method-Appropriate Appraisal and Qualified Synthesis
-        status: passing
+        status: done
         planning_status: ready
         bcps: 4
         risk: P0
@@ -359,9 +359,10 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e07s04-verify.yaml
+    verification_evidence: specs/verifications/e07-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T03:23:11Z"
-  rationale: "All 28 stories are traceable with no dark stories; E14 has passing per-story verification evidence across 16 task checks and 122 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
+  generated_at: "2026-09-12T07:03:26Z"
+  rationale: "All 32 stories are traceable with no dark stories; E07 has passing per-story verification evidence across 16 task checks and 134 passing tests, with no HIGH or MEDIUM blind spots. Existing LOW stale done-story tags remain informational."
   heuristic_ratio: 0.22
   downgrade_applied: false
