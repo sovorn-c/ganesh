@@ -32,13 +32,14 @@ export interface ConfirmationResult {
 function display(packet: DecisionPacket, request: ExactVersionConfirmationRequest): DisplayedConfirmation {
   const selectedCandidateVersionIds = [...(request.selectedCandidateVersionIds ?? packet.candidateVersionIds)];
   const dependencyVersionIds = [...(request.dependencyVersionIds ?? packet.dependencyVersionIds)];
+  const packetVersion = request.packetVersion ?? packet.packetVersion;
   return {
     packetId: packet.id,
-    packetVersion: packet.packetVersion,
+    packetVersion,
     selectedCandidateVersionIds,
     dependencyVersionIds,
     text: [
-      `Packet ${packet.id} version ${packet.packetVersion}`,
+      `Packet ${packet.id} version ${packetVersion}`,
       `Candidates: ${selectedCandidateVersionIds.join(", ") || "none"}`,
       `Dependencies: ${dependencyVersionIds.join(", ") || "none"}`,
       `Action: ${request.action ?? "approved"}`
@@ -69,7 +70,7 @@ export async function confirmExactVersion(
   }
   const decision = recordOwnerDecision(session.handle, {
     packetId: displayed.packetId,
-    packetVersion: request.packetVersion ?? displayed.packetVersion,
+    packetVersion: displayed.packetVersion,
     action: request.action ?? "approved",
     selectedCandidateVersionIds: displayed.selectedCandidateVersionIds,
     dependencyVersionIds: displayed.dependencyVersionIds,

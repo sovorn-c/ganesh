@@ -153,6 +153,21 @@ describe("E14 steering and confirmation", () => {
     session.handle.close();
   });
 
+  it("e14s02 confirmation displays the exact persisted packet version when a request is stale", async () => {
+    const session = await sessionFixture(new ConfirmingTui([true]));
+    const candidate = artifact(session.handle, "question", "1", "candidate");
+    const created = packet(session, candidate.id, "packet-version-mismatch");
+    const result = await confirmExactVersion(session, {
+      packetId: created.id,
+      packetVersion: created.packetVersion - 1,
+      selectedCandidateVersionIds: [candidate.id],
+      commandId: "version-mismatch"
+    });
+    assert.match(result.displayed.text, /version 0/);
+    assert.equal(result.status, "stale");
+    session.handle.close();
+  });
+
   it("e14s02 help and alternatives inspect without adopting or recording a disposition", async () => {
     const session = await sessionFixture();
     const original = artifact(session.handle, "question", "1", "original");
