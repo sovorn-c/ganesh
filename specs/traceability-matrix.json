@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T01:24:03Z",
+  "generated_at": "2026-09-12T05:01:34Z",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -939,6 +939,102 @@
       "link_count": 4
     },
     {
+      "id": "e07s01",
+      "title": "Located Evidence Items and Statement Kinds",
+      "epic_id": "e07",
+      "epic_title": "Located evidence and accountable claims",
+      "bcp": 0,
+      "wsjf": 1.190476,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/evidence/evidence-items.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e07-evidence-claims/e07s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e07s02",
+      "title": "Claim Records and Citation Verification",
+      "epic_id": "e07",
+      "epic_title": "Located evidence and accountable claims",
+      "bcp": 0,
+      "wsjf": 1.190476,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/evidence/claim-verification.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e07-evidence-claims/e07s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e07s03",
+      "title": "Evidence Matrix and Source-Notice Reassessment",
+      "epic_id": "e07",
+      "epic_title": "Located evidence and accountable claims",
+      "bcp": 0,
+      "wsjf": 1.190476,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/evidence/evidence-matrix.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e07-evidence-claims/e07s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e07s04",
+      "title": "Method-Appropriate Appraisal and Qualified Synthesis",
+      "epic_id": "e07",
+      "epic_title": "Located evidence and accountable claims",
+      "bcp": 0,
+      "wsjf": 1.190476,
+      "status": "passing",
+      "links": [
+        {
+          "file": "tests/evidence/appraisal-synthesis.test.ts",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e07-evidence-claims/e07s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
       "id": "e14s01",
       "title": "Product Launcher and Late-Entry Project Intake",
       "epic_id": "e14",
@@ -1036,8 +1132,8 @@
     }
   ],
   "summary": {
-    "total_stories": 28,
-    "tagged_stories": 28,
+    "total_stories": 32,
+    "tagged_stories": 32,
     "dark_stories": [
 
     ],
@@ -1083,9 +1179,9 @@
     ],
     "stale_count": 28,
     "oracle_stats": {
-      "high": 88,
+      "high": 92,
       "medium": 0,
-      "low": 28
+      "low": 32
     }
   }
 }

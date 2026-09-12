@@ -104,6 +104,7 @@ export function createSchema(db: DatabaseSync): void {
   createE04Schema(db);
   createE06Schema(db);
   createE05Schema(db);
+  createE07Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -614,6 +615,105 @@ export function createE05Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE07Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS evidence_operations (
+      command_id TEXT PRIMARY KEY,
+      payload_hash TEXT NOT NULL,
+      evidence_item_id TEXT,
+      status TEXT NOT NULL,
+      error_code TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS evidence_items (
+      id TEXT PRIMARY KEY,
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      location_kind TEXT NOT NULL,
+      location_id TEXT NOT NULL,
+      locator_snapshot TEXT NOT NULL,
+      statement_kind TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      limitations TEXT NOT NULL,
+      excerpt TEXT,
+      excerpt_hash TEXT,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_evidence_items_source ON evidence_items(source_version_id);
+
+    CREATE TABLE IF NOT EXISTS claims (
+      id TEXT PRIMARY KEY,
+      statement TEXT NOT NULL,
+      scope TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      current_support TEXT NOT NULL,
+      qualification TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS claim_evidence_links (
+      id TEXT PRIMARY KEY,
+      claim_id TEXT NOT NULL REFERENCES claims(id),
+      evidence_item_id TEXT NOT NULL REFERENCES evidence_items(id),
+      role TEXT NOT NULL,
+      verification_status TEXT NOT NULL,
+      qualification TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      UNIQUE(claim_id, evidence_item_id, role)
+    );
+    CREATE INDEX IF NOT EXISTS idx_claim_links_claim ON claim_evidence_links(claim_id);
+    CREATE TABLE IF NOT EXISTS citation_verifications (
+      id TEXT PRIMARY KEY,
+      claim_id TEXT NOT NULL REFERENCES claims(id),
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      identity_status TEXT NOT NULL,
+      access_status TEXT NOT NULL,
+      support_status TEXT NOT NULL,
+      bibliographic_fields TEXT NOT NULL,
+      limitations TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_citation_verifications_claim ON citation_verifications(claim_id);
+    CREATE TABLE IF NOT EXISTS claim_reassessments (
+      id TEXT PRIMARY KEY,
+      claim_id TEXT NOT NULL REFERENCES claims(id),
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      notice_command_id TEXT NOT NULL,
+      previous_support TEXT NOT NULL,
+      current_support TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(claim_id, notice_command_id)
+    );
+    CREATE TABLE IF NOT EXISTS appraisals (
+      id TEXT PRIMARY KEY,
+      source_version_id TEXT NOT NULL REFERENCES source_versions(artifact_version_id),
+      method_kind TEXT NOT NULL,
+      result TEXT NOT NULL,
+      findings TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      scholarly_finding_id TEXT,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS syntheses (
+      id TEXT PRIMARY KEY,
+      claim_ids TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      disagreements TEXT NOT NULL,
+      limitations TEXT NOT NULL,
+      reassessment_flags TEXT NOT NULL,
+      qualifications TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+  `);
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -629,6 +729,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE04Schema(db);
       createE06Schema(db);
       createE05Schema(db);
+      createE07Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

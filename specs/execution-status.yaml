@@ -7,7 +7,7 @@ development_status:
   e06: done
   e05: done
   e14: done
-  e07: backlog
+  e07: in_progress
   e08: backlog
   e15: backlog
   e16: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e14_complete
-active_epic: none
-active_story: none
-note: E14 correction cycle completed and dual independent iteration-4 review passed before local merge to main. Local validation and archive/merge are complete; production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e07_story_plan
+active_epic: e07
+active_story: e07s04
+note: E07 build completed on feat/e07-evidence-claims under approved plan revision sha256:38482851582c8965e2ad6844ae8f0450e4c5c82e24f9045e6287995bd7d2135a. All four stories and 16 task checks passed; whole-epic review is next. E14 remains a complete local release. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -315,6 +315,50 @@ epics:
         tasks_failing: 0
         verification_evidence: specs/verifications/e14s04-verify.yaml
     verification_evidence: specs/verifications/e14-verify.yaml
+  e07:
+    title: Located evidence and accountable claims
+    status: in_progress
+    stories:
+      e07s01:
+        title: Located Evidence Items and Statement Kinds
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e07s01-verify.yaml
+      e07s02:
+        title: Claim Records and Citation Verification
+        status: passing
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e07s02-verify.yaml
+      e07s03:
+        title: Evidence Matrix and Source-Notice Reassessment
+        status: passing
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e07s03-verify.yaml
+      e07s04:
+        title: Method-Appropriate Appraisal and Qualified Synthesis
+        status: passing
+        planning_status: ready
+        bcps: 4
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e07s04-verify.yaml
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-12T03:23:11Z"
