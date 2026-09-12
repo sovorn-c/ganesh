@@ -106,8 +106,8 @@ epics:
   - R05
 - id: e14
   title: Accessible terminal research workspace
-  capsule_dir: epics/e14-terminal-workspace
-  file: epics/e14-terminal-workspace/epic.yaml
+  capsule_dir: epics/archive/e14-terminal-workspace
+  file: epics/archive/e14-terminal-workspace/epic.yaml
   sequence: 7
   depends_on:
   - e04

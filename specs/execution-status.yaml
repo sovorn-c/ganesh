@@ -6,7 +6,7 @@ development_status:
   e04: done
   e06: done
   e05: done
-  e14: review_pending
+  e14: done
   e07: backlog
   e08: backlog
   e15: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e14_review_pending
+planning_level: e14_complete
 active_epic: e14
 active_story: none
-note: E14 accessible terminal workspace implementation completed on feat/e14-terminal-workspace under approved plan revision sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8. Four stories and 16 task checks passed; whole-epic review and local release remain pending. E01-E06 remain complete local releases. Production readiness, remote CI, publishing and deployment are unclaimed.
+note: E14 accessible terminal workspace was released locally on main after whole-epic review PASS and Node.js 24 checks. Four stories, 16 task verifications, 16 mapped scenarios and the 114-test suite pass; the preflight execution-mode warning remains non-blocking. E01-E06 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -272,7 +272,7 @@ epics:
         verification_evidence: specs/verifications/e05s05-verify.yaml
   e14:
     title: Accessible terminal research workspace
-    status: review_pending
+    status: complete
     stories:
       e14s01:
         title: Product Launcher and Late-Entry Project Intake

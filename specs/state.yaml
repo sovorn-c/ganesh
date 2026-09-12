@@ -1,16 +1,16 @@
 ---
 workflow_mode: solo-git
-active_flow: implementation
+active_flow: release_complete
 active_epic: e14
-active_story: e14s04
+active_story: none
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: bp-plan
+  next_command: "/bp-plan"
   summary: >-
-    E14 implementation completed on feat/e14-terminal-workspace under approved plan
-    revision sha256:e389aa9465f652f9301c8494e262d41e130e39669240e83d77de3d80e8c2a6d8.
-    Four stories and 16 task checks passed; whole-epic review and local release remain
-    pending. E01-E06 remain complete local releases. Production readiness is unclaimed.
+    E14 terminal workspace was released locally on main after whole-epic review PASS
+    and Node.js 24 checks. Four stories and 16 task verifications pass, with 16 mapped
+    scenarios and a 114-test suite. Production release readiness, remote CI, publishing
+    and deployment remain intentionally unclaimed.
 
 discovery:
   seed_conventions: confirmed
@@ -32,6 +32,8 @@ discovery:
   e06_review: complete_local_release
   e05_build: complete
   e05_review: complete_local_release
+  e14_build: complete
+  e14_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -58,25 +60,25 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 70
+      commits: 80
     smoke:
       node_version: passed
       npm_version: passed
     blockers: []
   survey:
     phase: Release
-    rationale: E06's dependency-ordered stories, task ledgers, implementation, NFR
-      evidence, whole-epic review, and Node.js 24 release checks passed before the
-      local merge to main. The pre-build Discover snapshot is retained below as history,
-      not current state.
+    rationale: E14's dependency-ordered stories, task ledgers, implementation, security
+      evidence, whole-epic review, and Node.js 24 release checks passed before the local
+      merge to main. E01-E06 remain complete local releases; the pre-build Discover
+      snapshot is retained below as history, not current state.
     repository:
       root: ganesh
       vcs: git_initialized_main_after_epic_merge
       branch: main
-      commits: 70
-      implementation_files: 62
+      commits: 80
+      implementation_files: 73
       package_manifests: 3
-      test_files: 28
+      test_files: 32
     baseline:
       tests: passed
       lint: passed
@@ -168,9 +170,10 @@ discovery:
     and Node.js 24 release checks passed on the feature branch; the branch was merged
     locally into main without a push, tag, PR, publish, deploy, or production-readiness
     claim.
-  - E14 implementation completed on feat/e14-terminal-workspace; four stories, 16 task
-    checks and 16 scenario-focused workspace tests passed. Whole-epic review and local
-    release remain pending; production readiness is not claimed.
+  - E14 implementation and whole-epic review passed on feat/e14-terminal-workspace;
+    the branch was merged locally into main without a push, tag, PR, publish, deploy,
+    or production-readiness claim. Four stories, 16 task checks and 16 scenario-focused
+    workspace tests passed.
 blueprint:
   status: complete
   deepen_architecture: not_applicable_to_greenfield_code; forcing_functions_recorded
@@ -198,22 +201,22 @@ blueprint:
   e14_plan_approved_at: '2026-09-12T00:31:22Z'
   e14_plan_approval_source: explicit_owner_message
   e14_plan_artifacts:
-  - specs/epics/e14-terminal-workspace/epic.yaml
-  - specs/epics/e14-terminal-workspace/e14s01-product-launcher-and-late-entry-intake.md
-  - specs/epics/e14-terminal-workspace/e14s01-tasks.yaml
-  - specs/epics/e14-terminal-workspace/e14s02-help-alternatives-and-exact-version-confirmation.md
-  - specs/epics/e14-terminal-workspace/e14s02-tasks.yaml
-  - specs/epics/e14-terminal-workspace/e14s03-evidence-inspection-and-native-viewers.md
-  - specs/epics/e14-terminal-workspace/e14s03-tasks.yaml
-  - specs/epics/e14-terminal-workspace/e14s04-accessible-live-work-state.md
-  - specs/epics/e14-terminal-workspace/e14s04-tasks.yaml
+  - specs/epics/archive/e14-terminal-workspace/epic.yaml
+  - specs/epics/archive/e14-terminal-workspace/e14s01-product-launcher-and-late-entry-intake.md
+  - specs/epics/archive/e14-terminal-workspace/e14s01-tasks.yaml
+  - specs/epics/archive/e14-terminal-workspace/e14s02-help-alternatives-and-exact-version-confirmation.md
+  - specs/epics/archive/e14-terminal-workspace/e14s02-tasks.yaml
+  - specs/epics/archive/e14-terminal-workspace/e14s03-evidence-inspection-and-native-viewers.md
+  - specs/epics/archive/e14-terminal-workspace/e14s03-tasks.yaml
+  - specs/epics/archive/e14-terminal-workspace/e14s04-accessible-live-work-state.md
+  - specs/epics/archive/e14-terminal-workspace/e14s04-tasks.yaml
   - specs/tech-architecture/e14-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   audit_plan: READY_implementation_mode_approved
   implementation_start: complete_bp_build
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e06_complete;e14_build_complete;e07_e18_deferred_to_bp_plan
+  story_planning: e01_e06_e14_complete;e07_e18_deferred_to_bp_plan
   e05_plan_artifacts:
   - specs/epics/archive/e05-bounded-work/epic.yaml
   - specs/epics/archive/e05-bounded-work/e05s01-authorized-contract-and-specialist-run.md
