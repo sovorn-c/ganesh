@@ -56,7 +56,7 @@ describe("E14 evidence inspection", () => {
     fixture.handle.close();
   });
 
-  it("e14s03 unavailable and limited evidence reports limitations without fabricated quotation", () => {
+  it("e14s03 deny unavailable and limited evidence reports integrity without fabricated quotation", () => {
     const fixture = projectFixture();
     roots.push(fixture.root);
     const view = presentInspection(session(fixture.handle), { sourceVersionId: "missing-source", includeContent: true });

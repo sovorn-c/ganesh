@@ -26,17 +26,22 @@ export function resolveProjectFolder(
   if (allowedRoot !== undefined && !pathInside(allowedRoot, folder)) {
     return failure("path-escape", "project folder must remain inside the allowed local root");
   }
+  let stats;
   try {
-    const stats = lstatSync(folder);
-    if (!stats.isDirectory()) {
-      return failure("not-a-directory", "project folder is not a directory");
-    }
-    if ((stats.mode & 0o444) === 0) {
-      return failure("unreadable", "project folder is not readable");
-    }
+    stats = lstatSync(folder);
+  } catch {
+    return failure("missing-folder", "project folder does not exist");
+  }
+  if (!stats.isDirectory()) {
+    return failure("not-a-directory", "project folder is not a directory");
+  }
+  if ((stats.mode & 0o444) === 0) {
+    return failure("unreadable", "project folder is not readable");
+  }
+  try {
     accessSync(folder, constants.R_OK);
   } catch {
-    return failure("missing-folder", "project folder does not exist or cannot be read");
+    return failure("unreadable", "project folder is not readable");
   }
   return { status: "resolved", path: folder, message: "project folder resolved" };
 }

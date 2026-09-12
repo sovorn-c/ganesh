@@ -4,6 +4,7 @@ export type AccessPathReason =
   | "non-text-terminal"
   | "non-utf8-terminal"
   | "missing-keyboard-map"
+  | "pointer-only"
   | "unsupported-screen-reader-pairing";
 
 export interface AccessPathInput {
@@ -11,6 +12,8 @@ export interface AccessPathInput {
   readonly textStatus: boolean;
   readonly utf8: boolean;
   readonly keyboardMapComplete?: boolean;
+  readonly textTerminal?: boolean;
+  readonly pointerOnly?: boolean;
   readonly screenReader?: string;
   readonly terminal?: string;
 }
@@ -34,10 +37,12 @@ export function qualifyAccessPath(input: AccessPathInput): AccessPathResult {
     reason = "colour-only-status";
   } else if (!input.utf8) {
     reason = "non-utf8-terminal";
-  } else if (input.terminal !== undefined && input.terminal.trim() === "") {
+  } else if (input.textTerminal === false || input.terminal === "dumb" || (input.terminal !== undefined && input.terminal.trim() === "")) {
     reason = "non-text-terminal";
   } else if (input.keyboardMapComplete === false) {
     reason = "missing-keyboard-map";
+  } else if (input.pointerOnly === true) {
+    reason = "pointer-only";
   } else if (input.screenReader !== undefined && input.terminal !== undefined && !SUPPORTED_SCREEN_READER_TERMINALS.has(`${input.screenReader}:${input.terminal}`)) {
     reason = "unsupported-screen-reader-pairing";
   }

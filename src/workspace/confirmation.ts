@@ -56,7 +56,7 @@ function statusFor(result: OwnerDecisionResult): ConfirmationResult["status"] {
 export async function confirmExactVersion(
   session: WorkspaceSession,
   request: ExactVersionConfirmationRequest,
-  tui: Pick<TuiPort, "confirm">
+  tui: Pick<TuiPort, "confirm"> = session.ports.tui
 ): Promise<ConfirmationResult> {
   const packet = getDecisionPacket(session.handle, request.packetId);
   if (packet === null) {

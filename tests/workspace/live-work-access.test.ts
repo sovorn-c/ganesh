@@ -8,6 +8,7 @@ import {
   inspectBudget,
   listRuns,
   queueRun,
+  pauseRun,
   qualifyAccessPath,
   keyboardMap,
   type ProjectHandle
@@ -59,6 +60,23 @@ describe("E14 live work state and access paths", () => {
     assert.equal(getRun(fixture.handle, run.id)?.status, "cancelled");
     const late = await acceptSubmission(fixture.handle, owner, { runId: run.id, sessionId: "workspace-session", content: "late output" });
     assert.equal(late.status, "quarantined");
+  });
+
+  it("e14s04 waiting-for-human and blocked states remain readable", async () => {
+    const fixture = projectFixture();
+    fixtures.push(fixture);
+    const owner = createOwnerCapability("owner-test");
+    const input = classifiedInput(fixture.handle);
+    const local = contract(fixture.handle, owner, [input.id]);
+    const waitingRun = queueRun(fixture.handle, owner, { contractId: local.id, commandId: "workspace-waiting", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    pauseRun(fixture.handle, owner, { runId: waitingRun.id, reason: "owner review" });
+    const session = workspaceSession(fixture.handle);
+    assert.equal(presentWorkStatus(session, { runId: waitingRun.id }).status, "waiting-for-human");
+
+    const remote = contract(fixture.handle, owner, [input.id], { destination: "remote", purpose: "remote-review" });
+    const blockedRun = queueRun(fixture.handle, owner, { contractId: remote.id, commandId: "workspace-blocked", reservation: { tokens: 1, calls: 1, timeMs: 1 } });
+    await dispatchRun(fixture.handle, owner, blockedRun.id, { start: () => ({ status: "ok", sessionId: "blocked-session" }) });
+    assert.equal(presentWorkStatus(session, { runId: blockedRun.id }).status, "blocked");
   });
 
   it("e14s04 contract cancellation fences all runs and keeps budget inspection truthful", () => {
