@@ -1,7 +1,9 @@
 story_id: e15s01
-verified_at: "2026-09-12T15:00:00Z"
+verified_at: "2026-09-13T01:40:27Z"
 verifier: bp-release-solo
 branch: feat/e15-recovery-portability
+commit: a7561102f3aa730dfdecb9c12ce1003e37aee99b
+working_tree: uncommitted corrections included in evidence
 runtime: Node.js 24.21.0
 status: passed
 plan_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
@@ -12,7 +14,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "201/201 tests passed, including E15 export, packet integrity, permission omissions, and strict path containment."
+    evidence: "215/215 tests passed, including E15 export, packet integrity, permission omissions, and strict path containment."
   typecheck:
     passed: true
     command: npm run typecheck

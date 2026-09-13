@@ -1,5 +1,6 @@
 // story: e02s03
-import { rmSync } from "node:fs";
+import { lstatSync, realpathSync, rmSync, unlinkSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import {
   PROJECT_SCHEMA_VERSION,
   type ProjectHandle,
@@ -10,7 +11,7 @@ import {
 import { inspectArtifactVersion, listArtifactVersions, listTemporaryArtifactFiles } from "../artifacts/artifact-store.js";
 import { openProject } from "../project/project-store.js";
 import { transaction } from "../persistence/schema.js";
-import { isoNow, newId } from "../persistence/storage-utils.js";
+import { hasSymlinkBetween, isoNow, newId, pathInside } from "../persistence/storage-utils.js";
 
 export function schemaStatus(handle: ProjectHandle): SchemaStatus {
   const version = handle.project.schemaVersion;
@@ -51,6 +52,7 @@ export function recordRecoveryCheckpoint(
   if (!handle.writable) {
     throw new ProjectStoreError("read-only", "cannot record a recovery checkpoint on a read-only project");
   }
+  handle.assertCurrent();
   const id = newId("checkpoint");
   transaction(handle.db, () => {
     handle.db.prepare(
@@ -62,6 +64,77 @@ export function recordRecoveryCheckpoint(
 
 function artifactInspection(handle: ProjectHandle): ReturnType<typeof inspectArtifactVersion>[] {
   return listArtifactVersions(handle).map((artifact) => inspectArtifactVersion(handle, artifact.id));
+}
+
+function safeRecoveryPath(allowedRoots: readonly string[], recordedPath: string, boundary: string): string | null {
+  const target = resolve(recordedPath);
+  for (const root of allowedRoots) {
+    const resolvedRoot = resolve(root);
+    if (!pathInside(resolvedRoot, target) || target === resolvedRoot || hasSymlinkBetween(resolvedRoot, boundary)) { continue; }
+    let realRoot: string;
+    try {
+      if (lstatSync(resolvedRoot).isSymbolicLink()) { continue; }
+      realRoot = realpathSync(resolvedRoot); } catch { continue; }
+    let current = target;
+    while (current !== resolvedRoot) {
+      try {
+        const stat = lstatSync(current);
+        if (current !== target && stat.isSymbolicLink()) { current = ""; break; }
+        if (current !== target && !pathInside(realRoot, realpathSync(current))) { current = ""; break; }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") { current = ""; break; }
+      }
+      const parent = dirname(current);
+      if (parent === current) { current = ""; break; }
+      current = parent;
+    }
+    if (current === resolvedRoot) { return target; }
+  }
+  return null;
+}
+
+function reconcileDeletionPaths(handle: ProjectHandle): void {
+  const allowedRoots = [handle.project.artifactRoot, join(handle.project.rootPath, ".ganesh", "backups")];
+  let rows: Array<{ id: string; unlinked_paths: string }>;
+  try {
+    rows = handle.db.prepare("SELECT id, unlinked_paths FROM deletion_events WHERE unlinked_paths IS NOT NULL").all() as Array<{ id: string; unlinked_paths: string }>;
+  } catch {
+    return;
+  }
+  for (const row of rows) {
+    let paths: string[];
+    try {
+      const parsed = JSON.parse(row.unlinked_paths);
+      if (!Array.isArray(parsed) || !parsed.every((path): path is string => typeof path === "string")) {
+        continue;
+      }
+      paths = parsed;
+    } catch {
+      continue;
+    }
+    const remaining: string[] = [];
+    for (const path of paths) {
+      const target = safeRecoveryPath(allowedRoots, path, handle.project.rootPath);
+      if (!target || target === resolve(handle.project.rootPath)) {
+        remaining.push(path);
+        continue;
+      }
+      try {
+        const stat = lstatSync(target);
+        if (stat.isSymbolicLink()) { unlinkSync(target); }
+        else { rmSync(target, { force: true, recursive: true }); }
+        try { lstatSync(target); remaining.push(target); } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== "ENOENT") { remaining.push(target); }
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") { remaining.push(target); }
+      }
+    }
+    transaction(handle.db, () => {
+      handle.db.prepare("UPDATE deletion_events SET unlinked_paths = ? WHERE id = ?")
+        .run(JSON.stringify(remaining), row.id);
+    });
+  }
 }
 
 export function recoverProject(projectRoot: string): RecoveryResult {
@@ -94,6 +167,7 @@ export function recoverProject(projectRoot: string): RecoveryResult {
     for (const path of temporaryFiles) {
       rmSync(path, { force: true });
     }
+    reconcileDeletionPaths(handle);
     const checkpointId = recordRecoveryCheckpoint(
       handle,
       "project-recovery",

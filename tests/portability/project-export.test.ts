@@ -2,6 +2,7 @@
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, rmSync, existsSync, writeFileSync, mkdirSync, symlinkSync, readdirSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { join, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -152,6 +153,14 @@ describe("E15s01 versioned project export", () => {
   // SC-e15s01-P0-03: Restricted bytes omitted
   it("e15s01 omission notice for restricted local-only artifact on remote export", () => {
     const artifact = registerPublicArtifact(fix.handle, "restricted-doc", "v1", "secret content");
+    fix.handle.db.prepare(`
+      INSERT INTO source_versions
+        (artifact_version_id, format, media_type, original_name, access_level, extraction_status, parser_name, parser_version, created_at)
+      VALUES (?, 'txt', 'text/plain', 'secret.txt', 'full-text', 'complete', 'test', '1', ?)
+    `).run(artifact.id, new Date().toISOString());
+    fix.handle.db.prepare(
+      "INSERT INTO source_segments (id, source_version_id, derived_version_id, locator, text) VALUES (?, ?, ?, ?, ?)"
+    ).run("restricted-export-segment", artifact.id, artifact.id, "1:2", "secret excerpt must not cross boundary");
     // Classify as restricted, grant only local
     classifyAndGrant(fix.handle, artifact.id, "local", "research", "restricted");
 
@@ -178,6 +187,14 @@ describe("E15s01 versioned project export", () => {
       f.relativePath.includes(artifact.id)
     );
     assert.equal(includesRestricted, false, "restricted artifact should not be in files");
+
+    const packetDb = new DatabaseSync(join(packetDest, "project.sqlite"), { readOnly: true });
+    try {
+      const segment = packetDb.prepare("SELECT text FROM source_segments WHERE id = 'restricted-export-segment'").get() as { text?: string } | undefined;
+      assert.equal(segment, undefined, "remote packet must not retain restricted source excerpts");
+    } finally {
+      packetDb.close();
+    }
   });
 
   // SC-e15s01-P1-04: Withdrawn grant results in omission
@@ -261,6 +278,18 @@ describe("E15s01 versioned project export", () => {
     } finally {
       rmSync(maliciousDir, { recursive: true, force: true });
     }
+  });
+
+  it("e15s01 adversarial: inspectProjectPacket bounds malformed manifest entries", () => {
+    const packetDir = emptyDestination();
+    writeFileSync(join(packetDir, "ganesh-project-packet.json"), JSON.stringify({
+      kind: "project", schemaVersion: PROJECT_SCHEMA_VERSION, projectId: "test-proj", createdAt: new Date().toISOString(),
+      destination: "local", purpose: "test", files: [null], omissions: [], commitmentIds: [], evidenceLocatorIds: []
+    }));
+    assert.throws(
+      () => inspectProjectPacket(packetDir),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "corrupt-packet"
+    );
   });
 
   it("e15s01 adversarial: inspectProjectPacket rejects symlink traversal escaping root", () => {

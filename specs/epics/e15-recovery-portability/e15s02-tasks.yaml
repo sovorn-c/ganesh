@@ -6,7 +6,7 @@ bcps: 7
 tasks:
   - id: e15s02-t01
     description: Add backup snapshots with hashes and schema version, and materialize restore that rejects hash mismatch before the destination is ready.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s02.*(backup|hash|integrity|mismatch|materialize)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(backup|hash|integrity|mismatch|materialize)' dist/tests/*/*.test.js"
     risk: P0
     security: medium
     scenarios: [SC-e15s02-P0-01]
@@ -16,7 +16,7 @@ tasks:
       categories: [portability, integrity, AC-20]
   - id: e15s02-t02
     description: Add restore drills that verify a snapshot without changing live current snapshots or commitments.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s02.*(drill|live current|commitment)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(drill|live current|commitment)' dist/tests/*/*.test.js"
     risk: P0
     security: low
     scenarios: [SC-e15s02-P0-02]
@@ -26,7 +26,7 @@ tasks:
       categories: [portability, AC-08]
   - id: e15s02-t03
     description: Add migrateWithBackup that records a backup first while bare migrateSchema still migrates a v0 marker.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s02.*(migrateWithBackup|migrateSchema|v0)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(migrateWithBackup|migrateSchema|v0)' dist/tests/*/*.test.js"
     risk: P0
     security: low
     scenarios: [SC-e15s02-P0-03]
@@ -36,7 +36,7 @@ tasks:
       categories: [persistence, migrations]
   - id: e15s02-t04
     description: Prove restored research branches stay isolated and keep released E01-E08/E14 behavior passing.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s02.*(branch|isolat|AC-08|regression)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s02.*(branch|isolat|AC-08|regression)' dist/tests/*/*.test.js"
     risk: P1
     security: medium
     scenarios: [SC-e15s02-P1-04]

@@ -137,14 +137,14 @@ Shared modules are mapped in `specs/IMPACT_LATEST.md`:
 - `src/artifacts/artifact-store.ts` owns immutable bytes; E15 copies permitted files and does not rewrite hashes.
 - `src/index.ts` serves CLI/tests; E15 adds explicit typed exports only.
 
-Planned tests: `tests/portability/project-export.test.ts`, `tests/integration/portability-authority.test.ts`, and shared helpers in `tests/support/portability-fixtures.ts`.
+Planned tests: `tests/portability/project-export.test.ts`, and shared helpers in `tests/support/portability-fixtures.ts`.
 
 ## 16. Implementation Steps
 
-1. Add portability types, exact v1 additive E15 schema initialization paths, atomic command/payload completion and a directory packet writer with hashes → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s01.*(schema|packet|hash|reopen|migration|atomic|retry)' dist/tests/*/*.test.js`
-2. Harden owner-only export against forged, wrong-owner and worker callers, and prove no new security findings in affected authority paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s01.*(capability|forged|worker|wrong-owner|denied|authority)' dist/tests/*/*.test.js`
-3. Omit restricted and local-only-to-remote bytes with explicit omission notices and absent artifact paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s01.*(omission|restricted|local-only|remote)' dist/tests/*/*.test.js`
-4. Evaluate current disclosure at export time, copy permitted commitments and locators without creating decisions, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s01.*(withdrawn|commitment|locator|regression)' dist/tests/*/*.test.js`
+1. Add portability types, exact v1 additive E15 schema initialization paths, atomic command/payload completion and a directory packet writer with hashes → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(schema|packet|hash|reopen|migration|atomic|retry)' dist/tests/*/*.test.js`
+2. Harden owner-only export against forged, wrong-owner and worker callers, and prove no new security findings in affected authority paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(capability|forged|worker|wrong-owner|denied|authority)' dist/tests/*/*.test.js`
+3. Omit restricted and local-only-to-remote bytes with explicit omission notices and absent artifact paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(omission|restricted|local-only|remote)' dist/tests/*/*.test.js`
+4. Evaluate current disclosure at export time, copy permitted commitments and locators without creating decisions, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s01.*(withdrawn|commitment|locator|regression)' dist/tests/*/*.test.js`
 
 ## 17. Acceptance Criteria
 

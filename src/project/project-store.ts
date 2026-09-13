@@ -1,5 +1,5 @@
 // story: e02s01
-import { accessSync, constants, existsSync, mkdirSync, rmSync } from "node:fs";
+import { accessSync, constants, existsSync, mkdirSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import {
@@ -12,12 +12,13 @@ import {
 } from "./project-types.js";
 import { createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
 import { assertIdentifier, ensureDirectory, isoNow, newId, resolveProjectRoot } from "../persistence/storage-utils.js";
-import { acquireProjectWriteLock } from "./project-lock.js";
+import { acquireProjectWriteLock, reconcileProjectStoreSwap } from "./project-lock.js";
 import type { ProjectLock } from "../portability/portability-types.js";
 
 const STORE_DIRECTORY = ".ganesh";
 const DATABASE_FILE = "project.sqlite";
 const ARTIFACT_DIRECTORY = "artifacts";
+const databaseIdentities = new WeakMap<object, { dev: number; ino: number }>();
 
 export class ProjectHandle implements ProjectHandleContract {
   readonly db: DatabaseSync;
@@ -26,7 +27,6 @@ export class ProjectHandle implements ProjectHandleContract {
   readonly writable: boolean;
   readonly readonlyReason?: string;
   private lock?: ProjectLock;
-
   constructor(
     db: DatabaseSync,
     project: ProjectRecord,
@@ -41,6 +41,21 @@ export class ProjectHandle implements ProjectHandleContract {
     this.writable = writable;
     this.readonlyReason = readonlyReason;
     this.lock = lock;
+    const stat = statSync(project.databasePath);
+    databaseIdentities.set(this, { dev: stat.dev, ino: stat.ino });
+  }
+
+  assertCurrent(): void {
+    try {
+      const stat = statSync(this.project.databasePath);
+      const identity = databaseIdentities.get(this);
+      if (!identity || stat.dev !== identity.dev || stat.ino !== identity.ino) {
+        throw new ProjectStoreError("project-locked", "project store changed; reopen the project before writing");
+      }
+    } catch (error) {
+      if (error instanceof ProjectStoreError) { throw error; }
+      throw new ProjectStoreError("project-locked", "project database is no longer available; reopen the project");
+    }
   }
 
   close(): void {
@@ -122,6 +137,7 @@ function openDatabase(path: string, readOnly: boolean): DatabaseSync {
 
 export function createProject(input: ProjectInput): ProjectHandle {
   const paths = pathsFor(input.rootPath);
+  reconcileProjectStoreSwap(paths.root);
   assertIdentifier(input.ownerId, "ownerId");
   const projectId = input.projectId === undefined ? newId("project") : assertIdentifier(input.projectId, "projectId");
 
@@ -200,6 +216,7 @@ export function createProject(input: ProjectInput): ProjectHandle {
 
 export function openProject(rootPath: string, options: OpenProjectOptions = {}): ProjectHandle {
   const paths = pathsFor(rootPath);
+  reconcileProjectStoreSwap(paths.root);
   if (!existsSync(paths.database)) {
     throw new ProjectStoreError("project-not-found", "no project database exists at this root");
   }
@@ -234,12 +251,18 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
   const schemaStatus = statusForSchema(schemaVersion);
   const schemaMismatch = project.schemaVersion !== schemaVersion;
   if (schemaStatus === "ready" && !schemaMismatch && options.readOnly !== true && !openedReadOnlyFallback && writableDirectory(paths.store)) {
-    createE04Schema(db);
-    createE06Schema(db);
-    createE05Schema(db);
-    createE07Schema(db);
-    createE08Schema(db);
-    createE15Schema(db);
+    try {
+      createE04Schema(db);
+      createE06Schema(db);
+      createE05Schema(db);
+      createE07Schema(db);
+      createE08Schema(db);
+      createE15Schema(db);
+    } catch (error) {
+      try { db.close(); } catch { /* preserve schema error */ }
+      lock?.release();
+      throw error;
+    }
   }
   const mustReadOnly = options.readOnly === true || !writableDirectory(paths.store) || schemaStatus !== "ready" || schemaMismatch;
   if (mustReadOnly && options.readOnly !== true && !openedReadOnlyFallback) {
@@ -269,6 +292,7 @@ export function assertWritable(handle: ProjectHandleContract): void {
   if (!handle.writable || handle.status !== "ready") {
     throw new ProjectStoreError("read-only", handle.readonlyReason ?? "project is not writable");
   }
+  handle.assertCurrent?.();
 }
 
 export function closeProject(handle: ProjectHandleContract): void {

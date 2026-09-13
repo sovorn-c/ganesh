@@ -1,7 +1,7 @@
 // story: e15s04 — Controlled Deletion of Derived Content and Caches
 import { describe, it, after, before } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, existsSync, mkdirSync, symlinkSync, rmSync } from "node:fs";
+import { writeFileSync, existsSync, lstatSync, mkdirSync, symlinkSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import {
   deleteArtifactContent,
@@ -16,7 +16,14 @@ import {
   deriveMaterial,
   requestDisclosure,
   registerArtifactVersion,
-  ProjectStoreError
+  classifyInput,
+  grantDataUse,
+  proposeContract,
+  authorizeContract,
+  queueRun,
+  dispatchRun,
+  ProjectStoreError,
+  recoverProject
 } from "../../src/index.js";
 import {
   portabilityFixture,
@@ -105,7 +112,146 @@ describe("E15s04 controlled deletion of derived content and caches", () => {
     assert.equal(inspection.contentStatus, "unavailable");
   });
 
+  it("e15s04 deletion records and unlinks a broken symlink leaf", () => {
+    const art = registerPublicArtifact(fix.handle, "broken-link-delete", "v1", "broken link bytes");
+    rmSync(art.storagePath!, { force: true });
+    symlinkSync(join(fix.root, "missing-target"), art.storagePath!);
+
+    const deletion = deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: art.id,
+      reason: "broken-link-test",
+      commandId: "delete-broken-link",
+      payloadHash: packetPayloadHash({ broken: "1" })
+    });
+
+    assert.throws(() => lstatSync(art.storagePath!), (error: unknown) => (error as NodeJS.ErrnoException).code === "ENOENT");
+    const event = fix.handle.db.prepare("SELECT unlinked_paths FROM deletion_events WHERE id = ?")
+      .get(deletion.deletionEventId) as { unlinked_paths: string };
+    assert.deepEqual(JSON.parse(event.unlinked_paths), []);
+  });
+
+  it("e15s04 deletion rejects a symlinked allowed root without touching its target", () => {
+    const isolated = portabilityFixture("deletion-symlink-root");
+    try {
+      const art = registerPublicArtifact(isolated.handle, "symlink-root", "v1", "must remain");
+      const externalRoot = join(isolated.root, "external-artifacts");
+      const artifactRoot = isolated.handle.project.artifactRoot;
+      mkdirSync(externalRoot, { recursive: true });
+      const externalFile = join(externalRoot, "symlink-root", "v1");
+      mkdirSync(join(externalRoot, "symlink-root"), { recursive: true });
+      writeFileSync(externalFile, "must remain");
+      rmSync(artifactRoot, { recursive: true, force: true });
+      symlinkSync(externalRoot, artifactRoot);
+
+      const deletion = deleteArtifactContent(isolated.handle, isolated.ownerCap, {
+        artifactVersionId: art.id,
+        reason: "symlink-root-test",
+        commandId: "delete-symlink-root",
+        payloadHash: packetPayloadHash({ symlinkRoot: "1" })
+      });
+
+      assert.deepEqual(deletion.unlinkedPaths, []);
+      assert.equal(existsSync(externalFile), true);
+    } finally {
+      disposePortabilityFixture(isolated);
+    }
+  });
+
+  it("e15s04 recovery does not follow an ancestor symlink in a recorded path", () => {
+    const art = registerPublicArtifact(fix.handle, "recovery-symlink", "v1", "recovery symlink bytes");
+    const outsideDir = join(fix.root, "recovery-outside");
+    const outsideFile = join(outsideDir, "victim.txt");
+    mkdirSync(outsideDir, { recursive: true });
+    writeFileSync(outsideFile, "must remain");
+    const link = join(fix.handle.project.artifactRoot, "recovery-link");
+    symlinkSync(outsideDir, link);
+    const recordedPath = join(link, "victim.txt");
+    const deletion = deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: art.id,
+      reason: "recovery-symlink-test",
+      commandId: "delete-recovery-symlink",
+      payloadHash: packetPayloadHash({ recoverySymlink: "1" })
+    });
+    fix.handle.db.prepare("UPDATE deletion_events SET unlinked_paths = ? WHERE id = ?")
+      .run(JSON.stringify([recordedPath]), deletion.deletionEventId);
+
+    recoverProject(fix.root);
+
+    assert.equal(existsSync(outsideFile), true);
+    const event = fix.handle.db.prepare("SELECT unlinked_paths FROM deletion_events WHERE id = ?")
+      .get(deletion.deletionEventId) as { unlinked_paths: string };
+    assert.deepEqual(JSON.parse(event.unlinked_paths), [recordedPath]);
+  });
+
   // SC-e15s04-P0-02: New use and execution are blocked
+  it("e15s04 recovery retries deletion paths recorded before a crash", () => {
+    const art = registerPublicArtifact(fix.handle, "recovery-delete", "v1", "recovery bytes");
+    const deletion = deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: art.id,
+      reason: "recovery-test",
+      commandId: "delete-recovery-test",
+      payloadHash: packetPayloadHash({ recovery: "1" })
+    });
+    const retryPath = join(fix.handle.project.artifactRoot, "recovery-pending.txt");
+    writeFileSync(retryPath, "must be removed");
+    fix.handle.db.prepare("UPDATE deletion_events SET unlinked_paths = ? WHERE id = ?")
+      .run(JSON.stringify([retryPath]), deletion.deletionEventId);
+
+    recoverProject(fix.root);
+
+    assert.equal(existsSync(retryPath), false);
+    const event = fix.handle.db.prepare("SELECT unlinked_paths FROM deletion_events WHERE id = ?")
+      .get(deletion.deletionEventId) as { unlinked_paths: string };
+    assert.deepEqual(JSON.parse(event.unlinked_paths), []);
+  });
+
+  it("e15s04 deletion command retry is idempotent and payload-bound", () => {
+    const art = registerPublicArtifact(fix.handle, "retry-delete", "v1", "retry bytes");
+    const request = {
+      artifactVersionId: art.id,
+      reason: "retry-test",
+      commandId: "delete-retry-test",
+      payloadHash: packetPayloadHash({ retry: "1" })
+    };
+    const first = deleteArtifactContent(fix.handle, fix.ownerCap, request);
+    const second = deleteArtifactContent(fix.handle, fix.ownerCap, request);
+    assert.equal(second.deletionEventId, first.deletionEventId);
+    assert.throws(
+      () => deleteArtifactContent(fix.handle, fix.ownerCap, { ...request, payloadHash: packetPayloadHash({ retry: "2" }) }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "payload-conflict"
+    );
+  });
+
+  it("e15s04 deletion purges source excerpts from SQLite while retaining only tombstone metadata", () => {
+    const art = registerPublicArtifact(fix.handle, "doc-sqlite-purge", "v1", "restricted source bytes");
+    fix.handle.db.prepare(`
+      INSERT INTO source_versions
+        (artifact_version_id, format, media_type, original_name, access_level, extraction_status, parser_name, parser_version, created_at)
+      VALUES (?, 'txt', 'text/plain', 'restricted.txt', 'full-text', 'complete', 'test', '1', ?)
+    `).run(art.id, new Date().toISOString());
+    fix.handle.db.prepare(
+      "INSERT INTO source_segments (id, source_version_id, derived_version_id, locator, text) VALUES (?, ?, ?, ?, ?)"
+    ).run("segment-purge", art.id, art.id, "1:2", "restricted excerpt must disappear");
+    fix.handle.db.prepare(
+      "INSERT INTO source_records (id, source_version_id, record_kind, record_data, locator, access_level, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run("record-purge", art.id, "note", "restricted record bytes", "row-1", "full-text", new Date().toISOString());
+    fix.handle.db.prepare(
+      "INSERT INTO evidence_items (id, source_version_id, location_kind, location_id, locator_snapshot, statement_kind, origin, limitations, excerpt, excerpt_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).run("evidence-purge", art.id, "segment", "segment-purge", "{}", "quote", "source", "", "restricted evidence excerpt", "hash", new Date().toISOString());
+
+    deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: art.id,
+      reason: "source erasure",
+      commandId: "del-sqlite-purge",
+      payloadHash: packetPayloadHash({ art: art.id })
+    });
+
+    assert.equal(fix.handle.db.prepare("SELECT count(*) AS count FROM source_segments WHERE id = 'segment-purge'").get()?.count, 0);
+    assert.equal(fix.handle.db.prepare("SELECT count(*) AS count FROM source_records WHERE id = 'record-purge'").get()?.count, 0);
+    assert.equal(fix.handle.db.prepare("SELECT count(*) AS count FROM evidence_items WHERE id = 'evidence-purge'").get()?.count, 0);
+    assert.equal(JSON.stringify(getEvidenceTombstone(fix.handle, fix.ownerCap, art.id)).includes("restricted evidence excerpt"), false);
+  });
+
   it("e15s04 readiness is blocked and revalidation required when artifact is deleted", () => {
     const art2 = registerPublicArtifact(fix.handle, "doc-readiness", "v1", "readiness input bytes");
 
@@ -150,6 +296,37 @@ describe("E15s04 controlled deletion of derived content and caches", () => {
   });
 
   // SC-e15s04-P0-03: External disclosures are not recalled
+  it("e15s04 work dispatch is blocked after its input is deleted", async () => {
+    const input = registerPublicArtifact(fix.handle, "doc-dispatch-delete", "v1", "dispatch input bytes");
+    classifyInput(fix.handle, input.id, { sensitivity: "public", basis: "test" });
+    grantDataUse(fix.handle, { inputVersion: input.id, destination: "local", purpose: "research-work", authority: fix.ownerId });
+    const proposed = proposeContract(fix.handle, fix.ownerCap, {
+      id: "contract-dispatch-delete",
+      objective: "blocked dispatch regression",
+      inputVersionIds: [input.id],
+      permittedRoles: ["discovery"],
+      limits: { tokens: 10, calls: 1, timeMs: 1000 }
+    });
+    const authorized = authorizeContract(fix.handle, fix.ownerCap, { contractId: proposed.id });
+    const run = queueRun(fix.handle, fix.ownerCap, {
+      contractId: authorized.id,
+      commandId: "queue-dispatch-delete",
+      reservation: { tokens: 1, calls: 1, timeMs: 100 }
+    });
+    deleteArtifactContent(fix.handle, fix.ownerCap, {
+      artifactVersionId: input.id,
+      reason: "dispatch input withdrawn",
+      commandId: "del-dispatch-input",
+      payloadHash: packetPayloadHash({ art: input.id })
+    });
+    let starts = 0;
+    const result = await dispatchRun(fix.handle, fix.ownerCap, run.id, {
+      start: () => { starts += 1; return { status: "ok" }; }
+    });
+    assert.equal(result.status, "blocked");
+    assert.equal(starts, 0);
+  });
+
   it("e15s04 external disclosures are reported as recall-not-promised without claiming provider deletion", () => {
     const art3 = registerPublicArtifact(fix.handle, "disclosed-doc", "v1", "shared bytes");
     classifyAndGrant(fix.handle, art3.id, "external-cloud", "cloud-analysis");

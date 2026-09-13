@@ -34,6 +34,7 @@ export function promoteBranch(handle: ProjectHandle, request: PromotionRequest):
       reason: handle.readonlyReason ?? "project is read-only"
     };
   }
+  handle.assertCurrent();
   const selected = request.logicalIds === undefined ? undefined : [...new Set(request.logicalIds)].sort();
   for (const logicalId of selected ?? []) {
     assertIdentifier(logicalId, "logicalId");

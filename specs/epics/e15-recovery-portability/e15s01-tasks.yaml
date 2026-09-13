@@ -6,7 +6,7 @@ bcps: 8
 tasks:
   - id: e15s01-t01
     description: Add portability types, exact v1 additive E15 schema initialization paths, atomic command/payload completion and a directory packet writer with per-file hashes.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s01.*(schema|packet|hash|reopen|migration|atomic|retry)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(schema|packet|hash|reopen|migration|atomic|retry)' dist/tests/*/*.test.js"
     risk: P0
     security: low
     scenarios: [SC-e15s01-P0-01]
@@ -16,7 +16,7 @@ tasks:
       categories: [portability, persistence, provenance]
   - id: e15s01-t02
     description: Harden owner-only export against forged, wrong-owner and worker callers, and prove no new security findings in affected authority paths.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s01.*(capability|forged|worker|wrong-owner|denied|authority)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(capability|forged|worker|wrong-owner|denied|authority)' dist/tests/*/*.test.js"
     risk: P0
     security: high
     scenarios: [SC-e15s01-P0-02]
@@ -26,7 +26,7 @@ tasks:
       categories: [authority, project-isolation, Security Review]
   - id: e15s01-t03
     description: Omit restricted and local-only-to-remote bytes with explicit omission notices and absent artifact paths.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node --test --test-name-pattern='e15s01.*(omission|restricted|local-only|remote)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e15s01.*(omission|restricted|local-only|remote)' dist/tests/*/*.test.js"
     risk: P0
     security: high
     scenarios: [SC-e15s01-P0-03]
@@ -36,7 +36,7 @@ tasks:
       categories: [privacy, disclosure, AC-20]
   - id: e15s01-t04
     description: Evaluate current disclosure at export time, copy permitted commitments and locators without creating decisions, and keep released E01-E08/E14 behavior passing.
-    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s01.*(withdrawn|commitment|locator|regression)' dist/tests/*/*.test.js"
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s01.*(withdrawn|commitment|locator|regression)' dist/tests/*/*.test.js"
     risk: P1
     security: medium
     scenarios: [SC-e15s01-P1-04]

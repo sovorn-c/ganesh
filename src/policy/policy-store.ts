@@ -535,6 +535,7 @@ export function evaluatePolicy(
 
 function persistDecision(handle: ProjectHandle, decision: PolicyDecision, branchId?: string): void {
   if (handle.writable) {
+    handle.assertCurrent();
     try {
       transaction(handle.db, () => {
         handle.db

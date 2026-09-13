@@ -135,6 +135,7 @@ export function updateBranchReference(handle: ProjectHandle, request: BranchMuta
   if (!handle.writable || handle.status !== "ready") {
     return { status: "blocked", branchId: request.branchId, revision: request.expectedVersion, reason: handle.readonlyReason ?? "project is read-only" };
   }
+  handle.assertCurrent();
   if (!artifactBelongsToLogicalId(handle, request.artifactVersionId, request.logicalId)) {
     return { status: "rejected", branchId: request.branchId, revision: request.expectedVersion, reason: "artifact version belongs to another logical object" };
   }

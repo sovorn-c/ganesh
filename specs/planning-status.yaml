@@ -1,12 +1,12 @@
 ---
-level: epic_story_plan
+level: epic_blueprint
 discovery: confirmed
 architecture: selected_for_blueprint
-scope: complete
+scope: pending
 release_index: complete
-audit: READY_implementation_mode_approved
-story_slicing: complete
-test_planning: complete
-story_planning: complete
-selected_epic: e15
-next_command: "/bp-build"
+audit: pending
+story_slicing: pending
+test_planning: pending
+story_planning: pending
+selected_epic: e16
+next_command: "/scope-work"

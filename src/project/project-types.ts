@@ -26,6 +26,7 @@ export interface ProjectRecord {
 export interface ProjectHandle {
   readonly db: DatabaseSync;
   readonly project: ProjectRecord;
+  assertCurrent(): void;
   readonly status: ProjectStatus;
   readonly writable: boolean;
   readonly readonlyReason?: string;

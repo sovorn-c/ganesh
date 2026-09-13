@@ -1,17 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: review
-active_epic: e15
-active_story: e15s05
+active_flow: plan
+active_epic: e16
+active_story: null
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: scope-work
+  next_command: "/scope-work"
   summary: >-
-    E15 build completed on feat/e15-recovery-portability under approved plan revision
-    sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2.
-    All five stories and 20 task checks passed; fresh whole-epic review is next.
-    This is a local build only; production readiness, remote CI, publishing and
-    deployment remain unclaimed.
+    E15 implementation, verification, and independent review passed under the
+    approved plan revision sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2.
+    The next dependency-eligible epic is E16, Private operational diagnostics and
+    reliability. Begin planning only; production readiness, remote CI, publishing
+    and deployment remain unclaimed.
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed

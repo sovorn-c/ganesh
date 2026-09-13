@@ -120,10 +120,10 @@ Planned tests: `tests/portability/backup-restore.test.ts`.
 
 ## 16. Implementation Steps
 
-1. Add backup snapshots with hashes and schema version, and materialize restore that rejects mismatch → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s02.*(backup|hash|integrity|mismatch|materialize)' dist/tests/*/*.test.js`
-2. Add restore drills that leave live current snapshots and commitments unchanged → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s02.*(drill|live current|commitment)' dist/tests/*/*.test.js`
-3. Add migrateWithBackup that records a backup first while bare migrateSchema still migrates v0 → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s02.*(migrateWithBackup|migrateSchema|v0)' dist/tests/*/*.test.js`
-4. Prove restored branches stay isolated and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s02.*(branch|isolat|AC-08|regression)' dist/tests/*/*.test.js`
+1. Add backup snapshots with hashes and schema version, and materialize restore that rejects mismatch → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(backup|hash|integrity|mismatch|materialize)' dist/tests/*/*.test.js`
+2. Add restore drills that leave live current snapshots and commitments unchanged → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(drill|live current|commitment)' dist/tests/*/*.test.js`
+3. Add migrateWithBackup that records a backup first while bare migrateSchema still migrates v0 → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s02.*(migrateWithBackup|migrateSchema|v0)' dist/tests/*/*.test.js`
+4. Prove restored branches stay isolated and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s02.*(branch|isolat|AC-08|regression)' dist/tests/*/*.test.js`
 
 ## 17. Acceptance Criteria
 

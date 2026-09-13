@@ -117,10 +117,10 @@ Planned tests: `tests/portability/stale-restore-grants.test.ts`.
 
 ## 16. Implementation Steps
 
-1. Add restore-replace that keeps withdrawn and expired grants terminal → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s05.*(replace|withdrawn|expired|active)' dist/tests/*/*.test.js`
-2. Prove requestDisclosure still denies the withdrawn use after replace, including remote export → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s05.*(disclosure|deny|remote|export)' dist/tests/*/*.test.js`
-3. Prove withdrawal remains effective across restored branches and snapshot inspection cannot resurrect it → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s05.*(branch|snapshot|resurrect|AC-08)' dist/tests/*/*.test.js`
-4. Preserve not-recalled notices and tombstones, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s05.*(recall|tombstone|regression)' dist/tests/*/*.test.js`
+1. Add restore-replace that keeps withdrawn and expired grants terminal → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s05.*(replace|withdrawn|expired|active)' dist/tests/*/*.test.js`
+2. Prove requestDisclosure still denies the withdrawn use after replace, including remote export → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s05.*(disclosure|deny|remote|export)' dist/tests/*/*.test.js`
+3. Prove withdrawal remains effective across restored branches and snapshot inspection cannot resurrect it → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s05.*(branch|snapshot|resurrect|AC-08)' dist/tests/*/*.test.js`
+4. Preserve not-recalled notices and tombstones, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s05.*(recall|tombstone|regression)' dist/tests/*/*.test.js`
 
 ## 17. Acceptance Criteria
 

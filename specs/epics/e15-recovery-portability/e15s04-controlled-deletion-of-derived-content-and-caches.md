@@ -118,14 +118,14 @@ Workers and forged owners MUST be denied. Permitted non-sensitive decision histo
 
 `src/portability/deletion-store.ts` owns unlink + tombstone because artifact-store would exceed the 300-line guideline if deletion were inlined. Artifact-store remains the inspection oracle.
 
-Planned tests: `tests/portability/controlled-deletion.test.ts` and authority cases in `tests/integration/portability-authority.test.ts`.
+Planned tests: `tests/portability/controlled-deletion.test.ts` and authority cases in `tests/portability/project-export.test.ts`.
 
 ## 16. Implementation Steps
 
-1. Unlink original, derived, cache and opted-in app-backup bytes and persist a tombstone → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s04.*(tombstone|unlink|derived|cache|backup)' dist/tests/*/*.test.js`
-2. Block readiness and work dispatch that need the removed input, and require revalidation for new committed use → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s04.*(readiness|blocked|dispatch|revalidat)' dist/tests/*/*.test.js`
-3. Report not-recalled external disclosures without claiming provider recall, and prove no new security findings in affected deletion paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s04.*(recall|disclosure|not-recalled)' dist/tests/*/*.test.js`
-4. Deny workers and forged owners, keep decision history, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s04.*(worker|forged|history|commitment|regression)' dist/tests/*/*.test.js`
+1. Unlink original, derived, cache and opted-in app-backup bytes and persist a tombstone → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s04.*(tombstone|unlink|derived|cache|backup)' dist/tests/*/*.test.js`
+2. Block readiness and work dispatch that need the removed input, and require revalidation for new committed use → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s04.*(readiness|blocked|dispatch|revalidat)' dist/tests/*/*.test.js`
+3. Report not-recalled external disclosures without claiming provider recall, and prove no new security findings in affected deletion paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s04.*(recall|disclosure|not-recalled)' dist/tests/*/*.test.js`
+4. Deny workers and forged owners, keep decision history, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s04.*(worker|forged|history|commitment|regression)' dist/tests/*/*.test.js`
 
 ## 17. Acceptance Criteria
 

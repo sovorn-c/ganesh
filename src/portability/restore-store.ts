@@ -1,14 +1,14 @@
 // story: e15s02, e15s05
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync, lstatSync, realpathSync, unlinkSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, lstatSync, realpathSync, unlinkSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { PROJECT_SCHEMA_VERSION, type ProjectHandle, ProjectStoreError } from "../project/project-types.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
 import { isoNow, newId, sha256 as computeSha256, pathInside } from "../persistence/storage-utils.js";
-import { acquireProjectWriteLock } from "../project/project-lock.js";
-import { assertContainedRelativePath, inspectProjectPacket } from "./export-store.js";
+import { acquireProjectSwapLock, acquireProjectWriteLock, reconcileProjectStoreSwap } from "../project/project-lock.js";
+import { assertContainedRelativePath, inspectProjectPacket, redactOmittedDatabase, validateCanonicalDatabase } from "./export-store.js";
 import type {
   RestoreRequest, RestoreResult, PacketManifest
 } from "./portability-types.js";
@@ -109,6 +109,29 @@ export function _clearPortabilityRegistryForTests(): void {
   } catch { /* best effort */ }
 }
 
+const activeMaterializations = new Set<string>();
+
+function assertNoSymlinkPath(targetPath: string): void {
+  const resolved = resolve(targetPath);
+  const tempRoot = resolve(tmpdir());
+  const boundary = pathInside(tempRoot, resolved) ? tempRoot : resolve("/");
+  let current = resolved;
+  while (true) {
+    try {
+      if (lstatSync(current).isSymbolicLink()) {
+        throw new ProjectStoreError("path-escape", `destination path contains a symlink: ${targetPath}`);
+      }
+    } catch (error) {
+      if (error instanceof ProjectStoreError) { throw error; }
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") { throw error; }
+    }
+    if (current === boundary) { return; }
+    const parent = dirname(current);
+    if (parent === current) { return; }
+    current = parent;
+  }
+}
+
 function assertContainedArtifactPath(baseDir: string, relativePath: string): string {
   if (typeof relativePath !== "string" || relativePath.trim() === "") {
     throw new ProjectStoreError("path-escape", "storage path must be a non-empty string");
@@ -187,6 +210,14 @@ function validateAndGetPacketOwnerId(packetPath: string): { ownerId: string; sch
   if (!existsSync(sqlitePath)) {
     throw new ProjectStoreError("corrupt-packet", "packet is missing project.sqlite");
   }
+  try {
+    validateCanonicalDatabase(sqlitePath);
+  } catch (error) {
+    if (error instanceof ProjectStoreError && /missing (table|column)/.test(error.message)) {
+      throw new ProjectStoreError("unsupported-schema", error.message);
+    }
+    throw error;
+  }
   let db: DatabaseSync;
   try {
     db = new DatabaseSync(sqlitePath, { readOnly: true });
@@ -196,34 +227,14 @@ function validateAndGetPacketOwnerId(packetPath: string): { ownerId: string; sch
   }
 
   try {
-    const integrity = db.prepare("PRAGMA integrity_check").get() as { integrity_check?: string } | undefined;
-    if (!integrity || integrity.integrity_check !== "ok") {
-      throw new ProjectStoreError("corrupt-packet", `packet database failed integrity check: ${integrity?.integrity_check ?? "unknown"}`);
-    }
-
-    const tableExists = db.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='projects'"
-    ).get();
-    if (!tableExists) {
-      throw new ProjectStoreError("unsupported-schema", "packet database is missing projects table");
-    }
-
     const row = db.prepare("SELECT owner_id, schema_version FROM projects LIMIT 1").get() as { owner_id?: string; schema_version?: number } | undefined;
     if (!row || typeof row.owner_id !== "string" || !row.owner_id.trim()) {
       throw new ProjectStoreError("corrupt-packet", "packet database has missing or invalid project owner");
     }
 
-    let schemaVersion = 1;
-    try {
-      const v = readSchemaVersion(db);
-      if (v > 0) {
-        schemaVersion = v;
-      }
-    } catch {
-      // Table may not exist, check projects table
-    }
-    if (typeof row.schema_version === "number" && row.schema_version > 0) {
-      schemaVersion = Math.max(schemaVersion, row.schema_version);
+    const schemaVersion = readSchemaVersion(db);
+    if (schemaVersion < 1 || row.schema_version !== schemaVersion) {
+      throw new ProjectStoreError("unsupported-schema", "packet database has missing or inconsistent schema metadata");
     }
 
     return { ownerId: row.owner_id, schemaVersion };
@@ -234,19 +245,6 @@ function validateAndGetPacketOwnerId(packetPath: string): { ownerId: string; sch
     throw new ProjectStoreError("corrupt-packet", `packet database validation failed: ${(err as Error).message}`);
   } finally {
     try { db.close(); } catch { /* ignore */ }
-  }
-}
-
-function copyDirRecursive(src: string, dest: string): void {
-  mkdirSync(dest, { recursive: true });
-  for (const entry of readdirSync(src, { withFileTypes: true })) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath);
-    } else {
-      copyFileSync(srcPath, destPath);
-    }
   }
 }
 
@@ -429,39 +427,44 @@ export function restoreProject(
   // Enforce checking every DB artifact reference has a safe, present, hash-valid packet artifact
   validatePacketArtifactReferences(request.sourcePath, inspection.manifest);
 
-  // Enforce global command idempotency and payload conflict (for materialize and replace)
-  if (request.mode === "materialize" || request.mode === "replace") {
-    const existing = checkPortabilityCommand(request.commandId);
-    if (existing) {
-      if (existing.payloadHash && request.payloadHash && existing.payloadHash !== request.payloadHash) {
-        throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
-      }
-      if (resolve(existing.destinationPath) !== resolve(request.destinationPath)) {
-        throw new ProjectStoreError(
-          "payload-conflict",
-          `payload-conflict: command ${request.commandId} was already executed for destination ${existing.destinationPath}`
-        );
-      }
-      if (existing.status === "complete") {
-        return {
-          mode: request.mode,
-          valid: true,
-          hashResults: inspection.hashResults,
-          operationId: existing.operationId,
-          detail: `${request.mode} complete: idempotent return`,
-          reinstatedGrants: [],
-          preservedWithdrawals: []
-        };
-      }
+  // Enforce global command idempotency and payload conflict for every restore mode.
+  const existing = checkPortabilityCommand(request.commandId);
+  if (existing) {
+    if (existing.payloadHash && request.payloadHash && existing.payloadHash !== request.payloadHash) {
+      throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
+    }
+    if (existing.kind !== `restore-${request.mode}` || resolve(existing.sourcePath) !== resolve(request.sourcePath) || resolve(existing.destinationPath) !== resolve(request.destinationPath)) {
+      throw new ProjectStoreError("payload-conflict", `payload-conflict: command ${request.commandId} was already executed with different restore parameters`);
+    }
+    if (existing.status === "complete") {
+      return {
+        mode: request.mode,
+        valid: true,
+        hashResults: inspection.hashResults,
+        operationId: existing.operationId,
+        detail: `${request.mode} complete: idempotent return`,
+        reinstatedGrants: [],
+        preservedWithdrawals: []
+      };
     }
   }
 
   if (request.mode === "drill") {
+    const operationId = newId("drill");
+    recordPortabilityCommand({
+      commandId: request.commandId,
+      kind: "restore-drill",
+      payloadHash: request.payloadHash,
+      sourcePath: request.sourcePath,
+      destinationPath: request.destinationPath,
+      status: "complete",
+      operationId
+    });
     return {
       mode: "drill",
       valid: true,
       hashResults: inspection.hashResults,
-      operationId: newId("drill"),
+      operationId,
       detail: "drill passed: all hashes match",
       reinstatedGrants: [],
       preservedWithdrawals: []
@@ -484,8 +487,11 @@ function materializeRestore(
   request: RestoreRequest,
   inspection: ReturnType<typeof inspectProjectPacket>
 ): RestoreResult {
+  assertNoSymlinkPath(request.destinationPath);
   const destStore = join(request.destinationPath, ".ganesh");
-  if (existsSync(destStore)) {
+  assertNoSymlinkPath(destStore);
+  const storeExistedBefore = existsSync(destStore);
+  if (storeExistedBefore) {
     const destDbPath = join(destStore, "project.sqlite");
     if (existsSync(destDbPath)) {
       try {
@@ -521,12 +527,31 @@ function materializeRestore(
     throw new ProjectStoreError("project-exists", "materialize requires an empty destination without .ganesh");
   }
 
+  const destinationKey = resolve(request.destinationPath);
   return protectCanonicalWrite(capability, () => {
-    mkdirSync(destStore, { recursive: true });
-
-    // Acquire write lock on destination
-    const lock = acquireProjectWriteLock(request.destinationPath);
+    if (activeMaterializations.has(destinationKey)) {
+      throw new ProjectStoreError("project-locked", "project-locked: restore is already materializing this destination");
+    }
+    activeMaterializations.add(destinationKey);
+    let ownsStore = false;
+    let createdStore = false;
     try {
+      mkdirSync(request.destinationPath, { recursive: true });
+      try {
+        mkdirSync(destStore);
+        createdStore = true;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") { throw error; }
+      }
+
+      // Acquire write lock on destination before rechecking the empty root.
+      const lock = acquireProjectWriteLock(request.destinationPath);
+      try {
+        const entries = readdirSync(destStore).filter((entry) => entry !== "write.lock");
+        if (storeExistedBefore || !createdStore || entries.length > 0) {
+          throw new ProjectStoreError("project-exists", "materialize requires an empty destination without .ganesh");
+        }
+        ownsStore = true;
       const destDb = join(destStore, "project.sqlite");
       const srcDb = join(request.sourcePath, "project.sqlite");
       copyFileSync(srcDb, destDb);
@@ -563,19 +588,17 @@ function materializeRestore(
 
       // Record operation into destination database
       const opId = newId("restore");
+      const db = new DatabaseSync(destDb);
+      configureDatabase(db);
       try {
-        const db = new DatabaseSync(destDb);
-        configureDatabase(db);
-        try {
-          transaction(db, () => {
-            db.prepare(
-              "INSERT INTO portability_operations (id, command_id, kind, payload_hash, status, packet_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-            ).run(opId, request.commandId, "restore-materialize", request.payloadHash ?? "", "complete", request.sourcePath, isoNow(), isoNow());
-          });
-        } finally {
-          db.close();
-        }
-      } catch { /* table may not exist in earlier schema */ }
+        transaction(db, () => {
+          db.prepare(
+            "INSERT INTO portability_operations (id, command_id, kind, payload_hash, status, packet_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+          ).run(opId, request.commandId, "restore-materialize", request.payloadHash ?? "", "complete", request.sourcePath, isoNow(), isoNow());
+        });
+      } finally {
+        db.close();
+      }
 
       recordPortabilityCommand({
         commandId: request.commandId,
@@ -596,11 +619,20 @@ function materializeRestore(
         reinstatedGrants: [],
         preservedWithdrawals: []
       };
-    } catch (err) {
-      try { rmSync(destStore, { recursive: true, force: true }); } catch { /* best effort */ }
-      throw err;
+      } catch (err) {
+        if (ownsStore) {
+          try { rmSync(destStore, { recursive: true, force: true }); } catch { /* best effort */ }
+        } else if (createdStore) {
+          try {
+            if (readdirSync(destStore).length === 0) { rmSync(destStore, { force: true }); }
+          } catch { /* best effort */ }
+        }
+        throw err;
+      } finally {
+        lock.release();
+      }
     } finally {
-      lock.release();
+      activeMaterializations.delete(destinationKey);
     }
   });
 }
@@ -610,16 +642,23 @@ function replaceRestore(
   request: RestoreRequest,
   inspection: ReturnType<typeof inspectProjectPacket>
 ): RestoreResult {
+  assertNoSymlinkPath(request.destinationPath);
   const destStore = join(request.destinationPath, ".ganesh");
+  assertNoSymlinkPath(destStore);
+  if (!existsSync(destStore)) {
+    reconcileProjectStoreSwap(request.destinationPath);
+  }
   if (!existsSync(destStore)) {
     throw new ProjectStoreError("project-not-found", "replace requires an existing project at destination");
   }
 
   return protectCanonicalWrite(capability, () => {
-    // Acquire destination write lock
+    // Acquire both the project lock and the journal lock before reconciling or swapping.
     const lock = acquireProjectWriteLock(request.destinationPath);
+    const swapLock = acquireProjectSwapLock(request.destinationPath);
 
     try {
+      reconcileProjectStoreSwap(request.destinationPath);
       const destDbPath = join(destStore, "project.sqlite");
       if (!existsSync(destDbPath)) {
         throw new ProjectStoreError("project-not-found", "replace requires an existing project database");
@@ -699,7 +738,8 @@ function replaceRestore(
 
       // Stage in a temporary directory
       const stageId = newId("replace-stage");
-      const stageDir = join(destStore, `tmp-stage-${stageId}`);
+      const stageDir = join(request.destinationPath, `.ganesh.replace-stage-${stageId}`);
+      const backupStoreDir = join(request.destinationPath, `.ganesh.replace-backup-${stageId}`);
       mkdirSync(stageDir, { recursive: true });
 
       const preservedWithdrawals: string[] = [];
@@ -708,6 +748,8 @@ function replaceRestore(
         const stageDbPath = join(stageDir, "project.sqlite");
         const srcDb = join(request.sourcePath, "project.sqlite");
         copyFileSync(srcDb, stageDbPath);
+        // A restore must not reintroduce source excerpts for live tombstones.
+        redactOmittedDatabase(stageDbPath, liveTombstones.map((tombstone) => String(tombstone.artifact_version_id)), false);
 
         // Copy artifacts into stage directory with strict path containment
         for (const file of inspection.manifest.files) {
@@ -841,10 +883,30 @@ function replaceRestore(
             }
             try {
               stagedDb.prepare(
-                "UPDATE artifact_versions SET content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
+                "UPDATE artifact_versions SET storage_path = NULL, content_hash = NULL, byte_length = NULL, content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
               ).run(vId);
+              try {
+                stagedDb.prepare("UPDATE source_versions SET access_level = 'unavailable' WHERE artifact_version_id = ?").run(vId);
+              } catch { /* optional table */ }
             } catch { /* best effort */ }
           }
+
+          // Preserve a backup used as the source when it lives inside the
+          // destination store; the stage becomes the new .ganesh directory.
+          const sourceRoot = resolve(request.sourcePath);
+          const destinationRoot = resolve(destStore);
+          const sourceRelative = relative(destinationRoot, sourceRoot);
+          const backupRoot = join(destinationRoot, "backups");
+          if (sourceRelative && pathInside(backupRoot, sourceRoot)) {
+            const safeSource = assertContainedRelativePath(destinationRoot, sourceRelative);
+            const preservedSource = join(stageDir, sourceRelative);
+            mkdirSync(dirname(preservedSource), { recursive: true });
+            cpSync(safeSource, preservedSource, { recursive: true });
+          }
+
+          // Keep the lock marker in the staged store so a directory swap never
+          // exposes a writable project without an ownership marker.
+          writeFileSync(join(stageDir, "write.lock"), String(process.pid));
 
           // 7. Record operation
           try {
@@ -859,48 +921,26 @@ function replaceRestore(
           stagedDb.close();
         }
 
-        // Atomic swap of BOTH DB and artifacts with complete rollback
-        const bakDbPath = join(destStore, "project.sqlite.bak");
-        const bakArtifactsDir = join(destStore, "artifacts.bak");
-        const destArtifacts = join(destStore, "artifacts");
-
-        // Backup existing database
-        copyFileSync(destDbPath, bakDbPath);
-
-        // Backup existing artifacts if any exist
-        if (existsSync(destArtifacts)) {
-          rmSync(bakArtifactsDir, { recursive: true, force: true });
-          copyDirRecursive(destArtifacts, bakArtifactsDir);
-        }
-
+        // Swap the complete store directory, not its database and artifacts
+        // independently. Directory rename is atomic; the recovery journal in
+        // project-lock.ts repairs either interrupted rename boundary.
+        let publishedStore = false;
         try {
-          copyFileSync(stageDbPath, destDbPath);
-          const stageArtifacts = join(stageDir, "artifacts");
-          if (existsSync(stageArtifacts)) {
-            const tmpDestArtifacts = join(destStore, "artifacts.tmp");
-            rmSync(tmpDestArtifacts, { recursive: true, force: true });
-            copyDirRecursive(stageArtifacts, tmpDestArtifacts);
-            rmSync(destArtifacts, { recursive: true, force: true });
-            renameSync(tmpDestArtifacts, destArtifacts);
-          } else {
-            rmSync(destArtifacts, { recursive: true, force: true });
+          if (existsSync(backupStoreDir)) {
+            rmSync(backupStoreDir, { recursive: true, force: true });
           }
-          try { rmSync(bakDbPath, { force: true }); } catch { /* best effort */ }
-          try { rmSync(bakArtifactsDir, { recursive: true, force: true }); } catch { /* best effort */ }
+          renameSync(destStore, backupStoreDir);
+          renameSync(stageDir, destStore);
+          publishedStore = true;
+          try {
+            rmSync(backupStoreDir, { recursive: true, force: true });
+          } catch {
+            // The new complete store is live; leave the old backup for the
+            // serialized next-open reconciliation rather than deleting either.
+          }
         } catch (swapError) {
-          // Roll back database
-          if (existsSync(bakDbPath)) {
-            try {
-              copyFileSync(bakDbPath, destDbPath);
-              rmSync(bakDbPath, { force: true });
-            } catch { /* best effort */ }
-          }
-          // Roll back artifacts
-          if (existsSync(bakArtifactsDir)) {
-            try {
-              rmSync(destArtifacts, { recursive: true, force: true });
-              renameSync(bakArtifactsDir, destArtifacts);
-            } catch { /* best effort */ }
+          if (!publishedStore && !existsSync(destStore) && existsSync(backupStoreDir)) {
+            try { renameSync(backupStoreDir, destStore); } catch { /* recovery will retry */ }
           }
           throw swapError;
         }
@@ -929,6 +969,7 @@ function replaceRestore(
         preservedWithdrawals
       };
     } finally {
+      swapLock.release();
       lock.release();
     }
   });

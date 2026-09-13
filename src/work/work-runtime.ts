@@ -152,6 +152,18 @@ export async function dispatchRun(handle: ProjectHandle, capability: unknown, ru
   if (!contract) {throw new ProjectStoreError("not-found", "run contract not found");}
   const operation = getLifecycleOperation(handle, run.operationId);
   if (!operation) {throw new ProjectStoreError("not-found", "run lifecycle operation not found");}
+  const unavailableInput = run.inputVersionIds.find((versionId) => {
+    try {
+      return inspectArtifactVersion(handle, versionId).contentStatus !== "available";
+    } catch {
+      return true;
+    }
+  });
+  if (unavailableInput !== undefined) {
+    settleBudget(handle, run.id, {}, false);
+    updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+    return updateRun(handle, run.id, "blocked", `input ${unavailableInput} is unavailable; dispatch requires revalidation`);
+  }
   const checkpoint = checkLifecyclePolicy(handle, operation, "dispatch", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
   if (checkpoint.status !== "passed") {
     settleBudget(handle, run.id, {}, false);

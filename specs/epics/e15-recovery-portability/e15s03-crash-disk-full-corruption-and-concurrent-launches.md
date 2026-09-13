@@ -123,10 +123,10 @@ Shared modules are mapped in `specs/IMPACT_LATEST.md`. Planned tests: `tests/por
 
 ## 16. Implementation Steps
 
-1. Inject crash boundaries and prove reopen exposes only complete states → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s03.*(crash|half|complete|AC-17)' dist/tests/*/*.test.js`
-2. Add `failAt: disk-full` ENOSPC abort without a new current reference → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s03.*(disk-full|ENOSPC)' dist/tests/*/*.test.js`
-3. Add pid-reentrant write lock, foreign-pid deny, dead-pid steal and same-process reentry, and prove no new security findings in affected lock paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node --test --test-name-pattern='e15s03.*(lock|pid|concurrent|reentry)' dist/tests/*/*.test.js`
-4. Report corrupt artifacts, keep pending lifecycle operations pending, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node --test --test-name-pattern='e15s03.*(corrupt|pending|lifecycle|regression)' dist/tests/*/*.test.js`
+1. Inject crash boundaries and prove reopen exposes only complete states → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s03.*(crash|half|complete|AC-17)' dist/tests/*/*.test.js`
+2. Add `failAt: disk-full` ENOSPC abort without a new current reference → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s03.*(disk-full|ENOSPC)' dist/tests/*/*.test.js`
+3. Add pid-reentrant write lock, foreign-pid deny, dead-pid steal and same-process reentry, and prove no new security findings in affected lock paths → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run build && node scripts/require-test-match.mjs 'e15s03.*(lock|pid|concurrent|reentry)' dist/tests/*/*.test.js`
+4. Report corrupt artifacts, keep pending lifecycle operations pending, and keep released regressions passing → verify: `node -e "if (process.versions.node.split('.')[0] !== '24') process.exit(1)" && npm run typecheck && npm run lint && npm run build && npm test && node scripts/require-test-match.mjs 'e15s03.*(corrupt|pending|lifecycle|regression)' dist/tests/*/*.test.js`
 
 ## 17. Acceptance Criteria
 

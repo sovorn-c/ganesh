@@ -374,6 +374,7 @@ export function recordDisclosureDecision(
   decision: DisclosureDecision
 ): string {
   if (handle.writable) {
+    handle.assertCurrent();
     try {
       transaction(handle.db, () => {
         handle.db

@@ -6,7 +6,7 @@ import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { migrateSchema, transaction } from "../persistence/schema.js";
 import { isoNow, newId, sha256 as computeSha256 } from "../persistence/storage-utils.js";
-import { assertContainedRelativePath } from "./export-store.js";
+import { assertContainedRelativePath, validateCanonicalDatabase } from "./export-store.js";
 import type {
   BackupRequest, BackupSnapshot, PacketManifest, PacketFileEntry,
   MigrateWithBackupResult
@@ -28,6 +28,7 @@ export function backupProject(
     throw new ProjectStoreError("forbidden", "forbidden: capability owner does not match project owner");
   }
   assertWritable(handle);
+  validateCanonicalDatabase(handle.project.databasePath);
 
   return protectCanonicalWrite(capability, () => {
     // Check idempotency
@@ -48,6 +49,7 @@ export function backupProject(
     const backupsRoot = join(handle.project.rootPath, ".ganesh", "backups");
     const tmpDir = join(backupsRoot, `${backupId}.tmp`);
     const finalDir = join(backupsRoot, backupId);
+    let published = false;
 
     mkdirSync(tmpDir, { recursive: true });
 
@@ -55,13 +57,14 @@ export function backupProject(
       // Copy database
       const dbDest = join(tmpDir, "project.sqlite");
       copyFileSync(handle.project.databasePath, dbDest);
+      validateCanonicalDatabase(dbDest);
       const dbBytes = readFileSync(dbDest);
       const dbHash = computeSha256(dbBytes);
       const files: PacketFileEntry[] = [{ relativePath: "project.sqlite", sha256: dbHash }];
 
       // Copy referenced artifacts
       const artifactRows = handle.db.prepare(
-        "SELECT id, storage_path, content_status, access_level FROM artifact_versions WHERE content_status = 'available' AND storage_path IS NOT NULL"
+        "SELECT id, storage_path, content_hash, content_status, access_level FROM artifact_versions WHERE content_status = 'available' AND storage_path IS NOT NULL"
       ).all() as Array<Record<string, unknown>>;
 
       const artifactsDir = join(tmpDir, "artifacts");
@@ -75,13 +78,19 @@ export function backupProject(
           srcPath = assertContainedRelativePath(handle.project.artifactRoot, storagePath);
           destPath = assertContainedRelativePath(artifactsDir, storagePath);
         } catch {
-          continue;
+          throw new ProjectStoreError("corrupt-packet", `available artifact has an unsafe storage path: ${storagePath}`);
         }
-        if (!existsSync(srcPath)) {continue;}
+        if (!existsSync(srcPath)) {
+          throw new ProjectStoreError("corrupt-packet", `available artifact bytes are missing: ${storagePath}`);
+        }
         mkdirSync(join(destPath, ".."), { recursive: true });
         copyFileSync(srcPath, destPath);
         const bytes = readFileSync(destPath);
-        files.push({ relativePath: `artifacts/${storagePath}`, sha256: computeSha256(bytes) });
+        const hash = computeSha256(bytes);
+        if (row.content_hash && String(row.content_hash) !== hash) {
+          throw new ProjectStoreError("corrupt-packet", `available artifact hash mismatch: ${storagePath}`);
+        }
+        files.push({ relativePath: `artifacts/${storagePath}`, sha256: hash });
       }
 
       const manifest: PacketManifest = {
@@ -99,8 +108,10 @@ export function backupProject(
 
       writeFileSync(join(tmpDir, "ganesh-project-packet.json"), JSON.stringify(manifest, null, 2));
 
-      // Atomic rename
+      // Publish only a complete, validated backup. Remove it if the durable
+      // backup record cannot be committed.
       renameSync(tmpDir, finalDir);
+      published = true;
 
       const manifestHash = computeSha256(new TextEncoder().encode(JSON.stringify(manifest)));
       transaction(handle.db, () => {
@@ -112,6 +123,9 @@ export function backupProject(
       return { backupId, backupPath: finalDir, manifest, operationId: backupId };
     } catch (error) {
       try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* best effort */ }
+      if (published) {
+        try { rmSync(finalDir, { recursive: true, force: true }); } catch { /* best effort */ }
+      }
       throw error;
     }
   });

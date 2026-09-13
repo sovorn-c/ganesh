@@ -9,7 +9,7 @@ development_status:
   e14: done
   e07: done
   e08: done
-  e15: in_progress
+  e15: done
   e16: backlog
   e09: backlog
   e10: backlog
@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e15_stories
-active_epic: e15
-active_story: e15s05
-note: E15 build completed on feat/e15-recovery-portability under approved plan revision sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2. All five stories and 20 task checks passed; review is next. E01-E08 and E14 remain complete local releases. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e16_scope
+active_epic: e16
+active_story: null
+note: E15 implementation, verification, and independent review completed on feat/e15-recovery-portability under approved plan revision sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2. All five stories, 20 task checks, and 215 tests passed. The human-approved threat model excludes hostile non-Ganesh concurrent filesystem mutation. E01-E08, E14, and E15 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -407,7 +407,7 @@ epics:
     verification_evidence: specs/verifications/e08-verify.yaml
   e15:
     title: Recovery portability and controlled deletion
-    status: in_progress
+    status: done
     stories:
       e15s01:
         title: Versioned Project Export with Integrity and Current Permissions
@@ -462,7 +462,7 @@ epics:
     verification_evidence: specs/verifications/e15-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-12T15:00:00Z"
-  rationale: "All 41 stories are traceable with no dark stories; E15 has passing per-story verification evidence across 20 task checks and 201 passing tests, with no HIGH or MEDIUM blind spots. Completeness critic: BLOCKER=0 WARNING=0."
+  generated_at: "2026-09-13T01:40:27Z"
+  rationale: "All 41 stories are traceable with no dark stories; E15 has passing per-story verification evidence across 20 task checks and 215 passing tests, with no HIGH or MEDIUM blind spots. Completeness critic: BLOCKER=0 WARNING=0. Independent follow-up review passed under the accepted Ganesh-controlled concurrency threat model."
   heuristic_ratio: 0.27
   downgrade_applied: false

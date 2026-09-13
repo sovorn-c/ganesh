@@ -1,6 +1,6 @@
 // story: e02s01
 import { createHash, randomUUID } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import { lstatSync, mkdirSync } from "node:fs";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { ProjectStoreError } from "../project/project-types.js";
 
@@ -35,6 +35,22 @@ export function ensureDirectory(path: string): void {
 export function pathInside(parent: string, candidate: string): boolean {
   const distance = relative(resolve(parent), resolve(candidate));
   return distance === "" || (distance !== ".." && !distance.startsWith(`..${sep}`) && !isAbsolute(distance));
+}
+
+export function hasSymlinkBetween(path: string, boundary: string): boolean {
+  const resolvedBoundary = resolve(boundary);
+  let current = resolve(path);
+  while (current !== resolvedBoundary) {
+    try {
+      if (lstatSync(current).isSymbolicLink()) { return true; }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") { return true; }
+    }
+    const parent = resolve(current, "..");
+    if (parent === current) { return false; }
+    current = parent;
+  }
+  return false;
 }
 
 export function safeChildPath(parent: string, child: string, label: string): string {

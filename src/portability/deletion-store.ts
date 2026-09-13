@@ -5,19 +5,20 @@ import { type ProjectHandle, ProjectStoreError } from "../project/project-types.
 import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability, type OwnerCapability, protectCanonicalWrite, isWorkerCapability } from "../authority/capability-broker.js";
 import { transaction } from "../persistence/schema.js";
-import { isoNow, newId, pathInside } from "../persistence/storage-utils.js";
+import { hasSymlinkBetween, isoNow, newId, pathInside } from "../persistence/storage-utils.js";
 import { dependentVersions } from "../branches/dependency-store.js";
 import type {
   DeletionRequest, DeletionResult, EvidenceTombstone, DeletionEvent, NotRecalledDisclosure
 } from "./portability-types.js";
 
-function safeContainedPath(baseDir: string, relativeOrFullPath: string): string | null {
+function safeContainedPath(baseDir: string, relativeOrFullPath: string, boundary = baseDir): string | null {
   const resolvedBase = resolve(baseDir);
-  if (!existsSync(resolvedBase)) {
+  if (!existsSync(resolvedBase) || hasSymlinkBetween(resolvedBase, boundary)) {
     return null;
   }
   let realBase: string;
   try {
+    if (lstatSync(resolvedBase).isSymbolicLink()) { return null; }
     realBase = realpathSync(resolvedBase);
   } catch {
     return null;
@@ -60,14 +61,8 @@ function safeContainedPath(baseDir: string, relativeOrFullPath: string): string 
       }
     } else {
       if (st.isSymbolicLink()) {
-        try {
-          const realCur = realpathSync(cur);
-          if (!pathInside(realBase, realCur)) {
-            return null;
-          }
-        } catch {
-          return null;
-        }
+        // Unlinking the leaf itself never follows its target, including a
+        // broken or externally-targeted symlink.
       } else {
         try {
           const realCur = realpathSync(cur);
@@ -82,6 +77,40 @@ function safeContainedPath(baseDir: string, relativeOrFullPath: string): string 
   }
 
   return cur;
+}
+
+function safeRecordedDeletionPath(handle: ProjectHandle, path: string): string | null {
+  const roots = [handle.project.artifactRoot, join(handle.project.rootPath, ".ganesh", "backups")];
+  for (const root of roots) {
+    const safe = safeContainedPath(root, path, handle.project.rootPath);
+    if (safe) { return safe; }
+  }
+  return null;
+}
+
+type CleanupResult = "removed" | "missing" | "pending";
+
+function unlinkContainedPath(handle: ProjectHandle, recordedPath: string): CleanupResult {
+  const safePath = safeRecordedDeletionPath(handle, recordedPath);
+  if (!safePath) {
+    try {
+      lstatSync(resolve(recordedPath));
+      return "pending";
+    } catch (error) {
+      return (error as NodeJS.ErrnoException).code === "ENOENT" ? "missing" : "pending";
+    }
+  }
+  try {
+    const stat = lstatSync(safePath);
+    if (stat.isSymbolicLink()) {
+      unlinkSync(safePath);
+    } else {
+      rmSync(safePath, { force: true, recursive: true });
+    }
+    return "removed";
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "ENOENT" ? "missing" : "pending";
+  }
 }
 
 export function deleteArtifactContent(
@@ -102,6 +131,41 @@ export function deleteArtifactContent(
   assertWritable(handle);
 
   return protectCanonicalWrite(capability, () => {
+    const existing = handle.db.prepare(
+      "SELECT id, tombstone_id, unlinked_paths, not_recalled_disclosures, payload_hash FROM deletion_events WHERE command_id = ?"
+    ).get(request.commandId) as Record<string, unknown> | undefined;
+    if (existing) {
+      if (String(existing.payload_hash) !== request.payloadHash) {
+        throw new ProjectStoreError("payload-conflict", "payload-conflict: command retry with different payload");
+      }
+      const pending: string[] = [];
+      let paths: string[];
+      try {
+        const parsed = JSON.parse(String(existing.unlinked_paths));
+        if (!Array.isArray(parsed) || !parsed.every((path): path is string => typeof path === "string")) {
+          throw new Error("unlinked_paths must be an array of strings");
+        }
+        paths = parsed;
+      } catch (error) {
+        throw new ProjectStoreError("corrupt-packet", `deletion event has malformed unlinked_paths: ${(error as Error).message}`);
+      }
+      for (const path of paths) {
+        if (unlinkContainedPath(handle, path) === "pending") { pending.push(path); }
+      }
+      transaction(handle.db, () => {
+        handle.db.prepare("UPDATE deletion_events SET unlinked_paths = ? WHERE id = ?")
+          .run(JSON.stringify(pending), String(existing.id));
+      });
+      let notRecalledDisclosures: NotRecalledDisclosure[] = [];
+      try { notRecalledDisclosures = JSON.parse(String(existing.not_recalled_disclosures)) as NotRecalledDisclosure[]; } catch { /* preserve empty inspection fallback */ }
+      return {
+        deletionEventId: String(existing.id),
+        unlinkedPaths: pending,
+        tombstoneId: String(existing.tombstone_id),
+        notRecalledDisclosures,
+        detail: `deletion already recorded; ${pending.length} path(s) remain for recovery`
+      };
+    }
     const versionId = request.artifactVersionId;
 
     // Verify artifact exists
@@ -158,6 +222,7 @@ export function deleteArtifactContent(
     }
 
     const unlinkedPaths: string[] = [];
+    const pathsToUnlink = new Set<string>();
     const storeRoot = join(handle.project.rootPath, ".ganesh");
     const now = isoNow();
     const actor = ownerCap.ownerId;
@@ -185,15 +250,9 @@ export function deleteArtifactContent(
           affectedTokens.add(baseName);
         }
 
-        const safePath = safeContainedPath(handle.project.artifactRoot, vStoragePath);
+        const safePath = safeContainedPath(handle.project.artifactRoot, vStoragePath, handle.project.rootPath);
         if (safePath) {
-          const st = lstatSync(safePath);
-          if (st.isSymbolicLink()) {
-            unlinkSync(safePath);
-          } else {
-            rmSync(safePath, { force: true, recursive: true });
-          }
-          unlinkedPaths.push(safePath);
+          pathsToUnlink.add(safePath);
         }
 
         // Unlink from app backups if requested
@@ -204,15 +263,9 @@ export function deleteArtifactContent(
               for (const entry of readdirSync(backupsDir, { withFileTypes: true })) {
                 if (entry.isDirectory() && !entry.isSymbolicLink()) {
                   const backupFile = join(backupsDir, entry.name, "artifacts", vStoragePath);
-                  const safeBackupPath = safeContainedPath(storeRoot, backupFile);
+                  const safeBackupPath = safeContainedPath(storeRoot, backupFile, handle.project.rootPath);
                   if (safeBackupPath) {
-                    const bSt = lstatSync(safeBackupPath);
-                    if (bSt.isSymbolicLink()) {
-                      unlinkSync(safeBackupPath);
-                    } else {
-                      rmSync(safeBackupPath, { force: true, recursive: true });
-                    }
-                    unlinkedPaths.push(safeBackupPath);
+                    pathsToUnlink.add(safeBackupPath);
                   }
                 }
               }
@@ -244,7 +297,7 @@ export function deleteArtifactContent(
               continue;
             }
             if (st.isDirectory()) {
-              const safeDir = safeContainedPath(storeRoot, p);
+              const safeDir = safeContainedPath(storeRoot, p, handle.project.rootPath);
               if (safeDir) {
                 scanForCache(safeDir);
               }
@@ -259,10 +312,9 @@ export function deleteArtifactContent(
               stems.add(entry.name);
               const matchesAffected = Array.from(stems).some(s => s && affectedTokens.has(s));
               if (matchesAffected) {
-                const safeCachePath = safeContainedPath(storeRoot, p);
+                const safeCachePath = safeContainedPath(storeRoot, p, handle.project.rootPath);
                 if (safeCachePath) {
-                  rmSync(safeCachePath, { force: true });
-                  unlinkedPaths.push(safeCachePath);
+                  pathsToUnlink.add(safeCachePath);
                 }
               }
             }
@@ -305,10 +357,13 @@ export function deleteArtifactContent(
       }
     } catch { /* disclosure table may not exist */ }
 
-    // 5. Persist tombstones, deletion event, and mark all affected versions unavailable in one transaction
+    // 5. Commit the durable deletion decision before unlinking bytes. The
+    // database never claims a file was removed before its tombstone exists.
     const deletionEventId = newId("deletion");
+    const affectedIds = [...allAffectedVersionIds];
+    const placeholders = affectedIds.map(() => "?").join(",");
     transaction(handle.db, () => {
-      for (const vId of allAffectedVersionIds) {
+      for (const vId of affectedIds) {
         const vRow = handle.db.prepare(
           "SELECT id, content_hash FROM artifact_versions WHERE id = ?"
         ).get(vId) as Record<string, unknown> | undefined;
@@ -321,13 +376,67 @@ export function deleteArtifactContent(
         ).run(tId, vId, vHash, tReason, actor, now);
 
         handle.db.prepare(
-          "UPDATE artifact_versions SET content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
+          "UPDATE artifact_versions SET storage_path = NULL, content_hash = NULL, byte_length = NULL, content_status = 'unavailable', access_level = 'unavailable' WHERE id = ?"
         ).run(vId);
+        try {
+          handle.db.prepare("UPDATE source_versions SET access_level = 'unavailable' WHERE artifact_version_id = ?").run(vId);
+        } catch { /* optional table */ }
       }
+
+      // Remove derived/source excerpts in the same transaction as the tombstone.
+      try {
+        handle.db.prepare(`DELETE FROM claim_evidence_links WHERE evidence_item_id IN (SELECT id FROM evidence_items WHERE source_version_id IN (${placeholders}))`).run(...affectedIds);
+      } catch { /* optional table */ }
+      for (const [table, column] of [
+        ["evidence_items", "source_version_id"],
+        ["source_segments", "source_version_id"],
+        ["source_segments", "derived_version_id"],
+        ["source_records", "source_version_id"],
+        ["source_locators", "artifact_version_id"],
+        ["source_diagnostics", "artifact_version_id"],
+        ["citation_verifications", "source_version_id"],
+        ["claim_reassessments", "source_version_id"],
+        ["appraisals", "source_version_id"]
+      ] as const) {
+        try { handle.db.prepare(`DELETE FROM ${table} WHERE ${column} IN (${placeholders})`).run(...affectedIds); } catch { /* optional table */ }
+      }
+      try {
+        const derived = handle.db.prepare("SELECT id, candidate_version_id, source_version_ids FROM derived_materials").all() as Array<Record<string, unknown>>;
+        for (const row of derived) {
+          let matches = row.candidate_version_id !== null && row.candidate_version_id !== undefined && allAffectedVersionIds.has(String(row.candidate_version_id));
+          if (!matches && typeof row.source_version_ids === "string") {
+            try {
+              const parsed = JSON.parse(row.source_version_ids);
+              matches = Array.isArray(parsed) && parsed.some((item) => allAffectedVersionIds.has(String(item)));
+            } catch {
+              matches = row.source_version_ids.split(/[\s,[\]"']+/).filter(Boolean).some((item) => allAffectedVersionIds.has(item));
+            }
+          }
+          if (matches) {
+            handle.db.prepare("DELETE FROM derived_materials WHERE id = ?").run(String(row.id));
+          }
+        }
+      } catch { /* optional table */ }
 
       handle.db.prepare(
         "INSERT INTO deletion_events (id, artifact_version_id, unlinked_paths, tombstone_id, not_recalled_disclosures, command_id, payload_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-      ).run(deletionEventId, versionId, JSON.stringify(unlinkedPaths), tombstoneId, JSON.stringify(notRecalledDisclosures), request.commandId, request.payloadHash, now);
+      ).run(deletionEventId, versionId, JSON.stringify([...pathsToUnlink]), tombstoneId, JSON.stringify(notRecalledDisclosures), request.commandId, request.payloadHash, now);
+    });
+
+    // Filesystem cleanup is deliberately after the durable transaction. A
+    // failed unlink leaves unavailable metadata and can be retried safely.
+    const remainingPaths: string[] = [];
+    for (const path of pathsToUnlink) {
+      const result = unlinkContainedPath(handle, path);
+      if (result === "removed") {
+        unlinkedPaths.push(path);
+      } else if (result === "pending") {
+        remainingPaths.push(path);
+      }
+    }
+    transaction(handle.db, () => {
+      handle.db.prepare("UPDATE deletion_events SET unlinked_paths = ? WHERE id = ?")
+        .run(JSON.stringify(remainingPaths), deletionEventId);
     });
 
     return {
@@ -340,11 +449,18 @@ export function deleteArtifactContent(
   });
 }
 
+function requireDeletionReadCapability(handle: ProjectHandle, capability: unknown): void {
+  if (!isOwnerCapability(capability) || capability.ownerId !== handle.project.ownerId) {
+    throw new ProjectStoreError("forbidden", "forbidden: deletion records require the project owner capability");
+  }
+}
+
 export function getEvidenceTombstone(
   handle: ProjectHandle,
-  _capability: unknown,
+  capability: unknown,
   artifactVersionId: string
 ): EvidenceTombstone | undefined {
+  requireDeletionReadCapability(handle, capability);
   const row = handle.db.prepare(
     "SELECT id, artifact_version_id, content_hash, reason, actor, deleted_at FROM evidence_tombstones WHERE artifact_version_id = ? LIMIT 1"
   ).get(artifactVersionId) as Record<string, unknown> | undefined;
@@ -361,8 +477,9 @@ export function getEvidenceTombstone(
 
 export function listDeletionEvents(
   handle: ProjectHandle,
-  _capability: unknown
+  capability: unknown
 ): readonly DeletionEvent[] {
+  requireDeletionReadCapability(handle, capability);
   const rows = handle.db.prepare(
     "SELECT id, artifact_version_id, unlinked_paths, tombstone_id, not_recalled_disclosures, command_id, payload_hash, created_at FROM deletion_events ORDER BY created_at"
   ).all() as Array<Record<string, unknown>>;

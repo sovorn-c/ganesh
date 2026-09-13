@@ -222,6 +222,7 @@ export function evaluateCommitmentGates(handle: ProjectHandle, request: Commitme
     reason: allowed ? "all non-waivable commitment gates passed" : gates.filter((gate) => !gate.passed).map((gate) => `${gate.gate}: ${gate.reason}`).join("; ")
   };
   if (handle.writable && handle.status === "ready") {
+    handle.assertCurrent();
     transaction(handle.db, () => {
       for (const gate of gates) {
         handle.db.prepare(

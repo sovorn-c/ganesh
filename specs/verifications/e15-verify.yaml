@@ -1,11 +1,13 @@
 ---
 epic_id: e15
 title: Recovery portability and controlled deletion
-verified_at: "2026-09-12T15:00:00Z"
+verified_at: "2026-09-13T01:40:27Z"
 verifier: bp-release-solo
 branch: feat/e15-recovery-portability
+commit: a7561102f3aa730dfdecb9c12ce1003e37aee99b
+working_tree: uncommitted corrections included in evidence
 runtime: Node.js 24.21.0
-status: pending_review
+status: passed
 plan_revision: sha256:d59814789d82d38207eb239c3f97fcacafb99a9909ece606788eb0cc73bde5e2
 stories:
   e15s01:
@@ -40,7 +42,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 201/201 tests passed
+    evidence: 215/215 tests passed
   typecheck:
     passed: true
     command: npm run typecheck
@@ -60,20 +62,20 @@ checks:
     evidence: 0 vulnerabilities
   security_scope:
     passed: true
-    evidence: Strict path containment enforced; owner matching and destination locking verified; restore schema/kind/idempotency enforced; canonical hashed SQLite and DB artifact reference validation enforced before drill/restore; safe export replacement with staging and discard purging stale restricted bytes; ownership-aware concurrent create cleanup; tombstone artifact unlinks strictly contained; transactional stage/swap with rollback safety verified; exact parsed JSON membership eliminates overlapping ID deletion.
+    evidence: Strict path containment enforced; owner matching and destination locking verified; restore schema/kind/idempotency enforced; canonical hashed SQLite and DB artifact reference validation enforced before drill/restore; safe export replacement with staging and discard purging stale restricted bytes; ownership-aware concurrent create cleanup; tombstone artifact unlinks strictly contained; transactional stage/swap with rollback safety verified; exact parsed JSON membership eliminates overlapping ID deletion; dispatch revalidates input availability before starting a work session.
   traceability:
     passed: true
     evidence: 41 stories, 0 dark stories, 20 E15 scenarios mapped; 0 HIGH/MEDIUM blind spots
   review:
-    status: pending_review
-    passed: false
-    evidence: Correction passes resolved all review blockers (safe export replacement with atomic swap purging stale restricted bytes, fail-closed packet validation requiring canonical hashed project.sqlite and DB-referenced artifact verification before drill/restore, ownership-aware atomic createProject cleanup protecting winner's store, exact parsed JSON membership on overlapping IDs for derived content and disclosures, exact stem cache matching preserving unrelated overlapping caches, project-lock unknown narrowing, CONVENTIONS.md documented module size exceptions); ready for fresh whole-epic review
+    status: passed
+    passed: true
+    evidence: Local corrections resolve the previously reported blockers (safe export replacement with atomic swap purging stale restricted bytes, fail-closed packet validation requiring canonical hashed project.sqlite and DB-referenced artifact verification before drill/restore, ownership-aware atomic createProject cleanup protecting winner's store, exact parsed JSON membership on overlapping IDs for derived content and disclosures, exact stem cache matching preserving unrelated overlapping caches, fail-closed project locks, decision-registration rollback coverage, dispatch blocking after deletion, and documented module-size exceptions). Independent follow-up review confirmed the previously reported blockers were resolved. The human-approved threat model excludes hostile non-Ganesh processes concurrently mutating the application-owned project tree; Ganesh-controlled concurrent launches remain protected by the project lock and immediate containment revalidation.
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 201
+  tests_passing: 215
   review_started: true
-  review_passed: false
+  review_passed: true
   release_started: false
   production_readiness_claimed: false
-next_skill: /bp-review
+next_skill: /bp-plan

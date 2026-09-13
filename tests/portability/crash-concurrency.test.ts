@@ -11,6 +11,8 @@ import {
   registerArtifactVersion,
   inspectArtifactVersion,
   recoverProject,
+  createDecisionPacket,
+  recordOwnerDecision,
   ProjectStoreError
 } from "../../src/index.js";
 import {
@@ -66,6 +68,33 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
     } finally {
       reopened.close();
     }
+  });
+
+  it("e15s03 decision registration rolls back record and commitment on injected crash (AC-17)", () => {
+    const art = registerPublicArtifact(fix.handle, "decision-crash", "v1", "decision input");
+    const packet = createDecisionPacket(fix.handle, {
+      question: "Should the decision-crash input be used?",
+      branchId: "main",
+      candidateVersionIds: [art.id]
+    });
+    fix.handle.db.exec(`
+      CREATE TRIGGER fail_decision_registration
+      BEFORE INSERT ON decision_records
+      BEGIN SELECT RAISE(ABORT, 'injected decision crash'); END;
+    `);
+    try {
+      assert.throws(() => recordOwnerDecision(fix.handle, {
+        packetId: packet.id,
+        disposition: "approved",
+        selectedCandidateVersionIds: [art.id],
+        commandId: "decision-crash-command",
+        capability: fix.ownerCap
+      }), /injected decision crash/);
+    } finally {
+      fix.handle.db.exec("DROP TRIGGER fail_decision_registration");
+    }
+    assert.equal(fix.handle.db.prepare("SELECT count(*) AS count FROM decision_records WHERE command_id = 'decision-crash-command'").get()?.count, 0);
+    assert.equal(fix.handle.db.prepare("SELECT count(*) AS count FROM commitments WHERE packet_id = ?").get(packet.id)?.count, 0);
   });
 
   it("e15s03 crash half-registered artifact cleaned up and never treated as current", () => {
@@ -165,6 +194,21 @@ describe("E15s03 crash, disk-full, corruption, and concurrent-launch hardening",
       } finally {
         roHandle.close();
       }
+    } finally {
+      rmSync(freshRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("e15s03 malformed lock state is not treated as a dead owner", () => {
+    const freshRoot = emptyDestination();
+    try {
+      const freshHandle = createProject({ rootPath: freshRoot, ownerId: "owner-invalid-lock" });
+      freshHandle.close();
+      writeFileSync(join(freshRoot, ".ganesh", "write.lock"), "not-a-pid");
+      assert.throws(
+        () => openProject(freshRoot),
+        (error: unknown) => error instanceof ProjectStoreError && error.code === "project-locked"
+      );
     } finally {
       rmSync(freshRoot, { recursive: true, force: true });
     }

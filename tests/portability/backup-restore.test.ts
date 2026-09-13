@@ -1,7 +1,7 @@
 // story: e15s02 — Backup, Restore, Migrations and Restore Drills
 import { describe, it, afterEach, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { writeFileSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync, unlinkSync } from "node:fs";
+import { writeFileSync, rmSync, existsSync, mkdirSync, readFileSync, copyFileSync, unlinkSync, symlinkSync } from "node:fs";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
@@ -91,6 +91,88 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
     }
   });
 
+  it("e15s02 backup fails closed when available artifact bytes are missing or tampered", () => {
+    const art = registerPublicArtifact(fix.handle, "doc-backup-integrity", "v1", "backup integrity bytes");
+    const storagePath = inspectArtifactVersion(fix.handle, art.id).storagePath;
+    assert.ok(storagePath);
+    unlinkSync(storagePath);
+    assert.throws(
+      () => backupProject(fix.handle, fix.ownerCap, { commandId: "backup-missing-bytes", payloadHash: packetPayloadHash({ missing: "1" }) }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "corrupt-packet"
+    );
+
+    const replacement = registerPublicArtifact(fix.handle, "doc-backup-tamper", "v1", "backup tamper bytes");
+    const replacementPath = inspectArtifactVersion(fix.handle, replacement.id).storagePath;
+    assert.ok(replacementPath);
+    writeFileSync(replacementPath, "tampered bytes");
+    assert.throws(
+      () => backupProject(fix.handle, fix.ownerCap, { commandId: "backup-tampered-bytes", payloadHash: packetPayloadHash({ tampered: "1" }) }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "corrupt-packet"
+    );
+  });
+
+  it("e15s02 restore rejects a symlinked destination root", () => {
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-symlink-destination",
+      payloadHash: packetPayloadHash({ symlink: "1" })
+    });
+    const external = newTempDir();
+    const link = newTempDir();
+    rmSync(link, { recursive: true, force: true });
+    symlinkSync(external, link);
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "restore-symlink-destination",
+        sourcePath: backup.backupPath,
+        destinationPath: link,
+        mode: "materialize",
+        payloadHash: packetPayloadHash({ dest: link })
+      }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "path-escape"
+    );
+    assert.equal(existsSync(join(external, ".ganesh")), false);
+
+    const parent = newTempDir();
+    const parentTarget = newTempDir();
+    const nestedLink = join(parent, "linked-parent");
+    symlinkSync(parentTarget, nestedLink);
+    const nestedDestination = join(nestedLink, "child");
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "restore-ancestor-symlink-destination",
+        sourcePath: backup.backupPath,
+        destinationPath: nestedDestination,
+        mode: "materialize",
+        payloadHash: packetPayloadHash({ dest: nestedDestination })
+      }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "path-escape"
+    );
+    assert.equal(existsSync(join(parentTarget, "child", ".ganesh")), false);
+  });
+
+  it("e15s02 malformed canonical database is rejected before materialize", () => {
+    const packet = newTempDir();
+    const dbPath = join(packet, "project.sqlite");
+    const db = new DatabaseSync(dbPath);
+    db.exec("CREATE TABLE projects (id TEXT, owner_id TEXT, schema_version INTEGER, created_at TEXT); INSERT INTO projects VALUES ('malformed-project', 'owner-backup-test', 1, 'now');");
+    db.close();
+    const hash = sha256(readFileSync(dbPath));
+    writeFileSync(join(packet, "ganesh-project-packet.json"), JSON.stringify({
+      kind: "project", schemaVersion: PROJECT_SCHEMA_VERSION, projectId: "malformed-project", createdAt: "now",
+      destination: "local", purpose: "backup", files: [{ relativePath: "project.sqlite", sha256: hash }], omissions: [], commitmentIds: [], evidenceLocatorIds: []
+    }));
+    assert.throws(
+      () => restoreProject(fix.ownerCap, {
+        commandId: "restore-malformed-canonical-db",
+        sourcePath: packet,
+        destinationPath: newTempDir(),
+        mode: "materialize",
+        payloadHash: packetPayloadHash({ malformed: "1" })
+      }),
+      (error: unknown) => error instanceof ProjectStoreError && ["unsupported-schema", "corrupt-packet"].includes(error.code)
+    );
+  });
+
   it("e15s02 flipped hash rejects materialize restore and leaves destination absent or not ready", () => {
     registerPublicArtifact(fix.handle, "doc-flip", "v1", "clean before flip");
     const backup = backupProject(fix.handle, fix.ownerCap, {
@@ -121,6 +203,26 @@ describe("E15s02 backup, restore, migrations and restore drills", () => {
   });
 
   // SC-e15s02-P0-02: Restore drill verifies without mutating live state (AC-08)
+  it("e15s02 same-root replace preserves the backup used as its source", () => {
+    const backup = backupProject(fix.handle, fix.ownerCap, {
+      commandId: "backup-same-root-source",
+      payloadHash: packetPayloadHash({ sameRoot: "1" })
+    });
+    const result = restoreProject(fix.ownerCap, {
+      commandId: "replace-same-root-source",
+      sourcePath: backup.backupPath,
+      destinationPath: fix.root,
+      mode: "replace",
+      payloadHash: packetPayloadHash({ sameRoot: "replace" })
+    });
+    assert.equal(result.valid, true);
+    assert.equal(existsSync(join(backup.backupPath, "ganesh-project-packet.json")), true);
+    assert.throws(
+      () => createBranch(fix.handle, { name: "must-reopen-after-replace" }),
+      (error: unknown) => error instanceof ProjectStoreError && error.code === "project-locked"
+    );
+  });
+
   it("e15s02 restore drill verifies snapshot without changing live current snapshot or commitments", () => {
     registerPublicArtifact(fix.handle, "doc-drill", "v1", "drill verification data");
     const backup = backupProject(fix.handle, fix.ownerCap, {

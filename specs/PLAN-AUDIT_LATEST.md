@@ -62,7 +62,7 @@ Per-file SHA-256 inputs:
 | Check | Status | Evidence |
 |---|---|---|
 | Zoom-out mandate | ✅ | `specs/IMPACT_LATEST.md` names purpose, current callers/dependents and preserved contracts for schema, project-store, project-types, recovery, artifact-store, index, disclosure, policy-store, capability-broker, commitment/readiness stores, lifecycle-gate, work-runtime, claim/evidence stores and frozen `src/workspace/**`. |
-| Placement | ✅ | New code targets `src/portability/` plus `src/project/project-lock.ts`. Behavior-owned tests target `tests/portability/` plus `tests/integration/portability-authority.test.ts` and `tests/support/portability-fixtures.ts`. Story IDs remain traceability metadata and `node --test` name patterns, not filenames. `src/portability/`, `src/project/project-lock.ts`, `tests/portability/` and the authority test do not exist yet. |
+| Placement | ✅ | New code targets `src/portability/` plus `src/project/project-lock.ts`. Behavior-owned tests target `tests/portability/` plus `tests/portability/project-export.test.ts` and `tests/support/portability-fixtures.ts`. Story IDs remain traceability metadata and `node --test` name patterns, not filenames. `src/portability/`, `src/project/project-lock.ts`, and the behavior-owned portability tests are present. |
 | Minimal abstraction | ✅ | Types + store files split by caller set (export, backup, restore, deletion, lock). No archive package, cloud backup SDK, lock manager or second TUI. |
 | Schema compatibility | ✅ | Additive `createE15Schema` only. Static inspection: `PROJECT_SCHEMA_VERSION` is `1`. Writable ready `openProject` currently ensures E04/E06/E05/E07/E08; `createSchema`/`migrateSchema` currently ensure E03–E08. Plan keeps marker version 1 and preserves `migrateSchema(root)` v0→v1. `schema.ts` is 845 lines; IMPACT forbids splitting it in E15. |
 | Disclosure reuse | ✅ | E15 reuses existing `export` kind. Plan does not add a disclosure enum value. Shipped `requestDisclosure` already denies empty `sourceVersions` and local-only material to non-`local` destinations. |
@@ -99,7 +99,7 @@ Owner approval of this revision would not need a new `[SUS]` dependency gate unl
 |---|---|---|
 | Agent/project guidance | ✅ | `AGENTS.md`, `CLAUDE.md` and `CONVENTIONS.md` exist and require responsibility ownership, FIRST tests and no direct main commits. |
 | Planning layout | ✅ | E15 artifacts are under `specs/epics/e15-recovery-portability/`; shared test/impact/audit artifacts use documented `specs/` ownership. |
-| File placement | ✅ | Responsibility folders `src/portability/` and `tests/portability/`; lock lives in `src/project/project-lock.ts`; authority tests in `tests/integration/portability-authority.test.ts`. No epic IDs in filenames. `src/workspace/**` frozen. `schema.ts` stays unsplit. |
+| File placement | ✅ | Responsibility folders `src/portability/` and `tests/portability/`; lock lives in `src/project/project-lock.ts`; authority tests in `tests/portability/project-export.test.ts`. No epic IDs in filenames. `src/workspace/**` frozen. `schema.ts` stays unsplit. |
 | Git mode | ✅ | `solo-git`; no current branch/commit/build authorization. Conventional Commits required later. Implementation must use a feature branch after approval of this READY revision. |
 | Runtime | ✅ | Node.js 24 LTS and npm 11; every task command fails before work if foreground `node` is not major 24. |
 | CI | ✅ | No CI configured; applicable local checks are required before integration. |
