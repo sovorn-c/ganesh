@@ -215,6 +215,97 @@ export function deriveMaterial(
   };
 }
 
+const ALLOWED_OPERATIONS_ONLY_KEYS = new Set([
+  "kind",
+  "operationsonly",
+  "commandid",
+  "correlationid",
+  "runid",
+  "limit",
+  "exportid",
+  "timestamp",
+  "status",
+  "format",
+  "destination",
+  "purpose",
+  "destinationpath",
+  "bundlepath",
+  "createdat",
+  "schemaversion",
+  "severity"
+]);
+
+export function isOperationsOnlyPayload(payload: unknown): boolean {
+  if (payload === undefined) {
+    return true;
+  }
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
+    return false;
+  }
+  const obj = payload as Record<string, unknown>;
+  const normalized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    const lower = key.toLowerCase();
+    if (!ALLOWED_OPERATIONS_ONLY_KEYS.has(lower)) {
+      return false;
+    }
+    normalized[lower] = value;
+  }
+
+  if ("operationsonly" in normalized) {
+    if (typeof normalized.operationsonly !== "boolean" || normalized.operationsonly !== true) {
+      return false;
+    }
+  }
+  if ("kind" in normalized) {
+    if (
+      typeof normalized.kind !== "string" ||
+      !["diagnostic", "telemetry", "operations", "health"].includes(normalized.kind)
+    ) {
+      return false;
+    }
+  }
+  if ("limit" in normalized) {
+    if (typeof normalized.limit !== "number" || !Number.isFinite(normalized.limit) || normalized.limit < 0) {
+      return false;
+    }
+  }
+  if ("schemaversion" in normalized) {
+    if (typeof normalized.schemaversion !== "number" || !Number.isInteger(normalized.schemaversion)) {
+      return false;
+    }
+  }
+  if ("severity" in normalized) {
+    if (typeof normalized.severity !== "string" || !["info", "warning", "error"].includes(normalized.severity)) {
+      return false;
+    }
+  }
+
+  const stringKeys = [
+    "commandid",
+    "correlationid",
+    "runid",
+    "exportid",
+    "destination",
+    "purpose",
+    "destinationpath",
+    "bundlepath",
+    "createdat",
+    "timestamp",
+    "status",
+    "format"
+  ] as const;
+
+  for (const key of stringKeys) {
+    if (key in normalized && typeof normalized[key] !== "string") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function requestDisclosure(
   handle: ProjectHandle,
   request: DisclosureRequest
@@ -244,6 +335,104 @@ export function requestDisclosure(
 
   // 2. Validate sources
   if (!request.sourceVersions || request.sourceVersions.length === 0) {
+    if (request.operation === "diagnostic" || request.operation === "telemetry") {
+      if (isOperationsOnlyPayload(request.payload)) {
+        if (request.destination === "local") {
+          const decision: DisclosureDecision = {
+            id,
+            correlationId,
+            operation: request.operation,
+            destination: request.destination,
+            purpose: request.purpose,
+            sourceVersions: [],
+            transformation: request.transformation,
+            branchId: request.branchId,
+            status: "allow",
+            reason: `allowed: operations-only ${request.operation} disclosure for local destination`,
+            createdAt
+          };
+          recordDisclosureDecision(handle, decision);
+          return decision;
+        }
+
+        // Non-local destination
+        if (
+          !request.destination ||
+          request.destination === "*" ||
+          !request.purpose ||
+          request.purpose === "*"
+        ) {
+          const decision: DisclosureDecision = {
+            id,
+            correlationId,
+            operation: request.operation,
+            destination: request.destination,
+            purpose: request.purpose,
+            sourceVersions: [],
+            transformation: request.transformation,
+            branchId: request.branchId,
+            status: "deny",
+            reason: `denied: non-local ${request.operation} disclosure requires explicit destination and purpose`,
+            createdAt
+          };
+          recordDisclosureDecision(handle, decision);
+          return decision;
+        }
+
+        const isOptedIn = request.optIn === true;
+
+        if (!isOptedIn) {
+          const decision: DisclosureDecision = {
+            id,
+            correlationId,
+            operation: request.operation,
+            destination: request.destination,
+            purpose: request.purpose,
+            sourceVersions: [],
+            transformation: request.transformation,
+            branchId: request.branchId,
+            status: "deny",
+            reason: `denied: remote ${request.operation} disclosure requires explicit owner opt-in`,
+            createdAt
+          };
+          recordDisclosureDecision(handle, decision);
+          return decision;
+        }
+
+        const decision: DisclosureDecision = {
+          id,
+          correlationId,
+          operation: request.operation,
+          destination: request.destination,
+          purpose: request.purpose,
+          sourceVersions: [],
+          transformation: request.transformation,
+          branchId: request.branchId,
+          status: "allow",
+          reason: `allowed: operations-only ${request.operation} disclosure for remote destination with owner opt-in`,
+          createdAt
+        };
+        recordDisclosureDecision(handle, decision);
+        return decision;
+      } else {
+        const decision: DisclosureDecision = {
+          id,
+          correlationId,
+          operation: request.operation,
+          destination: request.destination,
+          purpose: request.purpose,
+          sourceVersions: [],
+          transformation: request.transformation,
+          branchId: request.branchId,
+          status: "deny",
+          reason: `denied: payload contains research content or source versions`,
+          createdAt
+        };
+        recordDisclosureDecision(handle, decision);
+        return decision;
+      }
+    }
+
     const decision: DisclosureDecision = {
       id,
       correlationId,

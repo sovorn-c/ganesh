@@ -3,6 +3,7 @@ import { ProjectStoreError, type ProjectHandle } from "../project/project-types.
 import { assertWritable } from "../project/project-store.js";
 import { isoNow, newId, assertIdentifier } from "../persistence/storage-utils.js";
 import { transaction } from "../persistence/schema.js";
+import { redactDiagnostic } from "../runtime/preflight.js";
 import {
   SPECIALIST_ROLES,
   type BudgetDimension,
@@ -35,6 +36,20 @@ function jsonObject(value: unknown): Record<string, unknown> {
 
 function parseJson<T>(value: unknown, fallback: T): T {
   try { return JSON.parse(String(value)) as T; } catch { return fallback; }
+}
+
+function safeStoredDiagnostics(value: unknown): readonly WorkDiagnostic[] {
+  const diagnostics = parseJson<unknown[]>(value, []);
+  if (!Array.isArray(diagnostics)) { return []; }
+  return diagnostics.slice(0, 32).map((raw) => {
+    const item = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+    const count = Number(item.count);
+    return {
+      code: redactDiagnostic(String(item.code ?? "diagnostic")).slice(0, 160),
+      severity: item.severity === "warning" || item.severity === "error" ? item.severity : "info",
+      count: Number.isSafeInteger(count) ? Math.max(1, Math.min(1000000, count)) : 1
+    };
+  });
 }
 
 function contractRow(row: Record<string, unknown>): WorkContractRecord {
@@ -186,7 +201,7 @@ export function insertCandidate(handle: ProjectHandle, input: { readonly id: str
 export function candidateRows(handle: ProjectHandle, runId?: string): readonly CandidateAcceptance[] {
   assertWorkSchema(handle);
   const rows = (runId === undefined ? handle.db.prepare("SELECT * FROM work_candidates ORDER BY created_at").all() : handle.db.prepare("SELECT * FROM work_candidates WHERE run_id = ? ORDER BY created_at").all(runId)) as Array<Record<string, unknown>>;
-  return rows.map((row) => ({ status: String(row.status) as CandidateAcceptance["status"], runId: String(row.run_id), candidateId: String(row.id), artifactVersionId: typeof row.artifact_version_id === "string" ? row.artifact_version_id : undefined, reason: String(row.reason), diagnostics: parseJson<WorkDiagnostic[]>(row.diagnostics, []) }));
+  return rows.map((row) => ({ status: String(row.status) as CandidateAcceptance["status"], runId: String(row.run_id), candidateId: String(row.id), artifactVersionId: typeof row.artifact_version_id === "string" ? row.artifact_version_id : undefined, reason: redactDiagnostic(String(row.reason)), diagnostics: safeStoredDiagnostics(row.diagnostics) }));
 }
 
 export function replaceContractVersion(handle: ProjectHandle, old: WorkContractRecord, input: WorkContractInput): WorkContractRecord {

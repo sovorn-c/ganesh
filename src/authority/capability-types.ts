@@ -11,7 +11,9 @@ export const OWNER_OPERATIONS: readonly string[] = [
   "work:authorize-contract",
   "work:grant-standing-permission",
   "work:cancel",
-  "work:revise-contract"
+  "work:revise-contract",
+  "operations:export-diagnostics",
+  "operations:purge-diagnostics"
 ];
 
 export interface WorkerCapabilityScope {

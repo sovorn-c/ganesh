@@ -10,7 +10,7 @@ import {
   type ProjectStatus,
   ProjectStoreError
 } from "./project-types.js";
-import { createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
+import { createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
 import { assertIdentifier, ensureDirectory, isoNow, newId, resolveProjectRoot } from "../persistence/storage-utils.js";
 import { acquireProjectWriteLock, reconcileProjectStoreSwap } from "./project-lock.js";
 import type { ProjectLock } from "../portability/portability-types.js";
@@ -258,6 +258,7 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
       createE07Schema(db);
       createE08Schema(db);
       createE15Schema(db);
+      createE16Schema(db);
     } catch (error) {
       try { db.close(); } catch { /* preserve schema error */ }
       lock?.release();

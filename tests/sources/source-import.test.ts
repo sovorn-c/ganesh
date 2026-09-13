@@ -6,7 +6,9 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { test } from "node:test";
 import {
+  addDiagnostic,
   createWorkerCapabilities,
+  listSourceDiagnostics,
   type ProjectHandle
 } from "../../src/index.js";
 import { disposeFixture, projectFixture } from "../support/project-fixtures.js";
@@ -128,6 +130,34 @@ test("e06s01 capability path symlink project limit mutation", async () => {
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(link, "command-link")));
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(join(linkedParent, "notes.txt"), "command-parent-link")));
     throws(() => api.importLocalSource(fixture.handle, worker(fixture.handle, outside), request(path, "command-project")));
+  } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("source diagnostic metadata is redacted before persistence and inspection", async () => {
+  const fixture = projectFixture();
+  const path = join(fixture.root, "diagnostic-source.txt");
+  writeFileSync(path, "source content");
+  try {
+    const api = await sourceApi();
+    const imported = api.importLocalSource(fixture.handle, worker(fixture.handle, fixture.root), request(path, "command-diagnostic-redaction"));
+    addDiagnostic(
+      fixture.handle,
+      imported.source.artifactVersionId,
+      "provider token=source-secret",
+      "error",
+      "Bearer bearer-secret Basic basic-secret clinician@example.test MRN-123 participant_id=participant-777"
+    );
+
+    const stored = fixture.handle.db.prepare(
+      "SELECT code, detail FROM source_diagnostics WHERE artifact_version_id = ?"
+    ).all(imported.source.artifactVersionId) as Array<{ code: string; detail: string }>;
+    const inspected = listSourceDiagnostics(fixture.handle, imported.source.artifactVersionId);
+    const serialized = JSON.stringify({ stored, inspected });
+    for (const secret of ["source-secret", "bearer-secret", "basic-secret", "clinician@example.test", "MRN-123", "participant-777"]) {
+      strictEqual(serialized.includes(secret), false, `source diagnostic must not expose ${secret}`);
+    }
   } finally {
     disposeFixture(fixture);
   }

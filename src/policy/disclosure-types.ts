@@ -38,6 +38,7 @@ export interface DisclosureRequest {
   readonly correlationId?: string;
   readonly payload?: unknown;
   readonly actor?: string;
+  readonly optIn?: boolean;
 }
 
 export interface DisclosureDecision {
