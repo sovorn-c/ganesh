@@ -3,8 +3,25 @@ specs/
 CLAUDE.md
 AGENTS.md
 CONVENTIONS.md
+.cursor/
+.cursorrules
+.cursorignore
 .codex/
 .pi/
 graphify-out/
+
+# Dependencies and generated output
 node_modules/
 dist/
+coverage/
+*.tsbuildinfo
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# macOS/editor/temp files
+.DS_Store
+*.log
+*.tmp
