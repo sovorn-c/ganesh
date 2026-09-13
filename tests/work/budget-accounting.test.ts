@@ -27,6 +27,8 @@ test("e05s03 budget ledger reservations are cumulative across retry revision reo
     const revised = reviseContract(fixture.handle, owner, { contractId: authorized.id });
     assert.equal(inspectBudget(fixture.handle, revised.id, revised.version).spent.spend, 2);
     assert.equal(settleBudget(fixture.handle, "budget-run-uncertain", { tokens: 1 }, true).status, "rejected");
+    assert.equal(reserveBudget(fixture.handle, `${authorized.id}@1`, "budget-run-unreserved-dimension", { tokens: 1, calls: 1, spend: 1 }, { status: "known", amount: 1, currency: "USD" }).status, "reserved");
+    assert.throws(() => settleBudget(fixture.handle, "budget-run-unreserved-dimension", { timeMs: 1 }), /has no reservation/);
   } finally {
     disposeFixture(fixture);
   }

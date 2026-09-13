@@ -98,6 +98,13 @@ export interface WorkRunInput {
   readonly branchId?: string;
 }
 
+export interface DispatchOptions {
+  readonly wait?: (ms: number) => Promise<void>;
+  readonly minIntervalMs?: number;
+  readonly correlationId?: string;
+  readonly signal?: AbortSignal;
+}
+
 export interface WorkRunRecord {
   readonly id: string;
   readonly contractId: string;
@@ -237,8 +244,8 @@ export interface SpecialistSessionResult {
 }
 
 export interface SpecialistSessionPort {
-  start?(request: { readonly run: WorkRunRecord; readonly contract: WorkContractRecord; readonly snapshot: RoleSnapshot }): SpecialistSessionResult | Promise<SpecialistSessionResult>;
-  prompt?(request: { readonly run: WorkRunRecord; readonly snapshot: RoleSnapshot }): SpecialistSessionResult | Promise<SpecialistSessionResult>;
+  start?(request: { readonly run: WorkRunRecord; readonly contract: WorkContractRecord; readonly snapshot: RoleSnapshot; readonly signal?: AbortSignal; readonly deadlineAt?: number }): SpecialistSessionResult | Promise<SpecialistSessionResult>;
+  prompt?(request: { readonly run: WorkRunRecord; readonly snapshot: RoleSnapshot; readonly signal?: AbortSignal; readonly deadlineAt?: number }): SpecialistSessionResult | Promise<SpecialistSessionResult>;
   cancel?(sessionId: string): void | Promise<void>;
   rebind?(): void | Promise<void>;
   submit?(submission: CandidateSubmission): CandidateSubmission;

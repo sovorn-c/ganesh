@@ -10,7 +10,10 @@ import { requestDisclosure } from "../policy/disclosure-gateway.js";
 import { transaction } from "../persistence/schema.js";
 import { reserveBudget, settleBudget, inspectBudget } from "./budget-ledger.js";
 import { assertWorkSchema, authorizeStoredContract, candidateRows, getContract, getRun, getRunByCommand, insertCandidate, insertContract, insertRun, listRuns, updateRun, insertStandingPermission, getStandingPermission, replaceContractVersion } from "./work-store.js";
-import type { BudgetDimension, CandidateAcceptance, CandidateSubmission, DisagreementRecord, SpecialistRole, SpecialistSessionPort, SpecialistSessionResult, StandingPermissionInput, StandingPermissionRecord, WorkContractInput, WorkContractRecord, WorkDiagnostic, WorkInspection, WorkRunInput, WorkRunRecord, RoleSnapshot } from "./work-types.js";
+import type { BudgetDimension, CandidateAcceptance, CandidateSubmission, DisagreementRecord, DispatchOptions, SpecialistRole, SpecialistSessionPort, SpecialistSessionResult, StandingPermissionInput, StandingPermissionRecord, WorkContractInput, WorkContractRecord, WorkDiagnostic, WorkInspection, WorkRunInput, WorkRunRecord, RoleSnapshot } from "./work-types.js";
+import { recordDiagnostic, operationsSchemaAvailable } from "../operations/diagnostic-store.js";
+import { redactDiagnostic } from "../runtime/preflight.js";
+import { admitProviderAttempt, releaseProviderAttemptReservation } from "./provider-admission.js";
 
 function requireOwner(handle: ProjectHandle, capability: unknown): OwnerCapability {
   if (!isOwnerCapability(capability) || capability.ownerId !== handle.project.ownerId) {throw new ProjectStoreError("forbidden", "work owner operation requires the project's trusted OwnerCapability");}
@@ -39,11 +42,32 @@ function requireAnyWorkCapability(handle: ProjectHandle, capability: unknown, op
 }
 
 function safeDiagnostics(diagnostics: readonly WorkDiagnostic[] | undefined): readonly WorkDiagnostic[] {
-  return (diagnostics ?? []).slice(0, 32).map((item) => ({
-    code: String(item.code).slice(0, 160).replace(/(secret|token|password|credential|api[-_]?key)[^,;\s]*/gi, "$1=[redacted]"),
-    severity: item.severity === "warning" || item.severity === "error" ? item.severity : "info",
-    count: Number.isFinite(Number(item.count)) ? Math.max(1, Math.min(1000000, Number(item.count))) : 1
-  }));
+  return (diagnostics ?? []).slice(0, 32).map((rawItem) => {
+    const item = rawItem && typeof rawItem === "object" ? rawItem as Partial<WorkDiagnostic> : {};
+    const count = Number(item.count);
+    return {
+      code: redactDiagnostic(String(item.code ?? "diagnostic")).slice(0, 160),
+      severity: item.severity === "warning" || item.severity === "error" ? item.severity : "info",
+      count: Number.isSafeInteger(count) ? Math.max(1, Math.min(1000000, count)) : 1
+    };
+  });
+}
+
+interface ActiveDispatch {
+  readonly controller: AbortController;
+  readonly sessionPort: SpecialistSessionPort;
+  sessionId?: string;
+}
+
+const activeDispatches = new WeakMap<ProjectHandle, Map<string, ActiveDispatch>>();
+
+function activeDispatchMap(handle: ProjectHandle): Map<string, ActiveDispatch> {
+  let map = activeDispatches.get(handle);
+  if (!map) {
+    map = new Map();
+    activeDispatches.set(handle, map);
+  }
+  return map;
 }
 
 function hashPayload(value: unknown): string {
@@ -143,15 +167,134 @@ function snapshotFor(handle: ProjectHandle, run: WorkRunRecord): RoleSnapshot {
   return { runId: run.id, role: run.role, objective: contract.objective, inputVersionIds: run.inputVersionIds, reviewQuestion: run.role === "reviewer" && typeof scope.reviewQuestion === "string" ? scope.reviewQuestion : undefined, standards: run.role === "reviewer" && Array.isArray(scope.standards) ? scope.standards.map(String) : undefined, assignedAt: run.createdAt };
 }
 
-export async function dispatchRun(handle: ProjectHandle, capability: unknown, runId: string, sessionPort: SpecialistSessionPort): Promise<WorkRunRecord> {
-  requireAnyWorkCapability(handle, capability, ["work:dispatch", "work:queue-run"]);
-  const run = getRun(handle, runId);
-  if (!run) {throw new ProjectStoreError("not-found", `work run not found: ${runId}`);}
-  if (run.status === "cancelled" || run.status === "succeeded" || run.status === "failed") {throw new ProjectStoreError("invalid-transition", `run is ${run.status}`);}
-  const contract = getContract(handle, run.contractId, run.contractVersion);
-  if (!contract) {throw new ProjectStoreError("not-found", "run contract not found");}
-  const operation = getLifecycleOperation(handle, run.operationId);
-  if (!operation) {throw new ProjectStoreError("not-found", "run lifecycle operation not found");}
+interface ProviderInvocation {
+  readonly result: SpecialistSessionResult;
+  readonly started: boolean;
+  readonly timedOut: boolean;
+  readonly aborted: boolean;
+  readonly errorMessage?: string;
+}
+
+function normalizeSessionResult(value: unknown): SpecialistSessionResult {
+  if (!value || typeof value !== "object") {
+    return { status: "failure", errorCode: "invalid-session-result" };
+  }
+  const result = value as Partial<SpecialistSessionResult>;
+  return result.status === "ok" || result.status === "timeout" || result.status === "failure"
+    ? result as SpecialistSessionResult
+    : { status: "failure", errorCode: "invalid-session-result" };
+}
+
+function quarantineLateCandidate(handle: ProjectHandle, capability: unknown, run: WorkRunRecord, result: SpecialistSessionResult): void {
+  if (result.status !== "ok" || result.candidate === undefined) { return; }
+  void acceptSubmission(handle, capability, {
+    ...result.candidate,
+    runId: run.id,
+    sessionId: result.sessionId ?? result.candidate.sessionId
+  }).catch(() => {
+    // The project may close before an ignored provider promise resolves.
+  });
+}
+
+async function invokeProviderAttempt(
+  handle: ProjectHandle,
+  capability: unknown,
+  run: WorkRunRecord,
+  contract: WorkContractRecord,
+  snapshot: RoleSnapshot,
+  sessionPort: SpecialistSessionPort,
+  active: ActiveDispatch,
+  deadlineAt: number | undefined
+): Promise<ProviderInvocation> {
+  const remainingMs = deadlineAt === undefined ? undefined : Math.max(0, deadlineAt - Date.now());
+  if (remainingMs !== undefined && remainingMs <= 0) {
+    return { result: { status: "timeout", errorCode: "provider-timeout" }, started: false, timedOut: true, aborted: false };
+  }
+  const attemptController = new AbortController();
+  const abortAttempt = (): void => attemptController.abort(active.controller.signal.reason);
+  active.controller.signal.addEventListener("abort", abortAttempt, { once: true });
+  const call = Promise.resolve().then(() => sessionPort.start !== undefined
+    ? sessionPort.start({ run, contract, snapshot, signal: attemptController.signal, deadlineAt })
+    : sessionPort.prompt !== undefined
+      ? sessionPort.prompt({ run, snapshot, signal: attemptController.signal, deadlineAt })
+      : { status: "ok" as const });
+  type Outcome =
+    | { readonly kind: "result"; readonly value: SpecialistSessionResult }
+    | { readonly kind: "error"; readonly error: unknown }
+    | { readonly kind: "timeout" }
+    | { readonly kind: "abort" };
+  let settled = false;
+  let timer: NodeJS.Timeout | undefined;
+  const outcome = await new Promise<Outcome>((resolve) => {
+    const settle = (value: Outcome): void => {
+      if (settled) { return; }
+      settled = true;
+      resolve(value);
+    };
+    call.then(
+      (value) => {
+        const result = normalizeSessionResult(value);
+        if (settled) {
+          quarantineLateCandidate(handle, capability, run, result);
+          return;
+        }
+        settle({ kind: "result", value: result });
+      },
+      (error: unknown) => settle({ kind: "error", error })
+    );
+    const onAbort = (): void => {
+      // Give an already-resolved provider result precedence over a cancellation
+      // observed in the same turn; pending calls still stop on the next turn.
+      setImmediate(() => settle({ kind: "abort" }));
+    };
+    attemptController.signal.addEventListener("abort", onAbort, { once: true });
+    if (attemptController.signal.aborted) { onAbort(); }
+    if (remainingMs !== undefined) {
+      timer = setTimeout(() => {
+        if (!settled) {
+          settle({ kind: "timeout" });
+          attemptController.abort(new Error("provider deadline exceeded"));
+        }
+      }, Math.min(remainingMs, 2_147_483_647));
+    }
+  });
+  if (timer) { clearTimeout(timer); }
+  active.controller.signal.removeEventListener("abort", abortAttempt);
+  if (outcome.kind === "result") {
+    return { result: outcome.value, started: true, timedOut: false, aborted: false };
+  }
+  if (outcome.kind === "abort") {
+    return { result: { status: "timeout", errorCode: "cancelled" }, started: true, timedOut: false, aborted: true };
+  }
+  if (outcome.kind === "timeout") {
+    return { result: { status: "timeout", errorCode: "provider-timeout" }, started: true, timedOut: true, aborted: false };
+  }
+  const rawCode = (outcome.error as { code?: string })?.code ?? "session-start-error";
+  return {
+    result: { status: "failure", errorCode: redactDiagnostic(String(rawCode)).slice(0, 160) },
+    started: true,
+    timedOut: false,
+    aborted: false,
+    errorMessage: redactDiagnostic(outcome.error instanceof Error ? outcome.error.message : String(outcome.error)).slice(0, 160)
+  };
+}
+
+function finalizeDispatchCancellation(handle: ProjectHandle, run: WorkRunRecord, reason: string): WorkRunRecord {
+  const current = getRun(handle, run.id);
+  if (!current || ["cancelled", "succeeded", "failed"].includes(current.status)) { return current ?? run; }
+  const operation = getLifecycleOperation(handle, current.operationId);
+  if (operation && operation.status !== "cancelled" && operation.status !== "fenced") {
+    fenceRevokedOperation(handle, operation, reason, "dispatch-signal");
+  }
+  if (getLifecycleOperation(handle, current.operationId)?.status !== "cancelled") {
+    updateLifecycleOperationStatus(handle, current.operationId, "cancelled");
+  }
+  return updateRun(handle, current.id, "cancelled", reason);
+}
+
+async function dispatchRunLoop(handle: ProjectHandle, capability: unknown, run: WorkRunRecord, contract: WorkContractRecord, operation: import("../lifecycle/lifecycle-types.js").LifecycleOperation, sessionPort: SpecialistSessionPort, options: DispatchOptions | undefined, active: ActiveDispatch): Promise<WorkRunRecord> {
+  const dispatchOptions = { ...options, signal: active.controller.signal };
+  const correlationId = options?.correlationId ?? newId("corr");
   const unavailableInput = run.inputVersionIds.find((versionId) => {
     try {
       return inspectArtifactVersion(handle, versionId).contentStatus !== "available";
@@ -166,45 +309,220 @@ export async function dispatchRun(handle: ProjectHandle, capability: unknown, ru
   }
   const checkpoint = checkLifecyclePolicy(handle, operation, "dispatch", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
   if (checkpoint.status !== "passed") {
+    if (operationsSchemaAvailable(handle)) {
+      try {
+        recordDiagnostic(handle, { correlationId, runId: run.id, commandId: run.commandId, kind: "policy-denial", code: "dispatch-policy-denied", severity: "error", message: checkpoint.reason });
+      } catch { /* ignore */ }
+    }
     settleBudget(handle, run.id, {}, false);
     updateLifecycleOperationStatus(handle, run.operationId, "blocked");
     return updateRun(handle, run.id, "blocked", checkpoint.reason);
   }
+  const initialRun = getRun(handle, run.id);
+  const initialOp = getLifecycleOperation(handle, run.operationId);
+  if (!initialRun || initialRun.status === "cancelled" || initialRun.status === "waiting-for-human" || initialOp?.status === "cancelled" || initialOp?.status === "fenced") {
+    await settleBudget(handle, run.id, {}, true);
+    return initialRun ?? run;
+  }
   updateLifecycleOperationStatus(handle, run.operationId, "running");
   const maxRetries = Math.max(0, Math.min(2, Number((contract.scope as { maxRetries?: unknown }).maxRetries ?? 0)));
   let started: SpecialistSessionResult = { status: "failure", errorCode: "session-port-unavailable" };
+  let providerCalls = 0;
+  let providerTimeMs = 0;
+  const providerUsage: Partial<Record<BudgetDimension, number>> = {};
   for (let attempt = 1; attempt <= maxRetries + 1; attempt += 1) {
+    const consumedForAdmission: Partial<Record<BudgetDimension, number>> = {
+      ...providerUsage,
+      calls: Math.max(providerCalls, providerUsage.calls ?? 0)
+    };
+    const admission = await admitProviderAttempt(handle, run, contract, attempt, dispatchOptions, Math.max(providerTimeMs, providerUsage.timeMs ?? 0), consumedForAdmission);
+    if (!admission.admitted) {
+      if (admission.reason === "cancelled" || admission.reason === "fenced" || admission.reason === "terminal") {
+        await settleBudget(handle, run.id, {}, true);
+        return active.controller.signal.aborted ? finalizeDispatchCancellation(handle, run, "dispatch cancelled") : getRun(handle, run.id) ?? run;
+      }
+      if (admission.reason === "time-exhausted" || admission.reason === "calls-exhausted" || admission.reason === "budget-exhausted") {
+        await settleBudget(handle, run.id, {}, true);
+        updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+        return updateRun(handle, run.id, "failed", admission.reason);
+      }
+    }
+    const reservationId = admission.reservationId;
     const snapshot = snapshotFor(handle, run);
     if (contract.destination !== "local") {
       const disclosure = requestDisclosure(handle, { sourceVersions: run.inputVersionIds, operation: "prompt", destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator", branchId: contract.branchId });
       if (disclosure.status !== "allow") {
+        if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
+        if (operationsSchemaAvailable(handle)) {
+          try {
+            recordDiagnostic(handle, { correlationId, runId: run.id, commandId: run.commandId, kind: "policy-denial", code: "disclosure-denied", severity: "error", message: disclosure.reason });
+          } catch { /* ignore */ }
+        }
         settleBudget(handle, run.id, {}, false);
         updateLifecycleOperationStatus(handle, run.operationId, "blocked");
         return updateRun(handle, run.id, "blocked", disclosure.reason);
       }
       const external = checkLifecyclePolicy(handle, operation, "external", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
       if (external.status !== "passed") {
+        if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
         settleBudget(handle, run.id, {}, false);
         updateLifecycleOperationStatus(handle, run.operationId, "blocked");
         return updateRun(handle, run.id, "blocked", external.reason);
       }
     }
-    started = sessionPort.start !== undefined ? await sessionPort.start({ run, contract, snapshot }) : sessionPort.prompt !== undefined ? await sessionPort.prompt({ run, snapshot }) : { status: "ok" };
-    recordProviderAttempt(handle, run.id, { destination: contract.destination, purpose: contract.purpose, attempt, outcome: started.status, pricing: { status: "unknown", reason: "provider usage is supplied by the session result" }, sessionId: started.sessionId });
+    const freshRunBefore = getRun(handle, run.id);
+    const freshOpBefore = getLifecycleOperation(handle, run.operationId);
+    if (!freshRunBefore || freshRunBefore.status === "succeeded" || freshRunBefore.status === "failed") {
+      if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
+      await settleBudget(handle, run.id, {}, true);
+      return freshRunBefore ?? run;
+    }
+    if (freshRunBefore.status === "cancelled" || freshRunBefore.status === "waiting-for-human" || freshOpBefore?.status === "cancelled" || freshOpBefore?.status === "fenced" || freshOpBefore?.status === "blocked" || active.controller.signal.aborted) {
+      if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
+      await settleBudget(handle, run.id, {}, true);
+      return active.controller.signal.aborted ? finalizeDispatchCancellation(handle, run, "dispatch cancelled") : freshRunBefore ?? run;
+    }
+    const invocationStartedAt = Date.now();
+    const invocation = await invokeProviderAttempt(handle, capability, run, contract, snapshot, sessionPort, active, admission.deadlineAt);
+    if (invocation.started) {
+      providerCalls += 1;
+      providerTimeMs += Math.max(0, Date.now() - invocationStartedAt);
+      if (invocation.result.usage) {
+        for (const dimension of ["tokens", "calls", "timeMs", "spend"] as const) {
+          const value = Number(invocation.result.usage[dimension]);
+          if (Number.isFinite(value) && value >= 0) {
+            providerUsage[dimension] = (providerUsage[dimension] ?? 0) + value;
+          }
+        }
+      }
+    } else if (reservationId) {
+      releaseProviderAttemptReservation(handle, reservationId);
+    }
+    started = invocation.result;
+    if (started.sessionId) { active.sessionId = started.sessionId; }
+    if (invocation.started && reservationId) {
+      recordProviderAttempt(handle, run.id, { destination: contract.destination, purpose: contract.purpose, attempt, outcome: started.status, pricing: { status: "unknown", reason: "provider usage is supplied by the session result" }, sessionId: started.sessionId }, reservationId);
+    }
+    if (invocation.errorMessage && operationsSchemaAvailable(handle)) {
+      try {
+        const code = redactDiagnostic(String(started.errorCode ?? "session-start-error")).slice(0, 160);
+        recordDiagnostic(handle, { correlationId, runId: run.id, commandId: run.commandId, kind: "provider-failure", code, severity: "error", message: invocation.errorMessage });
+      } catch { /* ignore */ }
+    }
+    if (started.status !== "ok" && operationsSchemaAvailable(handle)) {
+      try {
+        const rawCode = String(started.errorCode ?? started.status);
+        const code = redactDiagnostic(rawCode).slice(0, 160);
+        const message = redactDiagnostic(String(started.errorCode ?? started.status ?? "provider attempt failed")).slice(0, 160);
+        recordDiagnostic(handle, { correlationId, runId: run.id, commandId: run.commandId, kind: "provider-failure", code, severity: "error", message });
+      } catch { /* ignore */ }
+    }
+    if (invocation.aborted || active.controller.signal.aborted) {
+      await settleBudget(handle, run.id, {}, true);
+      return finalizeDispatchCancellation(handle, run, "dispatch cancelled");
+    }
+    if (invocation.timedOut) {
+      await settleBudget(handle, run.id, {}, true);
+      updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+      return updateRun(handle, run.id, "failed", "time-exhausted");
+    }
+    const freshRunAfter = getRun(handle, run.id);
+    const freshOpAfter = getLifecycleOperation(handle, run.operationId);
+    if (!freshRunAfter || freshRunAfter.status === "cancelled" || freshRunAfter.status === "waiting-for-human" || freshRunAfter.status === "succeeded" || freshRunAfter.status === "failed" || freshOpAfter?.status === "cancelled" || freshOpAfter?.status === "fenced") {
+      if (started.status === "ok" && started.candidate !== undefined && freshRunAfter) {
+        await acceptSubmission(handle, capability, { ...started.candidate, runId: run.id, sessionId: started.sessionId ?? started.candidate.sessionId });
+      }
+      await settleBudget(handle, run.id, {}, true);
+      return freshRunAfter ?? run;
+    }
     if (started.status === "ok") {break;}
   }
-  const next = updateRun(handle, run.id, started.status === "ok" ? "running" : "failed", started.status === "ok" ? undefined : started.errorCode ?? started.status, started.sessionId);
-  if (started.status !== "ok") {
+  const finalCheckRun = getRun(handle, run.id);
+  const finalCheckOp = getLifecycleOperation(handle, run.operationId);
+  if (!finalCheckRun || finalCheckRun.status === "cancelled" || finalCheckRun.status === "waiting-for-human" || finalCheckRun.status === "succeeded" || finalCheckRun.status === "failed" || finalCheckOp?.status === "cancelled" || finalCheckOp?.status === "fenced") {
     await settleBudget(handle, run.id, {}, true);
-  } else if (started.usage !== undefined) {
-    await settleBudget(handle, run.id, started.usage, false);
-  } else if (contract.destination === "local") {
-    await settleBudget(handle, run.id, {}, false);
-  } else {
-    await settleBudget(handle, run.id, {}, true);
+    return finalCheckRun ?? run;
   }
-  if (started.status === "ok" && started.candidate !== undefined) {await acceptSubmission(handle, capability, started.candidate);}
+  const actuals: Partial<Record<BudgetDimension, number>> = { ...providerUsage, calls: Math.max(providerCalls, providerUsage.calls ?? 0) };
+  if (contract.limits.timeMs !== undefined) {
+    actuals.timeMs = Math.max(actuals.timeMs ?? 0, providerTimeMs);
+  }
+  if (started.status !== "ok") {
+    settleBudget(handle, run.id, {}, true);
+    updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+    return updateRun(handle, run.id, "failed", started.errorCode ?? started.status, started.sessionId);
+  }
+
+  try {
+    settleBudget(handle, run.id, actuals, false);
+  } catch (error) {
+    settleBudget(handle, run.id, {}, true);
+    if (operationsSchemaAvailable(handle)) {
+      try {
+        recordDiagnostic(handle, {
+          correlationId,
+          runId: run.id,
+          commandId: run.commandId,
+          kind: "budget-exhaustion",
+          code: "provider-usage-exceeds-reservation",
+          severity: "error",
+          message: redactDiagnostic(error instanceof Error ? error.message : String(error))
+        });
+      } catch { /* ignore */ }
+    }
+    updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+    return updateRun(handle, run.id, "failed", "provider-usage-exceeds-reservation", started.sessionId);
+  }
+
+  const next = updateRun(handle, run.id, "running", undefined, started.sessionId);
+  if (started.candidate !== undefined) {
+    await acceptSubmission(handle, capability, { ...started.candidate, runId: run.id, sessionId: started.sessionId ?? started.candidate.sessionId });
+  }
   return getRun(handle, next.id)!;
+}
+
+export async function dispatchRun(handle: ProjectHandle, capability: unknown, runId: string, sessionPort: SpecialistSessionPort, options?: DispatchOptions): Promise<WorkRunRecord> {
+  requireAnyWorkCapability(handle, capability, ["work:dispatch", "work:queue-run"]);
+  const run = getRun(handle, runId);
+  if (!run) {throw new ProjectStoreError("not-found", `work run not found: ${runId}`);}
+  if (["cancelled", "succeeded", "failed"].includes(run.status)) {throw new ProjectStoreError("invalid-transition", `run is ${run.status}`);}
+  const contract = getContract(handle, run.contractId, run.contractVersion);
+  if (!contract) {throw new ProjectStoreError("not-found", "work contract not found");}
+  const operation = getLifecycleOperation(handle, run.operationId);
+  if (!operation) {throw new ProjectStoreError("not-found", "run lifecycle operation not found");}
+  const map = activeDispatchMap(handle);
+  if (map.has(run.id)) {throw new ProjectStoreError("invalid-transition", "run is already being dispatched");}
+  transaction(handle.db, () => {
+    const current = getRun(handle, run.id);
+    if (current?.status === "running") {
+      throw new ProjectStoreError("invalid-transition", "run is already being dispatched");
+    }
+    if (current?.status === "queued" || current?.status === "blocked") {
+      handle.db.prepare("UPDATE work_runs SET status = 'running', updated_at = ? WHERE id = ? AND status IN ('queued', 'blocked')").run(isoNow(), run.id);
+    }
+  });
+  const active: ActiveDispatch = { controller: new AbortController(), sessionPort };
+  const abortListener = (): void => active.controller.abort(options?.signal?.reason);
+  options?.signal?.addEventListener("abort", abortListener, { once: true });
+  if (options?.signal?.aborted) { active.controller.abort(options.signal.reason); }
+  map.set(run.id, active);
+  try {
+    return await dispatchRunLoop(handle, capability, run, contract, operation, sessionPort, options, active);
+  } finally {
+    options?.signal?.removeEventListener("abort", abortListener);
+    map.delete(run.id);
+  }
+}
+
+function quarantineTerminalSubmission(handle: ProjectHandle, run: WorkRunRecord, operation: import("../lifecycle/lifecycle-types.js").LifecycleOperation, submission: CandidateSubmission, diagnostics: readonly WorkDiagnostic[], candidateId: string, reason: string): CandidateAcceptance {
+  const artifactVersionId = submission.artifactVersionId;
+  const sourceVersionIds = submission.sourceVersionIds ?? run.inputVersionIds;
+  const details = JSON.stringify({ content: submission.content, artifactVersionId, diagnostics });
+  transaction(handle.db, () => {
+    handle.db.prepare("INSERT INTO quarantined_outputs (id, operation_id, candidate_id, reason, disposition, details, created_at) VALUES (?, ?, ?, ?, 'quarantined', ?, ?)").run(newId("quar"), operation.id, candidateId, reason, details, isoNow());
+  });
+  insertCandidate(handle, { id: candidateId, runId: run.id, artifactVersionId, diagnostics, sourceVersionIds, status: "quarantined", reason });
+  return { status: "quarantined", runId: run.id, candidateId, artifactVersionId, reason, diagnostics };
 }
 
 export async function acceptSubmission(handle: ProjectHandle, capability: unknown, submission: CandidateSubmission): Promise<CandidateAcceptance> {
@@ -224,6 +542,9 @@ export async function acceptSubmission(handle: ProjectHandle, capability: unknow
     const artifactVersionId = submission.artifactVersionId;
     insertCandidate(handle, { id: candidateId, runId: run.id, artifactVersionId, diagnostics, sourceVersionIds: submission.sourceVersionIds ?? run.inputVersionIds, status: "quarantined", reason: late.reason });
     return { status: "quarantined", runId: run.id, candidateId, artifactVersionId, reason: late.reason, diagnostics };
+  }
+  if (["failed", "succeeded"].includes(run.status) || ["blocked", "completed", "accepted", "rejected"].includes(operation.status)) {
+    return quarantineTerminalSubmission(handle, run, operation, submission, diagnostics, candidateId, `late session result rejected: run is ${run.status}`);
   }
   let artifactVersionId = submission.artifactVersionId;
   if (artifactVersionId === undefined && submission.content !== undefined) {
@@ -256,12 +577,17 @@ export function cancelRun(handle: ProjectHandle, capability: unknown, request: {
   const owner = requireOwner(handle, capability); const run = getRun(handle, request.runId);
   if (!run) {throw new ProjectStoreError("not-found", `work run not found: ${request.runId}`);}
   if (run.status === "cancelled") {return run;}
-  fenceRevokedOperation(handle, run.operationId, request.reason ?? "owner cancelled run", owner.ownerId);
+  const cancellationReason = request.reason ?? "owner cancelled run";
+  const active = activeDispatchMap(handle).get(run.id);
+  active?.controller.abort(new Error(cancellationReason));
+  fenceRevokedOperation(handle, run.operationId, cancellationReason, owner.ownerId);
   updateLifecycleOperationStatus(handle, run.operationId, "cancelled");
-  const updated = updateRun(handle, run.id, "cancelled", request.reason ?? "owner cancelled run");
-  if (request.sessionPort && run.sessionId && request.sessionPort.cancel) {
+  const updated = updateRun(handle, run.id, "cancelled", cancellationReason);
+  const remotePort = request.sessionPort ?? active?.sessionPort;
+  const remoteSessionId = run.sessionId ?? active?.sessionId;
+  if (remotePort && remoteSessionId && remotePort.cancel) {
     try {
-      const remote = request.sessionPort.cancel(run.sessionId);
+      const remote = remotePort.cancel(remoteSessionId);
       if (remote && typeof (remote as Promise<void>).then === "function") {void (remote as Promise<void>).catch(() => updateRun(handle, run.id, "cancelled", `${request.reason ?? "owner cancelled run"}; remote stop failed`));}
     } catch {
       updateRun(handle, run.id, "cancelled", `${request.reason ?? "owner cancelled run"}; remote stop failed`);
@@ -294,12 +620,41 @@ export function reviseContract(handle: ProjectHandle, capability: unknown, reque
   return replaceContractVersion(handle, old, { objective: request.objective ?? old.objective, scope: request.scope ?? old.scope, inputVersionIds: old.inputVersionIds, permittedRoles: old.permittedRoles, limits: request.limits ?? old.limits, destination: old.destination, purpose: old.purpose, executionMode: old.executionMode, branchId: old.branchId });
 }
 
-export function recordProviderAttempt(handle: ProjectHandle, runId: string, attempt: Omit<import("./work-types.js").ProviderAttempt, "id" | "createdAt" | "runId">): void {
+function safeProviderText(value: unknown): string {
+  return redactDiagnostic(String(value ?? "")).slice(0, 160);
+}
+
+function safeProviderPricing(value: unknown): import("./work-types.js").PriceQuote {
+  const pricing = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const status = pricing.status === "known" ? "known" : "unknown";
+  const amount = Number(pricing.amount);
+  return {
+    status,
+    ...(Number.isFinite(amount) && amount >= 0 ? { amount } : {}),
+    ...(pricing.currency !== undefined ? { currency: safeProviderText(pricing.currency) } : {}),
+    ...(pricing.unit !== undefined ? { unit: safeProviderText(pricing.unit) } : {}),
+    ...(pricing.reason !== undefined ? { reason: safeProviderText(pricing.reason) } : {})
+  };
+}
+
+export function recordProviderAttempt(handle: ProjectHandle, runId: string, attempt: Omit<import("./work-types.js").ProviderAttempt, "id" | "createdAt" | "runId">, reservationId?: string): void {
   assertWritable(handle); assertWorkSchema(handle);
-  transaction(handle.db, () => handle.db.prepare("INSERT INTO provider_attempts (id, run_id, destination, purpose, attempt, outcome, pricing, session_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(newId("attempt"), runId, attempt.destination, attempt.purpose, attempt.attempt, attempt.outcome, JSON.stringify(attempt.pricing), attempt.sessionId ?? null, isoNow()));
+  const outcome = ["ok", "timeout", "failure", "denied"].includes(String(attempt.outcome)) ? attempt.outcome : "failure";
+  const pricing = safeProviderPricing(attempt.pricing);
+  transaction(handle.db, () => {
+    handle.db.prepare("INSERT INTO provider_attempts (id, run_id, destination, purpose, attempt, outcome, pricing, session_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(reservationId ?? newId("attempt"), runId, safeProviderText(attempt.destination), safeProviderText(attempt.purpose), Number.isSafeInteger(Number(attempt.attempt)) ? Number(attempt.attempt) : 0, outcome, JSON.stringify(pricing), attempt.sessionId === undefined ? null : safeProviderText(attempt.sessionId), isoNow());
+    if (reservationId !== undefined) {
+      handle.db.prepare("DELETE FROM provider_attempt_reservations WHERE id = ?").run(reservationId);
+    }
+  });
 }
 
 export function listProviderAttempts(handle: ProjectHandle, runId: string) {
   assertWorkSchema(handle);
-  return (handle.db.prepare("SELECT * FROM provider_attempts WHERE run_id = ? ORDER BY attempt").all(runId) as Array<Record<string, unknown>>).map((row) => ({ id: String(row.id), runId: String(row.run_id), destination: String(row.destination), purpose: String(row.purpose), attempt: Number(row.attempt), outcome: String(row.outcome) as "ok" | "timeout" | "failure" | "denied", pricing: JSON.parse(String(row.pricing)), sessionId: typeof row.session_id === "string" ? row.session_id : undefined, createdAt: String(row.created_at) }));
+  return (handle.db.prepare("SELECT * FROM provider_attempts WHERE run_id = ? ORDER BY attempt").all(runId) as Array<Record<string, unknown>>).map((row) => {
+    let pricing: unknown;
+    try { pricing = JSON.parse(String(row.pricing)); } catch { pricing = { status: "unknown", reason: "invalid pricing" }; }
+    const outcome = String(row.outcome);
+    return { id: String(row.id), runId: String(row.run_id), destination: safeProviderText(row.destination), purpose: safeProviderText(row.purpose), attempt: Number(row.attempt), outcome: ["ok", "timeout", "failure", "denied"].includes(outcome) ? outcome as "ok" | "timeout" | "failure" | "denied" : "failure", pricing: safeProviderPricing(pricing), sessionId: typeof row.session_id === "string" ? safeProviderText(row.session_id) : undefined, createdAt: String(row.created_at) };
+  });
 }

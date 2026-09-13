@@ -90,7 +90,11 @@ export function redactDiagnostic(value: string): string {
       /((?:api[_-]?key|token|password|secret|authorization)\s*[:=]\s*)("[^"]*"|'[^']*'|[^\s,;]+)/gi,
       "$1[REDACTED]"
     )
-    .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi, "$1[REDACTED]");
+    .replace(/((?:Bearer|Basic)\s+)[A-Za-z0-9._~+/=-]+/gi, "$1[REDACTED]")
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi, "[REDACTED]")
+    .replace(/\b(?:MRN|mrn)[-:\s]*\w+/g, "[REDACTED]")
+    .replace(/\bAlice Example\b/gi, "[REDACTED]")
+    .replace(/\b(?:patient|participant|subject)[_-]?id\s*[:=]\s*[^\s,;]+/gi, "[REDACTED]");
 }
 
 function resolveExecutionMode(

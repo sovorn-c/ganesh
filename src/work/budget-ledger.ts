@@ -96,6 +96,12 @@ export function settleBudget(handle: ProjectHandle, runId: string, actuals: Part
     return { status: "held", runId, spent: actuals, reason: "provider usage is uncertain; reservation remains held" };
   }
   transaction(handle.db, () => {
+    const reservedDimensions = new Set(rows.map((row) => String(row.dimension)));
+    for (const [dimension, value] of Object.entries(actuals)) {
+      if (numeric(value) > 0 && !reservedDimensions.has(dimension)) {
+        throw new ProjectStoreError("budget-exhausted", `${dimension} actual usage has no reservation`);
+      }
+    }
     for (const row of rows) {
       const dimension = String(row.dimension) as BudgetDimension;
       const reserved = numeric(row.reserved);

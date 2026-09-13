@@ -107,6 +107,7 @@ export function createSchema(db: DatabaseSync): void {
   createE07Schema(db);
   createE08Schema(db);
   createE15Schema(db);
+  createE16Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -760,6 +761,48 @@ export function createE15Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE16Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS diagnostic_events (
+      id TEXT PRIMARY KEY,
+      correlation_id TEXT NOT NULL,
+      command_id TEXT,
+      run_id TEXT,
+      kind TEXT NOT NULL,
+      code TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_diagnostics_correlation ON diagnostic_events(correlation_id);
+    CREATE INDEX IF NOT EXISTS idx_diagnostics_run ON diagnostic_events(run_id);
+    CREATE INDEX IF NOT EXISTS idx_diagnostics_created_at ON diagnostic_events(created_at);
+
+    CREATE TABLE IF NOT EXISTS operations_commands (
+      id TEXT PRIMARY KEY,
+      command_id TEXT NOT NULL UNIQUE,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_operations_commands_kind ON operations_commands(kind);
+
+    CREATE TABLE IF NOT EXISTS provider_attempt_reservations (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES work_runs(id),
+      attempt INTEGER NOT NULL,
+      reserved_at TEXT NOT NULL,
+      UNIQUE(run_id, attempt)
+    );
+    CREATE INDEX IF NOT EXISTS idx_provider_attempt_reservations_time ON provider_attempt_reservations(reserved_at);
+    CREATE INDEX IF NOT EXISTS idx_provider_attempt_reservations_run ON provider_attempt_reservations(run_id);
+  `);
+}
+
 export function createE08Schema(db: DatabaseSync): void {
   configureDatabase(db);
   db.exec(`
@@ -848,6 +891,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE07Schema(db);
       createE08Schema(db);
       createE15Schema(db);
+      createE16Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

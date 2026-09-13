@@ -66,7 +66,7 @@ export * from "./sources/structured-parser.js";
 export * from "./sources/source-matching.js";
 export * from "./sources/source-access.js";
 export { FULL_ACCESS_NOTICE } from "./runtime/preflight-constants.js";
-export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema } from "./persistence/schema.js";
+export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema } from "./persistence/schema.js";
 export * from "./portability/portability-types.js";
 export * from "./portability/export-store.js";
 export * from "./portability/backup-store.js";
@@ -79,6 +79,7 @@ export * from "./decisions/decision-lifecycle-store.js";
 export * from "./decisions/decision-history-store.js";
 export * from "./decisions/commitment-types.js";
 export {
+  insertCommitment,
   getCommitment,
   listCommitments,
   listCommitmentHistory
@@ -127,3 +128,9 @@ export * from "./literature/retrieval-adapter.js";
 export * from "./literature/retrieval-store.js";
 export * from "./literature/screening-store.js";
 export * from "./literature/gap-store.js";
+export * from "./operations/diagnostic-types.js";
+export * from "./operations/diagnostic-store.js";
+export * from "./operations/diagnostic-export.js";
+export * from "./operations/health.js";
+export * from "./operations/retention.js";
+export * from "./operations/runbooks.js";

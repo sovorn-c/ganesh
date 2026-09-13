@@ -10,6 +10,7 @@ import { assertWritable } from "../project/project-store.js";
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
 import { transaction } from "../persistence/schema.js";
 import { isoNow, newId, stringValue } from "../persistence/storage-utils.js";
+import { redactDiagnostic } from "../runtime/preflight.js";
 import type {
   ExtractionDiagnostic,
   LocatedSourceSegment,
@@ -40,6 +41,10 @@ function rowText(row: Record<string, unknown>, name: string): string {
   return stringValue(row[name], name);
 }
 
+function safeDiagnosticText(value: unknown): string {
+  return redactDiagnostic(String(value ?? ""));
+}
+
 function sourceFromRow(row: Record<string, unknown>): SourceVersionRecord {
   return {
     artifactVersionId: rowText(row, "artifact_version_id"),
@@ -55,7 +60,7 @@ function sourceFromRow(row: Record<string, unknown>): SourceVersionRecord {
 }
 
 function operationFromRow(row: Record<string, unknown>): SourceImportOperation {
-  const errorCode = typeof row.error_code === "string" ? row.error_code : undefined;
+  const errorCode = typeof row.error_code === "string" ? safeDiagnosticText(row.error_code) : undefined;
   return {
     commandId: rowText(row, "command_id"),
     payloadHash: rowText(row, "payload_hash"),
@@ -119,9 +124,9 @@ export function listSourceDiagnostics(handle: ProjectHandle, artifactVersionId: 
     id: rowText(row, "id"),
     artifactVersionId: rowText(row, "artifact_version_id"),
     ...(typeof row.operation_id === "string" ? { operationId: row.operation_id } : {}),
-    code: rowText(row, "code"),
+    code: safeDiagnosticText(rowText(row, "code")),
     severity: rowText(row, "severity") as SourceDiagnosticSeverity,
-    detail: rowText(row, "detail"),
+    detail: safeDiagnosticText(rowText(row, "detail")),
     count: Number(row.count)
   }));
 }
@@ -240,7 +245,7 @@ export function completeSourceImport(
       "INSERT INTO source_diagnostics (id, artifact_version_id, operation_id, code, severity, detail, count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     for (const diagnostic of diagnostics) {
-      diagnosticStatement.run(diagnostic.id, source.artifactVersionId, operation.commandId, diagnostic.code, diagnostic.severity, diagnostic.detail, diagnostic.count, now);
+      diagnosticStatement.run(diagnostic.id, source.artifactVersionId, operation.commandId, safeDiagnosticText(diagnostic.code), diagnostic.severity, safeDiagnosticText(diagnostic.detail), diagnostic.count, now);
     }
     handle.db.prepare(
       "UPDATE source_import_operations SET status = 'complete', error_code = NULL, updated_at = ? WHERE command_id = ?"
@@ -252,7 +257,7 @@ export function failSourceImport(handle: ProjectHandle, commandId: string, error
   assertWritable(handle);
   handle.db.prepare(
     "UPDATE source_import_operations SET status = 'failed', error_code = ?, updated_at = ? WHERE command_id = ?"
-  ).run(errorCode, isoNow(), commandId);
+  ).run(safeDiagnosticText(errorCode), isoNow(), commandId);
 }
 
 export function sourceRecordExists(handle: ProjectHandle, artifactVersionId: string): boolean {
@@ -305,14 +310,14 @@ export function addDiagnostic(
     id: newId("diagnostic"),
     artifactVersionId,
     ...(operationId === undefined ? {} : { operationId }),
-    code,
+    code: safeDiagnosticText(code),
     severity,
-    detail,
+    detail: safeDiagnosticText(detail),
     count: 1
   };
   handle.db.prepare(
     "INSERT INTO source_diagnostics (id, artifact_version_id, operation_id, code, severity, detail, count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-  ).run(diagnostic.id, artifactVersionId, operationId ?? null, code, severity, detail, 1, isoNow());
+  ).run(diagnostic.id, artifactVersionId, operationId ?? null, diagnostic.code, severity, diagnostic.detail, 1, isoNow());
   return diagnostic;
 }
 

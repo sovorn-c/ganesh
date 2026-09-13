@@ -4,7 +4,7 @@ import type { CandidateSubmission, SpecialistSessionPort, SpecialistSessionResul
 export interface AgentSessionLike {
   readonly id?: string;
   subscribe?(listener: (event: unknown) => void): (() => void) | { unsubscribe(): void };
-  prompt?(input: string): Promise<unknown>;
+  prompt?(input: string, options?: { readonly signal?: AbortSignal }): Promise<unknown>;
   abort?(): Promise<void> | void;
 }
 
@@ -46,7 +46,7 @@ export function createPiSessionAdapter(options: PiSessionAdapterOptions): Specia
     async prompt(request) {
       if (options.prompt) {return options.prompt(request, session);}
       const text = JSON.stringify(request);
-      const result = session.prompt ? await session.prompt(text) : { status: "ok" as const };
+      const result = session.prompt ? await session.prompt(text, { signal: request.signal }) : { status: "ok" as const };
       const normalized = result && typeof result === "object" ? result as SpecialistSessionResult : { status: "ok" as const };
       return { ...normalized, sessionId: normalized.sessionId ?? sessionId(session) };
     },

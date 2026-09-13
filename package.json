@@ -17,7 +17,8 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "preflight": "npm run build && node dist/src/preflight-cli.js"
+    "preflight": "npm run build && node dist/src/preflight-cli.js",
+    "diagnostics": "npm run build && node dist/src/diagnostics-cli.js"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",
