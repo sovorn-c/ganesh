@@ -1,6 +1,6 @@
 # Ganesh
 
-Ganesh is a local-first, terminal-first research-supervision assistant. This repository currently provides the reproducible runtime and local-readiness baseline; research workflows belong to later epics.
+Ganesh is a local-first, terminal-first research-supervision assistant. This repository provides a reproducible foundation for private, reviewable research work on your own computer. The project is under active development.
 
 ## Local baseline
 
@@ -15,7 +15,7 @@ npm run lint
 npm run typecheck
 ```
 
-`npm run preflight` reports `ready`, `warning`, or `blocked`. A blocked required check exits non-zero. A missing execution mode is reported as `not_configured` and does not select one automatically. Set `GANESH_EXECUTION_MODE` to exactly `ask`, `approve`, or `full-access` when local execution is needed. `full-access` is an explicit local-risk choice, not a sandbox or containment guarantee; enforcement belongs to e11.
+`npm run preflight` reports `ready`, `warning`, or `blocked`. A blocked required check exits non-zero. A missing execution mode is reported as `not_configured` and does not select one automatically. Set `GANESH_EXECUTION_MODE` to exactly `ask`, `approve`, or `full-access` when local execution is needed. `full-access` is an explicit local-risk choice, not a sandbox or containment guarantee; use it only when you understand the local risks.
 
 For machine-readable diagnostics:
 
@@ -45,11 +45,8 @@ The clean-install command copies the project to a temporary folder, runs `npm ci
 
 Preflight diagnostics allow-list runtime, package-manager, dependency, tool, configuration, and mode states. Credential-shaped values are redacted; full environment output and private research content are never emitted.
 
-## Scope boundaries
+## Project status
 
-- e01 owns runtime, command, preflight, and clean-install readiness.
-- e11 owns local analysis execution, execution-mode enforcement, and bash-guard behavior.
-- e14 owns the product launcher and terminal workspace.
-- e18 owns the maintained local release and distribution behavior.
+Ganesh is being built as a private, local-first tool for researchers who want transparent workflows, durable project state, and human control over important decisions. This early version focuses on a dependable local foundation; broader research workflows and distribution support are still in development.
 
-This baseline does not claim a universal operating-system support matrix, a research workflow, a sandbox, or a packaged release. Record support evidence before expanding the matrix.
+This project does not yet claim a universal operating-system support matrix, a sandbox, or a packaged release.
