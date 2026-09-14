@@ -10,6 +10,9 @@ CONVENTIONS.md
 .pi/
 graphify-out/
 
+# Local session output
+summary/
+
 # Dependencies and generated output
 node_modules/
 dist/

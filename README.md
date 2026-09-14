@@ -1,55 +1,120 @@
 # Ganesh
 
-Ganesh is a local-first, terminal-first research-supervision assistant. This repository currently provides the reproducible runtime and local-readiness baseline; research workflows belong to later epics.
+Ganesh is a local-first, terminal-first research supervision assistant for individual researchers. It keeps evidence, decisions, permissions, and project history in a durable local project instead of relying on conversation history alone.
 
-## Local baseline
+Ganesh reuses the [Pi](https://github.com/earendil-works/pi) agent runtime and terminal interface while enforcing research-specific controls around it.
 
-Use Node.js 24 LTS. The project pins npm `11.19.0` and uses the committed `package-lock.json`.
+> **Development status:** Ganesh is under active development. The repository supports local development and verified local workflows, but it is not yet a packaged or production-ready release.
+
+## What works today
+
+Ganesh currently provides foundations for:
+
+- durable SQLite-backed projects, immutable artifact versions, branches, recovery, and history;
+- data classification, disclosure controls, revocation, reviewed declassification, and capability boundaries;
+- local TXT, Markdown, PDF, DOCX, bibliographic, and tabular source intake with versioned provenance;
+- bounded specialist work with explicit token, call, time, and spend limits;
+- human-owned decisions, alternatives, commitments, readiness checks, and reasoned overrides;
+- evidence items, claims, claim matrices, appraisal, literature protocols, screening, and gap records;
+- a Pi-based terminal workspace with evidence inspection and explicit confirmation paths;
+- project export, backup, restore, integrity checks, controlled deletion, and stale-grant protection; and
+- redacted diagnostics, health checks, retention controls, provider retry limits, and operational runbooks.
+
+The broader research lifecycle is still being built. Local analysis execution and its isolation controls are not yet implemented.
+
+Ganesh does not claim to be a sandbox, an ethics-review authority, or a substitute for scholarly judgment.
+
+## Quick start
+
+### Requirements
+
+- Node.js 24 LTS
+- npm 11.19.0
+- macOS is the current product target; broader platform support has not been verified
+
+Clone the repository, then install exactly from the lockfile:
 
 ```bash
 npm ci --ignore-scripts
 npm run preflight
-npm run build
-npm test
-npm run lint
-npm run typecheck
 ```
 
-`npm run preflight` reports `ready`, `warning`, or `blocked`. A blocked required check exits non-zero. A missing execution mode is reported as `not_configured` and does not select one automatically. Set `GANESH_EXECUTION_MODE` to exactly `ask`, `approve`, or `full-access` when local execution is needed. `full-access` is an explicit local-risk choice, not a sandbox or containment guarantee; enforcement belongs to e11.
+Launch a workspace for the current directory:
 
-For machine-readable diagnostics:
+```bash
+npm run dev -- .
+```
+
+Or provide another project folder:
+
+```bash
+npm run dev -- /path/to/research-project
+```
+
+The first launch creates local Ganesh state under `<project-folder>/.ganesh/`. Later launches reopen that project. Keep this directory private and backed up with the project.
+
+For machine-readable readiness output:
 
 ```bash
 npm run preflight -- --json
 ```
 
-For a disposable clean-install check:
+For a disposable clean-install verification:
 
 ```bash
 npm run preflight -- --clean-install
 ```
 
-The clean-install command copies the project to a temporary folder, runs `npm ci`, preflight, build, test, lint, and typecheck in the foreground, and removes the temporary folder afterward. It does not install tools automatically, use global Pi configuration, or read research material.
+See [Setup and recovery](docs/setup-and-recovery.md) for troubleshooting.
 
-## Recovery
+## Safety model
 
-| Result | Recovery |
-|---|---|
-| Unsupported Node runtime | Activate Node.js 24 LTS, then rerun preflight. |
-| Missing or mismatched npm | Use the declared npm version `11.19.0`. |
-| Missing project dependency or lockfile problem | Remove the disposable install and run `npm ci --ignore-scripts` again. Do not edit the lockfile during setup. |
-| Missing required local tool | Install or configure that tool explicitly, then rerun preflight. No automatic installation is performed. |
-| Invalid execution mode | Select `ask`, `approve`, or `full-access`; do not use a sandbox-like substitute. |
-| Registry or permission failure | Check the configured registry, network, directory permissions, and disk space; retry from a fresh temporary folder. Do not copy credentials into diagnostics. |
-| Partial or interrupted setup | Discard the temporary folder and repeat the documented clean-install command. A partial dependency tree is not ready. |
+Ganesh is local-first, but local does not automatically mean safe. The project therefore keeps authority and policy checks outside model prompts and conversation history.
 
-Preflight diagnostics allow-list runtime, package-manager, dependency, tool, configuration, and mode states. Credential-shaped values are redacted; full environment output and private research content are never emitted.
+- Workers receive bounded, least-privilege capabilities.
+- Restricted material cannot be disclosed solely because an agent requests it.
+- Human decisions and approvals remain distinct from assistant proposals.
+- Derived records inherit applicable restrictions.
+- Diagnostics and diagnostic exports omit research content and redact credential-shaped values.
+- `full-access` is an explicit local-risk choice, not containment or sandboxing.
 
-## Scope boundaries
+Never use Ganesh to bypass consent, institutional review, data-use agreements, or other applicable obligations.
 
-- e01 owns runtime, command, preflight, and clean-install readiness.
-- e11 owns local analysis execution, execution-mode enforcement, and bash-guard behavior.
-- e14 owns the product launcher and terminal workspace.
-- e18 owns the maintained local release and distribution behavior.
+## Development
 
-This baseline does not claim a universal operating-system support matrix, a research workflow, a sandbox, or a packaged release. Record support evidence before expanding the matrix.
+Run the complete local check set under Node.js 24:
+
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Or run the composed readiness check:
+
+```bash
+npm run preflight
+```
+
+A preflight result is `ready`, `warning`, or `blocked`. Missing execution-mode configuration is reported rather than selected automatically. When required, set `GANESH_EXECUTION_MODE` to `ask`, `approve`, or `full-access`.
+
+Useful references:
+
+- [Setup and recovery](docs/setup-and-recovery.md)
+- [Recovery runbook](docs/runbooks/recovery.md)
+- [Incident response](docs/runbooks/incident-response.md)
+- [Credential rotation](docs/runbooks/credential-rotation.md)
+- [Vulnerability reporting](docs/runbooks/vulnerability-reporting.md)
+
+## Project boundaries
+
+Ganesh is designed for a local folder, a single researcher, and a terminal workflow. It does not currently claim:
+
+- a maintained binary package or installer;
+- remote CI, publishing, deployment, or production readiness;
+- universal operating-system or CPU support;
+- unrestricted shell execution or a hardened analysis sandbox; or
+- independent validation of research quality from schema checks or model agreement.
+
+No open-source license has been declared yet. Until one is added, copyright law reserves reuse rights by default.
