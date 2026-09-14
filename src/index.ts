@@ -134,3 +134,5 @@ export * from "./operations/diagnostic-export.js";
 export * from "./operations/health.js";
 export * from "./operations/retention.js";
 export * from "./operations/runbooks.js";
+export * from "./methodology/methodology-types.js";
+export * from "./methodology/framing-store.js";
