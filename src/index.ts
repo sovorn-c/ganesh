@@ -140,3 +140,5 @@ export * from "./methodology/grounding-store.js";
 export * from "./methodology/design-store.js";
 export * from "./methodology/profile-types.js";
 export * from "./methodology/profile-store.js";
+export * from "./methodology/alignment-types.js";
+export * from "./methodology/alignment-store.js";
