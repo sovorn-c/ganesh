@@ -9,7 +9,9 @@ import {
   recordResearchQuestionAlternative,
   listResearchQuestionAlternatives,
   inspectFraming,
-  PROJECT_SCHEMA_VERSION
+  PROJECT_SCHEMA_VERSION,
+  createOwnerCapability,
+  createWorkerCapabilities
 } from "../../src/index.js";
 import {
   createMethodologyFixture,
@@ -87,6 +89,47 @@ describe("e09s01 orientation framing research question and reopen", () => {
       } finally {
         reopened.close();
       }
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s01 capability authority denies forged, wrong-owner and unauthorized worker callers (SC-e09s01-P1-04)", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const validReq = {
+        topic: "Security Testing",
+        discipline: "computer-science",
+        immediateGoal: "Test capability boundaries"
+      };
+
+      // Forged capability
+      const forged = { role: "owner", ownerId: fixture.ownerId };
+      assert.throws(() => recordOrientation(fixture.handle, forged, validReq), (err: any) => err.code === "forbidden");
+
+      // Wrong owner
+      const wrongOwner = createOwnerCapability("another-owner-id");
+      assert.throws(() => recordOrientation(fixture.handle, wrongOwner, validReq), (err: any) => err.code === "forbidden");
+
+      // Worker without methodology:frame
+      const inspectOnlyWorker = createWorkerCapabilities({
+        projectId: fixture.handle.project.id,
+        projectRoot: fixture.root,
+        allowedOperations: ["methodology:inspect"]
+      });
+      assert.throws(() => recordOrientation(fixture.handle, inspectOnlyWorker, validReq), (err: any) => err.code === "forbidden");
+
+      // Cross-project worker
+      const crossProjectWorker = createWorkerCapabilities({
+        projectId: "different-project",
+        projectRoot: fixture.root,
+        allowedOperations: ["methodology:frame"]
+      });
+      assert.throws(() => recordOrientation(fixture.handle, crossProjectWorker, validReq), (err: any) => err.code === "forbidden");
+
+      // Confirm no orientation was inserted
+      const count = (fixture.handle.db.prepare("SELECT COUNT(*) as cnt FROM orientations").get() as { cnt: number }).cnt;
+      assert.equal(count, 0, "no orientation rows inserted on denied writes");
     } finally {
       disposeMethodologyFixture(fixture);
     }
