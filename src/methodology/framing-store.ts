@@ -32,7 +32,9 @@ function resolveAttribution(capability: unknown, requested?: ViewAttribution): V
   if (!isOwner && requested === "human-stated") {
     throw new ProjectStoreError("forbidden", "workers cannot record human-stated attribution");
   }
-  if (requested) return requested;
+  if (requested) {
+    return requested;
+  }
   return isOwner ? "human-stated" : "agent-inferred";
 }
 
@@ -41,7 +43,9 @@ function resolveOrigin(capability: unknown, requested?: MethodologyOrigin): Meth
   if (!isOwner && requested === "owner-recorded") {
     throw new ProjectStoreError("forbidden", "workers cannot record owner-recorded origin");
   }
-  if (requested) return requested;
+  if (requested) {
+    return requested;
+  }
   return isOwner ? "owner-recorded" : "specialist-proposed";
 }
 

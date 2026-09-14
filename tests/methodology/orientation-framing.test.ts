@@ -1,6 +1,10 @@
 // story: e09s01
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { DatabaseSync } from "node:sqlite";
 import {
   openProject,
   recordOrientation,
@@ -12,6 +16,8 @@ import {
   ingestMethodologyCandidate,
   listCommitments,
   PROJECT_SCHEMA_VERSION,
+  ProjectStoreError,
+  methodologySchemaAvailable,
   createOwnerCapability,
   createWorkerCapabilities
 } from "../../src/index.js";
@@ -183,6 +189,41 @@ describe("e09s01 orientation framing research question and reopen", () => {
       assert.equal(commitments.length, 0, "no E04 commitments minted from methodology records");
     } finally {
       disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s01 regression and read-only handle on database missing methodology tables fails closed with methodology-schema-unavailable (SC-e09s01-P0-03)", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "ganesh-ro-methodology-"));
+    const dbDir = join(tempDir, ".ganesh");
+    mkdirSync(dbDir, { recursive: true });
+    const db = new DatabaseSync(join(dbDir, "project.sqlite"));
+    db.exec(`
+      CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+      INSERT INTO metadata (key, value) VALUES ('schema_version', '1');
+      CREATE TABLE projects (id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, root_path TEXT NOT NULL, schema_version INTEGER NOT NULL, created_at TEXT NOT NULL);
+      INSERT INTO projects (id, owner_id, root_path, schema_version, created_at) VALUES ('p-ro-m', 'owner-methodology', '${tempDir}', 1, datetime('now'));
+    `);
+    db.close();
+
+    const roHandle = openProject(tempDir, { readOnly: true });
+    try {
+      assert.equal(methodologySchemaAvailable(roHandle), false, "methodology schema must be unavailable");
+
+      const cap = createOwnerCapability("owner-methodology");
+      assert.throws(
+        () => inspectOrientation(roHandle, cap, "orient_dummy"),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "methodology-schema-unavailable"
+      );
+      assert.throws(
+        () => listResearchQuestionAlternatives(roHandle, cap),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "methodology-schema-unavailable"
+      );
+
+      // Verify no tables were created in read-only mode
+      assert.equal(methodologySchemaAvailable(roHandle), false, "database must not be mutated");
+    } finally {
+      roHandle.close();
+      rmSync(tempDir, { recursive: true, force: true });
     }
   });
 });
