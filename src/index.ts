@@ -66,7 +66,7 @@ export * from "./sources/structured-parser.js";
 export * from "./sources/source-matching.js";
 export * from "./sources/source-access.js";
 export { FULL_ACCESS_NOTICE } from "./runtime/preflight-constants.js";
-export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema } from "./persistence/schema.js";
+export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema, createE09Schema } from "./persistence/schema.js";
 export * from "./portability/portability-types.js";
 export * from "./portability/export-store.js";
 export * from "./portability/backup-store.js";
