@@ -3,9 +3,18 @@ import type { DatabaseSync } from "node:sqlite";
 
 export const PROJECT_SCHEMA_VERSION = 1;
 
-export type ProjectStatus = "ready" | "read-only" | "migration-required" | "unknown-future" | "blocked";
+export type ProjectStatus =
+  | "ready"
+  | "read-only"
+  | "migration-required"
+  | "unknown-future"
+  | "blocked";
 export type ContentStatus = "available" | "missing" | "corrupt" | "unavailable";
-export type ArtifactAccess = "full-text" | "metadata-only" | "abstract-only" | "unavailable";
+export type ArtifactAccess =
+  | "full-text"
+  | "metadata-only"
+  | "abstract-only"
+  | "unavailable";
 
 export interface ProjectInput {
   readonly rootPath: string;
@@ -33,6 +42,12 @@ export interface ProjectHandle {
   close(): void;
 }
 
+export interface ProjectLock {
+  readonly projectRoot: string;
+  readonly pid: number;
+  release(): void;
+}
+
 export interface DependencyInput {
   readonly versionId: string;
   readonly relation?: string;
@@ -55,7 +70,12 @@ export interface ArtifactVersionInput {
   readonly dependencies?: readonly DependencyInput[];
   readonly relativePath?: string;
   readonly availability?: "available" | "unavailable";
-  readonly failAt?: "before-finalize" | "after-finalize-before-register" | "after-commit" | "after-register" | "disk-full";
+  readonly failAt?:
+    | "before-finalize"
+    | "after-finalize-before-register"
+    | "after-commit"
+    | "after-register"
+    | "disk-full";
 }
 
 export interface ArtifactVersionRecord {
@@ -104,7 +124,12 @@ export interface BranchMutationRequest {
   readonly actor?: string;
 }
 
-export type BranchMutationStatus = "accepted" | "duplicate" | "stale" | "rejected" | "blocked";
+export type BranchMutationStatus =
+  | "accepted"
+  | "duplicate"
+  | "stale"
+  | "rejected"
+  | "blocked";
 
 export interface BranchMutationResult {
   readonly status: BranchMutationStatus;

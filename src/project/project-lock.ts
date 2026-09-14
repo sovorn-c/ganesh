@@ -1,8 +1,16 @@
 // story: e15s03
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, readdirSync, renameSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  unlinkSync,
+  readdirSync,
+  renameSync,
+  rmSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
-import { ProjectStoreError } from "./project-types.js";
-import type { ProjectLock } from "../portability/portability-types.js";
+import { ProjectStoreError, type ProjectLock } from "./project-types.js";
 
 const LOCK_FILE = "write.lock";
 const activeLocks = new Map<string, { pid: number; count: number }>();
@@ -21,15 +29,26 @@ function reconcileProjectStoreSwapUnlocked(projectRoot: string): void {
   }
   const store = join(root, ".ganesh");
   let entries: string[];
-  try { entries = readdirSync(root); } catch { return; }
-  const backups = entries.filter((entry) => entry.startsWith(".ganesh.replace-backup-"));
-  const stages = entries.filter((entry) => entry.startsWith(".ganesh.replace-stage-"));
+  try {
+    entries = readdirSync(root);
+  } catch {
+    return;
+  }
+  const backups = entries.filter((entry) =>
+    entry.startsWith(".ganesh.replace-backup-"),
+  );
+  const stages = entries.filter((entry) =>
+    entry.startsWith(".ganesh.replace-stage-"),
+  );
 
   // Directory rename is atomic: no live store means the process died between
   // the two renames, so restore the old complete store. Multiple backups are
   // ambiguous; fail closed instead of guessing which complete store is live.
   if (!existsSync(store) && backups.length > 1) {
-    throw new ProjectStoreError("project-locked", "project replace journal has multiple ambiguous backups");
+    throw new ProjectStoreError(
+      "project-locked",
+      "project replace journal has multiple ambiguous backups",
+    );
   }
   if (!existsSync(store) && backups.length === 1) {
     renameSync(join(root, backups[0]), store);
@@ -38,10 +57,18 @@ function reconcileProjectStoreSwapUnlocked(projectRoot: string): void {
   // A live store means the new complete store was installed; old backups are
   // safe to discard. Stages are never live data.
   for (const entry of backups) {
-    try { rmSync(join(root, entry), { recursive: true, force: true }); } catch { /* retry on next open */ }
+    try {
+      rmSync(join(root, entry), { recursive: true, force: true });
+    } catch {
+      /* retry on next open */
+    }
   }
   for (const entry of stages) {
-    try { rmSync(join(root, entry), { recursive: true, force: true }); } catch { /* retry on next open */ }
+    try {
+      rmSync(join(root, entry), { recursive: true, force: true });
+    } catch {
+      /* retry on next open */
+    }
   }
 }
 
@@ -84,7 +111,9 @@ function unlinkOwnedLock(path: string, pid: number): void {
     if (readFileSync(path, "utf-8").trim() === String(pid)) {
       unlinkSync(path);
     }
-  } catch { /* already gone or replaced by another owner */ }
+  } catch {
+    /* already gone or replaced by another owner */
+  }
 }
 
 export function acquireProjectSwapLock(projectRoot: string): ProjectLock {
@@ -94,14 +123,22 @@ export function acquireProjectSwapLock(projectRoot: string): ProjectLock {
   const existing = activeSwapLocks.get(normRoot);
   if (existing && existing.pid === myPid) {
     existing.count++;
-    return { projectRoot: normRoot, pid: myPid, release: () => releaseSwapLock(normRoot, path) };
+    return {
+      projectRoot: normRoot,
+      pid: myPid,
+      release: () => releaseSwapLock(normRoot, path),
+    };
   }
   mkdirSync(normRoot, { recursive: true });
   for (let attempt = 0; attempt < 10; attempt++) {
     try {
       writeFileSync(path, String(myPid), { flag: "wx" });
       activeSwapLocks.set(normRoot, { pid: myPid, count: 1 });
-      return { projectRoot: normRoot, pid: myPid, release: () => releaseSwapLock(normRoot, path) };
+      return {
+        projectRoot: normRoot,
+        pid: myPid,
+        release: () => releaseSwapLock(normRoot, path),
+      };
     } catch (error: unknown) {
       if ((error as NodeJS.ErrnoException)?.code !== "EEXIST") {
         throw error;
@@ -109,13 +146,20 @@ export function acquireProjectSwapLock(projectRoot: string): ProjectLock {
       let owner: number;
       try {
         const content = readFileSync(path, "utf-8").trim();
-        if (!/^[1-9][0-9]*$/.test(content)) { throw new Error("invalid owner"); }
+        if (!/^[1-9][0-9]*$/.test(content)) {
+          throw new Error("invalid owner");
+        }
         owner = Number(content);
         if (!Number.isSafeInteger(owner) || pidState(owner) !== "dead") {
-          throw new ProjectStoreError("project-locked", `project-locked: swap journal is owned by ${content}`);
+          throw new ProjectStoreError(
+            "project-locked",
+            `project-locked: swap journal is owned by ${content}`,
+          );
         }
       } catch (inspectError) {
-        if (inspectError instanceof ProjectStoreError) { throw inspectError; }
+        if (inspectError instanceof ProjectStoreError) {
+          throw inspectError;
+        }
         continue;
       }
       if (owner !== myPid) {
@@ -123,12 +167,17 @@ export function acquireProjectSwapLock(projectRoot: string): ProjectLock {
       }
     }
   }
-  throw new ProjectStoreError("project-locked", `failed to acquire swap journal lock on ${path}`);
+  throw new ProjectStoreError(
+    "project-locked",
+    `failed to acquire swap journal lock on ${path}`,
+  );
 }
 
 function releaseSwapLock(root: string, path: string): void {
   const lock = activeSwapLocks.get(root);
-  if (!lock) { return; }
+  if (!lock) {
+    return;
+  }
   lock.count--;
   if (lock.count <= 0) {
     activeSwapLocks.delete(root);
@@ -157,7 +206,7 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
             unlinkOwnedLock(path, process.pid);
           }
         }
-      }
+      },
     };
   }
 
@@ -182,7 +231,7 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
               unlinkOwnedLock(path, process.pid);
             }
           }
-        }
+        },
       };
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException)?.code !== "EEXIST") {
@@ -195,11 +244,17 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
     try {
       const content = readFileSync(path, "utf-8").trim();
       if (!/^[1-9][0-9]*$/.test(content)) {
-        throw new ProjectStoreError("project-locked", `project-locked: lock file ${path} has an invalid owner`);
+        throw new ProjectStoreError(
+          "project-locked",
+          `project-locked: lock file ${path} has an invalid owner`,
+        );
       }
       const parsed = Number(content);
       if (!Number.isSafeInteger(parsed)) {
-        throw new ProjectStoreError("project-locked", `project-locked: lock file ${path} has an invalid owner`);
+        throw new ProjectStoreError(
+          "project-locked",
+          `project-locked: lock file ${path} has an invalid owner`,
+        );
       }
       lockPid = parsed;
     } catch (error: unknown) {
@@ -210,7 +265,10 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
       if (code === "ENOENT") {
         continue;
       }
-      throw new ProjectStoreError("project-locked", `project-locked: cannot inspect lock ${path}`);
+      throw new ProjectStoreError(
+        "project-locked",
+        `project-locked: cannot inspect lock ${path}`,
+      );
     }
 
     if (lockPid !== null) {
@@ -228,7 +286,7 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
                 unlinkOwnedLock(path, process.pid);
               }
             }
-          }
+          },
         };
       }
 
@@ -236,7 +294,7 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
       if (state !== "dead") {
         throw new ProjectStoreError(
           "project-locked",
-          `project-locked: project lock owner ${lockPid} could not be proven dead; close the other instance or remove ${path}`
+          `project-locked: project lock owner ${lockPid} could not be proven dead; close the other instance or remove ${path}`,
         );
       }
     }
@@ -245,12 +303,17 @@ export function acquireProjectWriteLock(projectRoot: string): ProjectLock {
     unlinkOwnedLock(path, lockPid ?? 0);
   }
 
-  throw new ProjectStoreError("project-locked", `failed to acquire write lock on ${path} after multiple attempts`);
+  throw new ProjectStoreError(
+    "project-locked",
+    `failed to acquire write lock on ${path} after multiple attempts`,
+  );
 }
 
 export function isProjectLocked(projectRoot: string): boolean {
   const path = lockPath(projectRoot);
-  if (!existsSync(path)) {return false;}
+  if (!existsSync(path)) {
+    return false;
+  }
   try {
     const content = readFileSync(path, "utf-8").trim();
     if (!/^[1-9][0-9]*$/.test(content)) {

@@ -149,11 +149,3 @@ export interface DeletionEvent {
   readonly payloadHash: string;
   readonly createdAt: string;
 }
-
-// --- Lock types ---
-
-export interface ProjectLock {
-  readonly projectRoot: string;
-  readonly pid: number;
-  release(): void;
-}

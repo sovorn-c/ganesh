@@ -15,7 +15,7 @@ abort "trace-stories: missing #{release_path}" unless release_path.file?
 abort "trace-stories: missing #{status_path}" unless status_path.file?
 
 def load_yaml(path)
-  YAML.safe_load(File.read(path), [], [], false) || {}
+  YAML.safe_load(File.read(path), permitted_classes: [], permitted_symbols: [], aliases: false) || {}
 end
 
 def scalar(value, fallback = "")

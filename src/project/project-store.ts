@@ -1,19 +1,47 @@
 // story: e02s01
-import { accessSync, constants, existsSync, mkdirSync, rmSync, statSync } from "node:fs";
+import {
+  accessSync,
+  constants,
+  existsSync,
+  mkdirSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import {
   PROJECT_SCHEMA_VERSION,
   type ProjectHandle as ProjectHandleContract,
   type ProjectInput,
+  type ProjectLock,
   type ProjectRecord,
   type ProjectStatus,
-  ProjectStoreError
+  ProjectStoreError,
 } from "./project-types.js";
-import { createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema, createSchema, configureDatabase, readSchemaVersion, transaction } from "../persistence/schema.js";
-import { assertIdentifier, ensureDirectory, isoNow, newId, resolveProjectRoot } from "../persistence/storage-utils.js";
-import { acquireProjectWriteLock, reconcileProjectStoreSwap } from "./project-lock.js";
-import type { ProjectLock } from "../portability/portability-types.js";
+import {
+  createE04Schema,
+  createE05Schema,
+  createE06Schema,
+  createE07Schema,
+  createE08Schema,
+  createE15Schema,
+  createE16Schema,
+  createSchema,
+  configureDatabase,
+  readSchemaVersion,
+  transaction,
+} from "../persistence/schema.js";
+import {
+  assertIdentifier,
+  ensureDirectory,
+  isoNow,
+  newId,
+  resolveProjectRoot,
+} from "../persistence/storage-utils.js";
+import {
+  acquireProjectWriteLock,
+  reconcileProjectStoreSwap,
+} from "./project-lock.js";
 
 const STORE_DIRECTORY = ".ganesh";
 const DATABASE_FILE = "project.sqlite";
@@ -33,7 +61,7 @@ export class ProjectHandle implements ProjectHandleContract {
     status: ProjectStatus,
     writable: boolean,
     readonlyReason?: string,
-    lock?: ProjectLock
+    lock?: ProjectLock,
   ) {
     this.db = db;
     this.project = project;
@@ -50,11 +78,19 @@ export class ProjectHandle implements ProjectHandleContract {
       const stat = statSync(this.project.databasePath);
       const identity = databaseIdentities.get(this);
       if (!identity || stat.dev !== identity.dev || stat.ino !== identity.ino) {
-        throw new ProjectStoreError("project-locked", "project store changed; reopen the project before writing");
+        throw new ProjectStoreError(
+          "project-locked",
+          "project store changed; reopen the project before writing",
+        );
       }
     } catch (error) {
-      if (error instanceof ProjectStoreError) { throw error; }
-      throw new ProjectStoreError("project-locked", "project database is no longer available; reopen the project");
+      if (error instanceof ProjectStoreError) {
+        throw error;
+      }
+      throw new ProjectStoreError(
+        "project-locked",
+        "project database is no longer available; reopen the project",
+      );
     }
   }
 
@@ -75,10 +111,20 @@ export interface OpenProjectOptions {
   readonly reason?: string;
 }
 
-function pathsFor(rootPath: string): { root: string; store: string; database: string; artifacts: string } {
+function pathsFor(rootPath: string): {
+  root: string;
+  store: string;
+  database: string;
+  artifacts: string;
+} {
   const root = resolveProjectRoot(rootPath);
   const store = join(root, STORE_DIRECTORY);
-  return { root, store, database: join(store, DATABASE_FILE), artifacts: join(store, ARTIFACT_DIRECTORY) };
+  return {
+    root,
+    store,
+    database: join(store, DATABASE_FILE),
+    artifacts: join(store, ARTIFACT_DIRECTORY),
+  };
 }
 
 function statusForSchema(version: number): ProjectStatus {
@@ -91,13 +137,24 @@ function statusForSchema(version: number): ProjectStatus {
   return "ready";
 }
 
-function projectFromRow(row: Record<string, unknown>, paths: ReturnType<typeof pathsFor>): ProjectRecord {
+function projectFromRow(
+  row: Record<string, unknown>,
+  paths: ReturnType<typeof pathsFor>,
+): ProjectRecord {
   const id = String(row.id ?? "");
   const ownerId = String(row.owner_id ?? "");
   const createdAt = String(row.created_at ?? "");
   const schemaVersion = Number(row.schema_version);
-  if (id === "" || ownerId === "" || createdAt === "" || !Number.isInteger(schemaVersion)) {
-    throw new ProjectStoreError("invalid-project", "project metadata is incomplete");
+  if (
+    id === "" ||
+    ownerId === "" ||
+    createdAt === "" ||
+    !Number.isInteger(schemaVersion)
+  ) {
+    throw new ProjectStoreError(
+      "invalid-project",
+      "project metadata is incomplete",
+    );
   }
   return {
     id,
@@ -106,16 +163,24 @@ function projectFromRow(row: Record<string, unknown>, paths: ReturnType<typeof p
     databasePath: paths.database,
     artifactRoot: paths.artifacts,
     schemaVersion,
-    createdAt
+    createdAt,
   };
 }
 
-function readProject(db: DatabaseSync, paths: ReturnType<typeof pathsFor>): ProjectRecord {
-  const row = db.prepare("SELECT id, owner_id, schema_version, created_at FROM projects LIMIT 1").get() as
-    | Record<string, unknown>
-    | undefined;
+function readProject(
+  db: DatabaseSync,
+  paths: ReturnType<typeof pathsFor>,
+): ProjectRecord {
+  const row = db
+    .prepare(
+      "SELECT id, owner_id, schema_version, created_at FROM projects LIMIT 1",
+    )
+    .get() as Record<string, unknown> | undefined;
   if (row === undefined) {
-    throw new ProjectStoreError("invalid-project", "project database has no project record");
+    throw new ProjectStoreError(
+      "invalid-project",
+      "project database has no project record",
+    );
   }
   return projectFromRow(row, paths);
 }
@@ -139,10 +204,16 @@ export function createProject(input: ProjectInput): ProjectHandle {
   const paths = pathsFor(input.rootPath);
   reconcileProjectStoreSwap(paths.root);
   assertIdentifier(input.ownerId, "ownerId");
-  const projectId = input.projectId === undefined ? newId("project") : assertIdentifier(input.projectId, "projectId");
+  const projectId =
+    input.projectId === undefined
+      ? newId("project")
+      : assertIdentifier(input.projectId, "projectId");
 
   if (existsSync(paths.database)) {
-    throw new ProjectStoreError("project-exists", "a project already exists at this root");
+    throw new ProjectStoreError(
+      "project-exists",
+      "a project already exists at this root",
+    );
   }
 
   let db: DatabaseSync | undefined;
@@ -153,7 +224,10 @@ export function createProject(input: ProjectInput): ProjectHandle {
     lock = acquireProjectWriteLock(paths.root);
 
     if (existsSync(paths.database)) {
-      throw new ProjectStoreError("project-exists", "a project already exists at this root");
+      throw new ProjectStoreError(
+        "project-exists",
+        "a project already exists at this root",
+      );
     }
 
     storeExistedBefore = existsSync(paths.store);
@@ -165,20 +239,34 @@ export function createProject(input: ProjectInput): ProjectHandle {
     const snapshotId = newId("snapshot");
     transaction(db, () => {
       db?.prepare(
-        "INSERT INTO projects (id, owner_id, root_path, schema_version, created_at) VALUES (?, ?, ?, ?, ?)"
-      ).run(projectId, input.ownerId, paths.root, PROJECT_SCHEMA_VERSION, createdAt);
+        "INSERT INTO projects (id, owner_id, root_path, schema_version, created_at) VALUES (?, ?, ?, ?, ?)",
+      ).run(
+        projectId,
+        input.ownerId,
+        paths.root,
+        PROJECT_SCHEMA_VERSION,
+        createdAt,
+      );
       db?.prepare(
-        "INSERT INTO branches (id, name, parent_snapshot_id, current_snapshot_id, revision) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO branches (id, name, parent_snapshot_id, current_snapshot_id, revision) VALUES (?, ?, ?, ?, ?)",
       ).run("main", "main", null, snapshotId, 0);
       db?.prepare(
-        "INSERT INTO snapshots (id, branch_id, parent_snapshot_id, revision, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO snapshots (id, branch_id, parent_snapshot_id, revision, reason, created_at) VALUES (?, ?, ?, ?, ?, ?)",
       ).run(snapshotId, "main", null, 0, "project-created", createdAt);
     });
     const project = readProject(db, paths);
     return new ProjectHandle(db, project, "ready", true, undefined, lock);
   } catch (error) {
-    try { lock?.release(); } catch { /* ignore */ }
-    try { db?.close(); } catch { /* ignore */ }
+    try {
+      lock?.release();
+    } catch {
+      /* ignore */
+    }
+    try {
+      db?.close();
+    } catch {
+      /* ignore */
+    }
     // Ownership-aware cleanup: NEVER remove paths.store if the project exists
     // or belongs to another creator, or if the failure was project-exists.
     if (error instanceof ProjectStoreError && error.code === "project-exists") {
@@ -186,14 +274,20 @@ export function createProject(input: ProjectInput): ProjectHandle {
     } else if (!storeExistedBefore) {
       if (!db) {
         if (!existsSync(paths.database)) {
-          try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+          try {
+            rmSync(paths.store, { recursive: true, force: true });
+          } catch {
+            /* ignore */
+          }
         }
       } else if (existsSync(paths.database)) {
         let canDelete = false;
         try {
           const checkDb = new DatabaseSync(paths.database, { readOnly: true });
           try {
-            const row = checkDb.prepare("SELECT id FROM projects LIMIT 1").get() as { id?: string } | undefined;
+            const row = checkDb
+              .prepare("SELECT id FROM projects LIMIT 1")
+              .get() as { id?: string } | undefined;
             if (!row || row.id === projectId) {
               canDelete = true;
             }
@@ -204,21 +298,35 @@ export function createProject(input: ProjectInput): ProjectHandle {
           canDelete = false;
         }
         if (canDelete) {
-          try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+          try {
+            rmSync(paths.store, { recursive: true, force: true });
+          } catch {
+            /* ignore */
+          }
         }
       } else {
-        try { rmSync(paths.store, { recursive: true, force: true }); } catch { /* ignore */ }
+        try {
+          rmSync(paths.store, { recursive: true, force: true });
+        } catch {
+          /* ignore */
+        }
       }
     }
     throw error;
   }
 }
 
-export function openProject(rootPath: string, options: OpenProjectOptions = {}): ProjectHandle {
+export function openProject(
+  rootPath: string,
+  options: OpenProjectOptions = {},
+): ProjectHandle {
   const paths = pathsFor(rootPath);
   reconcileProjectStoreSwap(paths.root);
   if (!existsSync(paths.database)) {
-    throw new ProjectStoreError("project-not-found", "no project database exists at this root");
+    throw new ProjectStoreError(
+      "project-not-found",
+      "no project database exists at this root",
+    );
   }
 
   let lock: ProjectLock | undefined;
@@ -250,7 +358,13 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
   const schemaVersion = readSchemaVersion(db);
   const schemaStatus = statusForSchema(schemaVersion);
   const schemaMismatch = project.schemaVersion !== schemaVersion;
-  if (schemaStatus === "ready" && !schemaMismatch && options.readOnly !== true && !openedReadOnlyFallback && writableDirectory(paths.store)) {
+  if (
+    schemaStatus === "ready" &&
+    !schemaMismatch &&
+    options.readOnly !== true &&
+    !openedReadOnlyFallback &&
+    writableDirectory(paths.store)
+  ) {
     try {
       createE04Schema(db);
       createE06Schema(db);
@@ -260,12 +374,20 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
       createE15Schema(db);
       createE16Schema(db);
     } catch (error) {
-      try { db.close(); } catch { /* preserve schema error */ }
+      try {
+        db.close();
+      } catch {
+        /* preserve schema error */
+      }
       lock?.release();
       throw error;
     }
   }
-  const mustReadOnly = options.readOnly === true || !writableDirectory(paths.store) || schemaStatus !== "ready" || schemaMismatch;
+  const mustReadOnly =
+    options.readOnly === true ||
+    !writableDirectory(paths.store) ||
+    schemaStatus !== "ready" ||
+    schemaMismatch;
   if (mustReadOnly && options.readOnly !== true && !openedReadOnlyFallback) {
     db.close();
     db = openDatabase(paths.database, true);
@@ -276,22 +398,38 @@ export function openProject(rootPath: string, options: OpenProjectOptions = {}):
     lock = undefined;
   }
 
-  const status: ProjectStatus = schemaStatus === "unknown-future"
-    ? "unknown-future"
-    : schemaMismatch || schemaStatus === "migration-required"
-      ? "migration-required"
-      : options.readOnly === true || openedReadOnlyFallback
-        ? "read-only"
-        : "ready";
+  const status: ProjectStatus =
+    schemaStatus === "unknown-future"
+      ? "unknown-future"
+      : schemaMismatch || schemaStatus === "migration-required"
+        ? "migration-required"
+        : options.readOnly === true || openedReadOnlyFallback
+          ? "read-only"
+          : "ready";
   const writable = status === "ready" && writableDirectory(paths.store);
 
-  const reason = writable ? undefined : options.reason ?? (schemaMismatch ? "project metadata and schema markers differ" : `project opened ${status}`);
-  return new ProjectHandle(db, { ...project, schemaVersion }, status, writable, reason, lock);
+  const reason = writable
+    ? undefined
+    : (options.reason ??
+      (schemaMismatch
+        ? "project metadata and schema markers differ"
+        : `project opened ${status}`));
+  return new ProjectHandle(
+    db,
+    { ...project, schemaVersion },
+    status,
+    writable,
+    reason,
+    lock,
+  );
 }
 
 export function assertWritable(handle: ProjectHandleContract): void {
   if (!handle.writable || handle.status !== "ready") {
-    throw new ProjectStoreError("read-only", handle.readonlyReason ?? "project is not writable");
+    throw new ProjectStoreError(
+      "read-only",
+      handle.readonlyReason ?? "project is not writable",
+    );
   }
   handle.assertCurrent?.();
 }
@@ -300,10 +438,14 @@ export function closeProject(handle: ProjectHandleContract): void {
   handle.close();
 }
 
-export function projectPaths(handle: ProjectHandleContract): { readonly root: string; readonly store: string; readonly artifacts: string } {
+export function projectPaths(handle: ProjectHandleContract): {
+  readonly root: string;
+  readonly store: string;
+  readonly artifacts: string;
+} {
   return {
     root: handle.project.rootPath,
     store: join(handle.project.rootPath, STORE_DIRECTORY),
-    artifacts: handle.project.artifactRoot
+    artifacts: handle.project.artifactRoot,
   };
 }
