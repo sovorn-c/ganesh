@@ -184,7 +184,7 @@ export function inspectAlignment(
   const auditRow = handle.db
     .prepare(
       `SELECT id, comparison_id, rq_version_ids, chain_links, status, issues, created_at, updated_at
-       FROM alignment_audits WHERE comparison_id = ? ORDER BY created_at DESC LIMIT 1`
+       FROM alignment_audits WHERE comparison_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1`
     )
     .get(comparisonId) as
     | {
@@ -202,7 +202,7 @@ export function inspectAlignment(
   const planRow = handle.db
     .prepare(
       `SELECT id, comparison_id, profile_id, rq_version_ids, confirmatory_or_exploratory, assumptions, uncertainty, escalation, escalation_reason, status, created_at, updated_at
-       FROM analysis_plans WHERE comparison_id = ? ORDER BY created_at DESC LIMIT 1`
+       FROM analysis_plans WHERE comparison_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1`
     )
     .get(comparisonId) as
     | {

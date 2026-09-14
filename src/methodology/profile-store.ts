@@ -169,7 +169,7 @@ export function inspectProfileFit(
   const row = handle.db
     .prepare(
       `SELECT id, comparison_id, profile_id, context_id, details, competence, profile_fit, fit_reasons, created_at
-       FROM method_profile_bindings WHERE comparison_id = ? ORDER BY created_at DESC LIMIT 1`
+       FROM method_profile_bindings WHERE comparison_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1`
     )
     .get(comparisonId) as
     | {
