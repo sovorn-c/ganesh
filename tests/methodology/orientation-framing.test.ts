@@ -226,4 +226,123 @@ describe("e09s01 orientation framing research question and reopen", () => {
       rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it("e09s01 regression: supersedesId and framingId reject nonexistent and cross-orientation references", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const o1 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 1",
+        discipline: "social-science",
+        immediateGoal: "Goal 1"
+      });
+      const o2 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 2",
+        discipline: "information-systems",
+        immediateGoal: "Goal 2"
+      });
+      const f1 = recordProblemFraming(fixture.handle, fixture.ownerCap, {
+        orientationId: o1.id,
+        statement: "Framing 1",
+        boundaries: "Boundaries 1"
+      });
+      const rq1 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o1.id,
+        questionText: "RQ 1?"
+      });
+
+      // Nonexistent supersedesId -> not-found
+      assert.throws(
+        () =>
+          recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+            orientationId: o1.id,
+            questionText: "RQ 2?",
+            supersedesId: "nonexistent-rq"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Cross-orientation supersedesId -> invalid-argument
+      assert.throws(
+        () =>
+          recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+            orientationId: o2.id,
+            questionText: "RQ from O2?",
+            supersedesId: rq1.id
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Nonexistent framingId -> not-found
+      assert.throws(
+        () =>
+          recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+            orientationId: o1.id,
+            questionText: "RQ with bad framing?",
+            framingId: "nonexistent-framing"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Cross-orientation framingId -> invalid-argument
+      assert.throws(
+        () =>
+          recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+            orientationId: o2.id,
+            questionText: "RQ from O2 with framing 1?",
+            framingId: f1.id
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s01 regression: read-only handle fails closed on all framing writers", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const roHandle = openProject(fixture.root, { readOnly: true });
+      try {
+        assert.throws(
+          () =>
+            recordOrientation(roHandle, fixture.ownerCap, {
+              topic: "T",
+              discipline: "D",
+              immediateGoal: "G"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordProblemFraming(roHandle, fixture.ownerCap, {
+              orientationId: "any",
+              statement: "S",
+              boundaries: "B"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordResearchQuestionAlternative(roHandle, fixture.ownerCap, {
+              orientationId: "any",
+              questionText: "Q"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            ingestMethodologyCandidate(roHandle, fixture.ownerCap, {
+              orientationId: "any",
+              candidateType: "test",
+              payload: {}
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+      } finally {
+        roHandle.close();
+      }
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
 });

@@ -1,11 +1,13 @@
 // story: e09s05
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
+import { assertWritable } from "../project/project-store.js";
 import {
   assertMethodologySchema,
   assertMethodologyAccess,
   allowedMethodology,
   newId,
-  isoNow
+  isoNow,
+  validateRqVersionIds
 } from "./methodology-utils.js";
 import type {
   AlignmentAuditRecord,
@@ -23,12 +25,13 @@ export function recordAlignmentAudit(
   capability: unknown,
   request: AlignmentAuditRequest
 ): AlignmentAuditRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:audit");
 
   const comp = handle.db
-    .prepare(`SELECT id FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string } | undefined;
+    .prepare(`SELECT id, rq_ids FROM design_comparisons WHERE id = ?`)
+    .get(request.comparisonId) as { id: string; rq_ids: string } | undefined;
 
   if (!comp) {
     throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
@@ -36,6 +39,13 @@ export function recordAlignmentAudit(
 
   if (!Array.isArray(request.rqVersionIds) || request.rqVersionIds.length === 0) {
     throw new ProjectStoreError("invalid-argument", "At least one RQ version ID is required");
+  }
+
+  const compRqIds = JSON.parse(comp.rq_ids) as string[];
+  const compOrientationId = validateRqVersionIds(handle.db, compRqIds);
+  const auditOrientationId = validateRqVersionIds(handle.db, request.rqVersionIds);
+  if (compOrientationId !== auditOrientationId) {
+    throw new ProjectStoreError("invalid-argument", "research question orientation does not match design comparison");
   }
 
   if (!Array.isArray(request.chainLinks) || request.chainLinks.length === 0) {
@@ -113,15 +123,27 @@ export function recordAnalysisPlan(
   capability: unknown,
   request: AnalysisPlanRequest
 ): AnalysisPlanRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:audit");
 
   const comp = handle.db
-    .prepare(`SELECT id FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string } | undefined;
+    .prepare(`SELECT id, rq_ids FROM design_comparisons WHERE id = ?`)
+    .get(request.comparisonId) as { id: string; rq_ids: string } | undefined;
 
   if (!comp) {
     throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
+  }
+
+  if (!Array.isArray(request.rqVersionIds) || request.rqVersionIds.length === 0) {
+    throw new ProjectStoreError("invalid-argument", "At least one RQ version ID is required");
+  }
+
+  const compRqIds = JSON.parse(comp.rq_ids) as string[];
+  const compOrientationId = validateRqVersionIds(handle.db, compRqIds);
+  const planOrientationId = validateRqVersionIds(handle.db, request.rqVersionIds);
+  if (compOrientationId !== planOrientationId) {
+    throw new ProjectStoreError("invalid-argument", "research question orientation does not match design comparison");
   }
 
   if (request.escalation === "none" && (!request.escalationReason || !request.escalationReason.trim())) {
@@ -173,6 +195,7 @@ export function inspectAlignment(
   capability: unknown,
   comparisonId: string
 ): AlignmentInspection {
+  handle.assertCurrent();
   assertMethodologySchema(handle.db);
   if (
     !allowedMethodology(handle, capability, "methodology:audit") &&

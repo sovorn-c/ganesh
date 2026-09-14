@@ -1,5 +1,6 @@
 // story: e09s02
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
+import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability } from "../authority/capability-broker.js";
 import { registerArtifactVersion } from "../artifacts/artifact-store.js";
 import { transaction } from "../persistence/schema.js";
@@ -19,7 +20,8 @@ import {
   assertMethodologyAccess,
   hashPayload,
   newId,
-  isoNow
+  isoNow,
+  validateRqVersionIds
 } from "./methodology-utils.js";
 import { inspectOrientation } from "./framing-store.js";
 
@@ -50,7 +52,7 @@ export function recordConstruct(
   capability: unknown,
   request: ConstructRequest
 ): ConstructRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -64,6 +66,7 @@ export function recordConstruct(
   if (rqVersionIds.length === 0) {
     throw new ProjectStoreError("invalid-argument", "at least one rqVersionId is required");
   }
+  validateRqVersionIds(handle.db, rqVersionIds);
 
   const attribution = resolveAttribution(capability, request.attribution);
   const origin = resolveOrigin(capability, request.origin);
@@ -139,7 +142,7 @@ export function recordTheoreticalFramework(
   capability: unknown,
   request: FrameworkRequest
 ): FrameworkRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -154,6 +157,7 @@ export function recordTheoreticalFramework(
   if (rqVersionIds.length === 0) {
     throw new ProjectStoreError("invalid-argument", "at least one rqVersionId is required");
   }
+  validateRqVersionIds(handle.db, rqVersionIds);
 
   const attribution = resolveAttribution(capability, request.attribution);
   const origin = resolveOrigin(capability, request.origin);
@@ -242,7 +246,7 @@ export function recordPositionality(
   capability: unknown,
   request: PositionalityRequest
 ): PositionalityRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -370,7 +374,7 @@ export function inspectConceptualGrounding(
   const constructs: ConstructRecord[] = [];
   for (const row of constructRows) {
     const ids = JSON.parse(String(row.rq_version_ids)) as string[];
-    if (ids.some((id) => rqIds.has(id)) || rqIds.size === 0) {
+    if (rqIds.size > 0 && ids.some((id) => rqIds.has(id))) {
       constructs.push({
         id: String(row.id),
         name: String(row.name),
@@ -393,7 +397,7 @@ export function inspectConceptualGrounding(
   const frameworks: FrameworkRecord[] = [];
   for (const row of frameworkRows) {
     const ids = JSON.parse(String(row.rq_version_ids)) as string[];
-    if (ids.some((id) => rqIds.has(id)) || rqIds.size === 0) {
+    if (rqIds.size > 0 && ids.some((id) => rqIds.has(id))) {
       frameworks.push({
         id: String(row.id),
         name: String(row.name),

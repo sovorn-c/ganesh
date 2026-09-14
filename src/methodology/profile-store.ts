@@ -1,5 +1,6 @@
 // story: e09s04
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
+import { assertWritable } from "../project/project-store.js";
 import {
   assertMethodologySchema,
   assertMethodologyAccess,
@@ -57,6 +58,7 @@ export function bindMethodProfile(
   capability: unknown,
   request: MethodProfileBindingRequest
 ): MethodProfileBinding {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
@@ -158,6 +160,7 @@ export function inspectProfileFit(
   capability: unknown,
   comparisonId: string
 ): ProfileFitInspection {
+  handle.assertCurrent();
   assertMethodologySchema(handle.db);
   if (
     !allowedMethodology(handle, capability, "methodology:design") &&

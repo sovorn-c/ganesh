@@ -10,7 +10,9 @@ import {
   listMethodProfiles,
   METHOD_PROFILES,
   SUPPORTED_CONTEXTS,
-  recordAppraisal
+  recordAppraisal,
+  openProject,
+  ProjectStoreError
 } from "../../src/index.js";
 import {
   createMethodologyFixture,
@@ -218,6 +220,28 @@ describe("e09s04 method profiles across supported contexts", () => {
       assert.ok(appraisal.findings.every((f) => f.result === "not-applicable"));
     } finally {
       disposeFixture(fixture);
+    }
+  });
+
+  it("e09s04 regression: read-only handle fails closed on bindMethodProfile", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const roHandle = openProject(fixture.root, { readOnly: true });
+      try {
+        assert.throws(
+          () =>
+            bindMethodProfile(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              profileId: "quantitative",
+              contextId: "computing"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+      } finally {
+        roHandle.close();
+      }
+    } finally {
+      disposeMethodologyFixture(fixture);
     }
   });
 });

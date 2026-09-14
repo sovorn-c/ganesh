@@ -1,11 +1,13 @@
 // story: e09s03
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
+import { assertWritable } from "../project/project-store.js";
 import {
   assertMethodologySchema,
   assertMethodologyAccess,
   allowedMethodology,
   newId,
-  isoNow
+  isoNow,
+  validateRqVersionIds
 } from "./methodology-utils.js";
 import type {
   DesignComparisonRecord,
@@ -33,6 +35,7 @@ export function recordDesignComparison(
   capability: unknown,
   request: DesignComparisonRequest
 ): DesignComparisonRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
@@ -42,6 +45,7 @@ export function recordDesignComparison(
   if (!Array.isArray(request.researchQuestionIds) || request.researchQuestionIds.length === 0) {
     throw new ProjectStoreError("invalid-argument", "At least one research question is required");
   }
+  validateRqVersionIds(handle.db, request.researchQuestionIds);
   if (!Array.isArray(request.designs) || request.designs.length < 2) {
     throw new ProjectStoreError("invalid-argument", "At least two designs are required for comparison");
   }
@@ -88,6 +92,7 @@ export function updateDesignComparison(
     readonly researchQuestionIds?: readonly string[];
   }
 ): DesignComparisonRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
@@ -122,6 +127,7 @@ export function updateDesignComparison(
     if (!Array.isArray(updates.researchQuestionIds) || updates.researchQuestionIds.length === 0) {
       throw new ProjectStoreError("invalid-argument", "At least one research question is required");
     }
+    validateRqVersionIds(handle.db, updates.researchQuestionIds);
     finalRqIds = [...updates.researchQuestionIds];
   }
 
@@ -145,6 +151,7 @@ export function recordSamplingPlan(
   capability: unknown,
   request: SamplingPlanRequest
 ): SamplingPlanRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
@@ -161,6 +168,11 @@ export function recordSamplingPlan(
 
   if (!comparison) {
     throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
+  }
+
+  const designs = JSON.parse(comparison.designs) as DesignOption[];
+  if (!designs.some((d) => d.id === request.designId)) {
+    throw new ProjectStoreError("invalid-argument", `Design not found in comparison: ${request.designId}`);
   }
 
   const id = newId("smp");
@@ -198,15 +210,30 @@ export function recordInstrument(
   capability: unknown,
   request: InstrumentRequest
 ): InstrumentRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
   const comparison = handle.db
-    .prepare(`SELECT id FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string } | undefined;
+    .prepare(`SELECT id, designs FROM design_comparisons WHERE id = ?`)
+    .get(request.comparisonId) as { id: string; designs: string } | undefined;
 
   if (!comparison) {
     throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
+  }
+
+  const designs = JSON.parse(comparison.designs) as DesignOption[];
+  if (!designs.some((d) => d.id === request.designId)) {
+    throw new ProjectStoreError("invalid-argument", `Design not found in comparison: ${request.designId}`);
+  }
+
+  if (request.constructIds && request.constructIds.length > 0) {
+    for (const cId of request.constructIds) {
+      const cRow = handle.db.prepare("SELECT id FROM constructs WHERE id = ?").get(cId);
+      if (!cRow) {
+        throw new ProjectStoreError("not-found", `Construct not found: ${cId}`);
+      }
+    }
   }
 
   const rightsIssue = request.rightsBasis === "unknown" || request.rightsBasis === "unverified-reuse";
@@ -251,15 +278,21 @@ export function recordPilotPlan(
   capability: unknown,
   request: PilotPlanRequest
 ): PilotPlanRecord {
+  assertWritable(handle);
   assertMethodologySchema(handle.db);
   assertMethodologyAccess(handle, capability, "methodology:design");
 
   const comparison = handle.db
-    .prepare(`SELECT id FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string } | undefined;
+    .prepare(`SELECT id, designs FROM design_comparisons WHERE id = ?`)
+    .get(request.comparisonId) as { id: string; designs: string } | undefined;
 
   if (!comparison) {
     throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
+  }
+
+  const designs = JSON.parse(comparison.designs) as DesignOption[];
+  if (!designs.some((d) => d.id === request.designId)) {
+    throw new ProjectStoreError("invalid-argument", `Design not found in comparison: ${request.designId}`);
   }
 
   const id = newId("plt");
@@ -295,6 +328,7 @@ export function inspectStudyDesign(
   capability: unknown,
   comparisonId: string
 ): StudyDesignInspection {
+  handle.assertCurrent();
   assertMethodologySchema(handle.db);
   if (
     !allowedMethodology(handle, capability, "methodology:design") &&

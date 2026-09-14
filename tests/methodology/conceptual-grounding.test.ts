@@ -10,7 +10,8 @@ import {
   recordPositionality,
   inspectConceptualGrounding,
   createOwnerCapability,
-  createWorkerCapabilities
+  createWorkerCapabilities,
+  ProjectStoreError
 } from "../../src/index.js";
 import {
   createMethodologyFixture,
@@ -200,6 +201,149 @@ describe("e09s02 conceptual grounding and positionality", () => {
         () => recordConstruct(fixture.handle, wrongOwner, constructReq),
         (err: any) => err.code === "forbidden"
       );
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s02 regression: constructs and frameworks validate RQ referential integrity and isolation", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const o1 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 1",
+        discipline: "social-science",
+        immediateGoal: "Goal 1"
+      });
+      const o2 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 2",
+        discipline: "information-systems",
+        immediateGoal: "Goal 2"
+      });
+      const rq1 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o1.id,
+        questionText: "RQ 1?"
+      });
+      const rq2 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o2.id,
+        questionText: "RQ 2?"
+      });
+
+      // Nonexistent RQ in construct -> not-found
+      assert.throws(
+        () =>
+          recordConstruct(fixture.handle, fixture.ownerCap, {
+            name: "C1",
+            definition: "D1",
+            rqVersionIds: ["nonexistent-rq"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Cross-orientation RQs in construct -> invalid-argument
+      assert.throws(
+        () =>
+          recordConstruct(fixture.handle, fixture.ownerCap, {
+            name: "C2",
+            definition: "D2",
+            rqVersionIds: [rq1.id, rq2.id]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Nonexistent RQ in theoretical framework -> not-found
+      assert.throws(
+        () =>
+          recordTheoreticalFramework(fixture.handle, fixture.ownerCap, {
+            name: "TF1",
+            description: "Desc1",
+            rqVersionIds: ["nonexistent-rq"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Cross-orientation RQs in theoretical framework -> invalid-argument
+      assert.throws(
+        () =>
+          recordTheoreticalFramework(fixture.handle, fixture.ownerCap, {
+            name: "TF2",
+            description: "Desc2",
+            rqVersionIds: [rq1.id, rq2.id]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Nonexistent orientation in positionality -> not-found
+      assert.throws(
+        () =>
+          recordPositionality(fixture.handle, fixture.ownerCap, {
+            orientationId: "nonexistent-orientation",
+            philosophicalStance: "Stance"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Grounding isolation: record construct and framework for o1
+      recordConstruct(fixture.handle, fixture.ownerCap, {
+        name: "Construct O1",
+        definition: "Def O1",
+        rqVersionIds: [rq1.id]
+      });
+      recordTheoreticalFramework(fixture.handle, fixture.ownerCap, {
+        name: "Framework O1",
+        description: "Desc O1",
+        rqVersionIds: [rq1.id]
+      });
+
+      // Create an orientation o3 with NO research questions
+      const o3 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 3",
+        discipline: "education",
+        immediateGoal: "Goal 3"
+      });
+
+      // o3 has no RQs, so inspectConceptualGrounding must NOT leak o1's constructs/frameworks
+      const o3Inspection = inspectConceptualGrounding(fixture.handle, fixture.ownerCap, o3.id);
+      assert.equal(o3Inspection.constructs.length, 0, "orientation without RQs must not leak constructs");
+      assert.equal(o3Inspection.frameworks.length, 0, "orientation without RQs must not leak frameworks");
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s02 regression: read-only handle fails closed on grounding writers", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const roHandle = openProject(fixture.root, { readOnly: true });
+      try {
+        assert.throws(
+          () =>
+            recordConstruct(roHandle, fixture.ownerCap, {
+              name: "C",
+              definition: "D",
+              rqVersionIds: ["rq1"]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordTheoreticalFramework(roHandle, fixture.ownerCap, {
+              name: "F",
+              description: "D",
+              rqVersionIds: ["rq1"]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordPositionality(roHandle, fixture.ownerCap, {
+              orientationId: "o1",
+              philosophicalStance: "S"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+      } finally {
+        roHandle.close();
+      }
     } finally {
       disposeMethodologyFixture(fixture);
     }

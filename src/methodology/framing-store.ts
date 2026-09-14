@@ -1,5 +1,6 @@
 // story: e09s01
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
+import { assertWritable } from "../project/project-store.js";
 import { isOwnerCapability } from "../authority/capability-broker.js";
 import { registerArtifactVersion } from "../artifacts/artifact-store.js";
 import { transaction } from "../persistence/schema.js";
@@ -54,7 +55,7 @@ export function recordOrientation(
   capability: unknown,
   request: OrientationRequest
 ): OrientationRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -159,7 +160,7 @@ export function recordProblemFraming(
   capability: unknown,
   request: ProblemFramingRequest
 ): ProblemFramingRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -269,7 +270,7 @@ export function recordResearchQuestionAlternative(
   capability: unknown,
   request: ResearchQuestionRequest
 ): ResearchQuestionRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 
@@ -279,6 +280,32 @@ export function recordResearchQuestionAlternative(
   }
 
   inspectOrientation(handle, capability, request.orientationId);
+
+  let version = 1;
+  if (request.supersedesId) {
+    const prior = handle.db
+      .prepare("SELECT id, orientation_id, version FROM research_questions WHERE id = ?")
+      .get(request.supersedesId) as { id: string; orientation_id: string; version: number } | undefined;
+    if (!prior) {
+      throw new ProjectStoreError("not-found", `superseded research question not found: ${request.supersedesId}`);
+    }
+    if (prior.orientation_id !== request.orientationId) {
+      throw new ProjectStoreError("invalid-argument", "superseded research question belongs to different orientation");
+    }
+    version = prior.version + 1;
+  }
+
+  if (request.framingId) {
+    const framing = handle.db
+      .prepare("SELECT id, orientation_id FROM problem_framings WHERE id = ?")
+      .get(request.framingId) as { id: string; orientation_id: string } | undefined;
+    if (!framing) {
+      throw new ProjectStoreError("not-found", `problem framing not found: ${request.framingId}`);
+    }
+    if (framing.orientation_id !== request.orientationId) {
+      throw new ProjectStoreError("invalid-argument", "problem framing belongs to different orientation");
+    }
+  }
 
   const attribution = resolveAttribution(capability, request.attribution);
   const origin = resolveOrigin(capability, request.origin);
@@ -325,16 +352,6 @@ export function recordResearchQuestionAlternative(
 
   const id = newId("rq");
   const createdAt = isoNow();
-  let version = 1;
-
-  if (request.supersedesId) {
-    const prior = handle.db
-      .prepare("SELECT version FROM research_questions WHERE id = ?")
-      .get(request.supersedesId) as { version: number } | undefined;
-    if (prior) {
-      version = prior.version + 1;
-    }
-  }
 
   const artifact = registerArtifactVersion(handle, {
     logicalId: `methodology-rq-${id}`,
@@ -500,7 +517,7 @@ export function ingestMethodologyCandidate(
   capability: unknown,
   request: MethodologyCandidateRequest
 ): MethodologyCandidateRecord {
-  handle.assertCurrent();
+  assertWritable(handle);
   assertMethodologySchema(handle);
   assertMethodologyAccess(handle, capability, "methodology:frame");
 

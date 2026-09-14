@@ -399,4 +399,242 @@ describe("e09s03 methodology comparison, sampling, measurement, and pilot plans"
       disposeMethodologyFixture(fixture);
     }
   });
+
+  it("e09s03 regression: design comparisons, sampling, instruments, and pilot plans enforce referential integrity", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const o1 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 1",
+        discipline: "hci",
+        immediateGoal: "Goal 1"
+      });
+      const o2 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 2",
+        discipline: "computing",
+        immediateGoal: "Goal 2"
+      });
+      const rq1 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o1.id,
+        questionText: "RQ 1?"
+      });
+      const rq2 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o2.id,
+        questionText: "RQ 2?"
+      });
+
+      const validDesigns = [
+        { id: "d1", name: "Design 1", rationale: "R1", fit: "F1", feasibility: "High", tensions: "None", limits: "None" },
+        { id: "d2", name: "Design 2", rationale: "R2", fit: "F2", feasibility: "Med", tensions: "None", limits: "None" }
+      ];
+
+      // Nonexistent RQ in recordDesignComparison -> not-found
+      assert.throws(
+        () =>
+          recordDesignComparison(fixture.handle, fixture.ownerCap, {
+            branchId: "main",
+            researchQuestionIds: ["nonexistent-rq"],
+            designs: validDesigns
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Cross-orientation RQs in recordDesignComparison -> invalid-argument
+      assert.throws(
+        () =>
+          recordDesignComparison(fixture.handle, fixture.ownerCap, {
+            branchId: "main",
+            researchQuestionIds: [rq1.id, rq2.id],
+            designs: validDesigns
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      const comp = recordDesignComparison(fixture.handle, fixture.ownerCap, {
+        branchId: "main",
+        researchQuestionIds: [rq1.id],
+        designs: validDesigns
+      });
+
+      // updateDesignComparison with nonexistent RQ -> not-found
+      assert.throws(
+        () =>
+          updateDesignComparison(fixture.handle, fixture.ownerCap, comp.id, {
+            researchQuestionIds: ["nonexistent-rq"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // updateDesignComparison with cross-orientation RQs -> invalid-argument
+      assert.throws(
+        () =>
+          updateDesignComparison(fixture.handle, fixture.ownerCap, comp.id, {
+            researchQuestionIds: [rq1.id, rq2.id]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // SamplingPlan with nonexistent comparisonId -> not-found
+      assert.throws(
+        () =>
+          recordSamplingPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: "nonexistent-comp",
+            designId: "d1",
+            population: "P",
+            accessPath: "A",
+            recruitmentApproach: "R"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // SamplingPlan with designId not in comparison -> invalid-argument
+      assert.throws(
+        () =>
+          recordSamplingPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            designId: "nonexistent-design",
+            population: "P",
+            accessPath: "A",
+            recruitmentApproach: "R"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Instrument with nonexistent comparisonId -> not-found
+      assert.throws(
+        () =>
+          recordInstrument(fixture.handle, fixture.ownerCap, {
+            comparisonId: "nonexistent-comp",
+            designId: "d1",
+            name: "I",
+            purpose: "P",
+            rightsBasis: "stated-license",
+            fitNotes: "FN"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // Instrument with designId not in comparison -> invalid-argument
+      assert.throws(
+        () =>
+          recordInstrument(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            designId: "nonexistent-design",
+            name: "I",
+            purpose: "P",
+            rightsBasis: "stated-license",
+            fitNotes: "FN"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Instrument with nonexistent constructId -> not-found
+      assert.throws(
+        () =>
+          recordInstrument(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            designId: "d1",
+            name: "I",
+            purpose: "P",
+            rightsBasis: "stated-license",
+            fitNotes: "FN",
+            constructIds: ["nonexistent-construct"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // PilotPlan with nonexistent comparisonId -> not-found
+      assert.throws(
+        () =>
+          recordPilotPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: "nonexistent-comp",
+            designId: "d1",
+            feasibilityQuestions: ["Q1?"],
+            stopConditions: ["S1"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // PilotPlan with designId not in comparison -> invalid-argument
+      assert.throws(
+        () =>
+          recordPilotPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            designId: "nonexistent-design",
+            feasibilityQuestions: ["Q1?"],
+            stopConditions: ["S1"]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s03 regression: read-only handle fails closed on study design writers", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const roHandle = openProject(fixture.root, { readOnly: true });
+      try {
+        assert.throws(
+          () =>
+            recordDesignComparison(roHandle, fixture.ownerCap, {
+              branchId: "main",
+              researchQuestionIds: ["rq1"],
+              designs: [
+                { id: "d1", name: "D1", rationale: "R1", fit: "F1", feasibility: "H", tensions: "None", limits: "None" },
+                { id: "d2", name: "D2", rationale: "R2", fit: "F2", feasibility: "M", tensions: "None", limits: "None" }
+              ]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            updateDesignComparison(roHandle, fixture.ownerCap, "cmp1", {
+              designs: [
+                { id: "d1", name: "D1", rationale: "R1", fit: "F1", feasibility: "H", tensions: "None", limits: "None" },
+                { id: "d2", name: "D2", rationale: "R2", fit: "F2", feasibility: "M", tensions: "None", limits: "None" }
+              ]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordSamplingPlan(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              designId: "d1",
+              population: "P",
+              accessPath: "A",
+              recruitmentApproach: "R"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordInstrument(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              designId: "d1",
+              name: "I",
+              purpose: "P",
+              rightsBasis: "stated-license",
+              fitNotes: "FN"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordPilotPlan(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              designId: "d1",
+              feasibilityQuestions: ["Q"],
+              stopConditions: ["S"]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+      } finally {
+        roHandle.close();
+      }
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
 });

@@ -11,6 +11,7 @@ import {
   inspectAlignment,
   createWorkerCapabilities,
   ProjectStoreError,
+  openProject,
   type AlignmentChainLink
 } from "../../src/index.js";
 import {
@@ -290,6 +291,158 @@ describe("e09s05 alignment audits and analysis plans", () => {
           return true;
         }
       );
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s05 regression: alignment audit and analysis plan enforce comparison and RQ referential integrity", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const o1 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 1",
+        discipline: "computing",
+        immediateGoal: "Goal 1"
+      });
+      const o2 = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Topic 2",
+        discipline: "education",
+        immediateGoal: "Goal 2"
+      });
+      const rq1 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o1.id,
+        questionText: "RQ 1?"
+      });
+      const rq2 = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: o2.id,
+        questionText: "RQ 2?"
+      });
+
+      const comp = recordDesignComparison(fixture.handle, fixture.ownerCap, {
+        branchId: "main",
+        researchQuestionIds: [rq1.id],
+        designs: [
+          { id: "d1", name: "D1", rationale: "R1", fit: "F1", feasibility: "H", tensions: "None", limits: "None" },
+          { id: "d2", name: "D2", rationale: "R2", fit: "F2", feasibility: "M", tensions: "None", limits: "None" }
+        ]
+      });
+
+      // recordAlignmentAudit nonexistent comparison -> not-found
+      assert.throws(
+        () =>
+          recordAlignmentAudit(fixture.handle, fixture.ownerCap, {
+            comparisonId: "nonexistent-comp",
+            rqVersionIds: [rq1.id],
+            chainLinks: [{ link: "question", status: "aligned", description: "check" }]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // recordAlignmentAudit nonexistent RQ -> not-found
+      assert.throws(
+        () =>
+          recordAlignmentAudit(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            rqVersionIds: ["nonexistent-rq"],
+            chainLinks: [{ link: "question", status: "aligned", description: "check" }]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // recordAlignmentAudit cross-orientation RQ (belongs to o2, comparison belongs to o1) -> invalid-argument
+      assert.throws(
+        () =>
+          recordAlignmentAudit(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            rqVersionIds: [rq2.id],
+            chainLinks: [{ link: "question", status: "aligned", description: "check" }]
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // recordAnalysisPlan nonexistent comparison -> not-found
+      assert.throws(
+        () =>
+          recordAnalysisPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: "nonexistent-comp",
+            profileId: "quantitative",
+            rqVersionIds: [rq1.id],
+            confirmatoryOrExploratory: "exploratory",
+            assumptions: ["A"],
+            uncertainty: ["U"],
+            escalation: "none",
+            escalationReason: "R"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // recordAnalysisPlan nonexistent RQ -> not-found
+      assert.throws(
+        () =>
+          recordAnalysisPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            profileId: "quantitative",
+            rqVersionIds: ["nonexistent-rq"],
+            confirmatoryOrExploratory: "exploratory",
+            assumptions: ["A"],
+            uncertainty: ["U"],
+            escalation: "none",
+            escalationReason: "R"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "not-found"
+      );
+
+      // recordAnalysisPlan cross-orientation RQ -> invalid-argument
+      assert.throws(
+        () =>
+          recordAnalysisPlan(fixture.handle, fixture.ownerCap, {
+            comparisonId: comp.id,
+            profileId: "quantitative",
+            rqVersionIds: [rq2.id],
+            confirmatoryOrExploratory: "exploratory",
+            assumptions: ["A"],
+            uncertainty: ["U"],
+            escalation: "none",
+            escalationReason: "R"
+          }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s05 regression: read-only handle fails closed on alignment writers", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const roHandle = openProject(fixture.root, { readOnly: true });
+      try {
+        assert.throws(
+          () =>
+            recordAlignmentAudit(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              rqVersionIds: ["rq1"],
+              chainLinks: [{ link: "question", status: "aligned", description: "check" }]
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+        assert.throws(
+          () =>
+            recordAnalysisPlan(roHandle, fixture.ownerCap, {
+              comparisonId: "cmp1",
+              profileId: "quantitative",
+              rqVersionIds: ["rq1"],
+              confirmatoryOrExploratory: "exploratory",
+              assumptions: ["A"],
+              uncertainty: ["U"],
+              escalation: "none",
+              escalationReason: "R"
+            }),
+          (err: unknown) => err instanceof ProjectStoreError && err.code === "read-only"
+        );
+      } finally {
+        roHandle.close();
+      }
     } finally {
       disposeMethodologyFixture(fixture);
     }

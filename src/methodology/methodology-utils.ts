@@ -80,3 +80,34 @@ export function newId(prefix: string): string {
 export function isoNow(): string {
   return new Date().toISOString();
 }
+
+export function validateRqVersionIds(
+  db: DatabaseSync,
+  rqVersionIds: readonly string[]
+): string {
+  if (!Array.isArray(rqVersionIds) || rqVersionIds.length === 0) {
+    throw new ProjectStoreError("invalid-argument", "at least one rqVersionId is required");
+  }
+
+  let orientationId: string | undefined;
+
+  for (const id of rqVersionIds) {
+    const row = db
+      .prepare(
+        "SELECT id, orientation_id, artifact_version_id FROM research_questions WHERE id = ? OR artifact_version_id = ?"
+      )
+      .get(id, id) as { id: string; orientation_id: string; artifact_version_id: string } | undefined;
+
+    if (!row) {
+      throw new ProjectStoreError("not-found", `research question not found: ${id}`);
+    }
+
+    if (orientationId === undefined) {
+      orientationId = row.orientation_id;
+    } else if (row.orientation_id !== orientationId) {
+      throw new ProjectStoreError("invalid-argument", "research questions belong to different orientations");
+    }
+  }
+
+  return orientationId!;
+}
