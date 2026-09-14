@@ -1,21 +1,18 @@
 ---
 workflow_mode: solo-git
-active_flow: build
-active_epic: e09
-active_story: e09s05
+active_flow: plan
+active_epic: e10
+active_story: null
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
+  next_skill: bp-plan
+  next_command: "/bp-plan"
   summary: >-
-    E09 pass-2 corrections complete: intermittent positionality ordering fixed with deterministic rowid DESC tie-break, 35/35 flake-gate runs passed, oversized methodology modules split into responsibility-focused sub-modules under 300 lines with zero any annotations, formal security review section added to specs/security/REVIEW.md with documented process limitations, and NFR evidence generated for all P0 stories. Ready for review pass 3.
-  last_step_completed: e09 pass-2 build corrections complete
+    E09 research framing and method-sensitive design local release complete: merged to local main, 5 stories done, capsule archived to specs/epics/archive/e09-method-sensitive-design. Ready for /bp-plan on the next eligible epic (e10).
+  last_step_completed: e09 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
-  - specs/epics/e09-method-sensitive-design/epic.yaml
-  - specs/tech-architecture/e09-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
-  - specs/PLAN-AUDIT_LATEST.md
-  - specs/security/epics/e09/THREAT_MODEL.md
+  - specs/release-plan.yaml
+  - specs/tech-architecture/tech-stack.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -49,6 +46,8 @@ discovery:
   e16_release: complete_local_release
   e09_plan: approved_exact_revision
   e09_build: complete
+  e09_review: complete_local_release
+  e09_release: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -75,7 +74,7 @@ discovery:
       project_git_repository: initialized
       repository_initialization: local_main_after_epic_merge
       branch: main
-      commits: 93
+      commits: 147
     smoke:
       node_version: passed
       npm_version: passed
@@ -199,9 +198,9 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e09
+  first_eligible_epic: e10
   first_tracer_bullet_epic: e05
-  selected_epic: e09
+  selected_epic: e10
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
@@ -230,23 +229,23 @@ blueprint:
   implementation_start: not_authorized
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e08_e14_e15_e16_complete;e09_plan_approved
+  story_planning: e01_e08_e14_e15_e16_e09_complete;e10_pending
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
   e09_plan_approval_source: explicit_owner_message
   e09_plan_artifacts:
-  - specs/epics/e09-method-sensitive-design/epic.yaml
-  - specs/epics/e09-method-sensitive-design/e09s01-orientation-problem-framing-and-rq-alternatives.md
-  - specs/epics/e09-method-sensitive-design/e09s01-tasks.yaml
-  - specs/epics/e09-method-sensitive-design/e09s02-constructs-theory-frameworks-and-positionality.md
-  - specs/epics/e09-method-sensitive-design/e09s02-tasks.yaml
-  - specs/epics/e09-method-sensitive-design/e09s03-methodology-comparison-sampling-measurement-and-pilot-plans.md
-  - specs/epics/e09-method-sensitive-design/e09s03-tasks.yaml
-  - specs/epics/e09-method-sensitive-design/e09s04-method-profiles-across-supported-contexts.md
-  - specs/epics/e09-method-sensitive-design/e09s04-tasks.yaml
-  - specs/epics/e09-method-sensitive-design/e09s05-alignment-audits-and-analysis-plans.md
-  - specs/epics/e09-method-sensitive-design/e09s05-tasks.yaml
+  - specs/epics/archive/e09-method-sensitive-design/epic.yaml
+  - specs/epics/archive/e09-method-sensitive-design/e09s01-orientation-problem-framing-and-rq-alternatives.md
+  - specs/epics/archive/e09-method-sensitive-design/e09s01-tasks.yaml
+  - specs/epics/archive/e09-method-sensitive-design/e09s02-constructs-theory-frameworks-and-positionality.md
+  - specs/epics/archive/e09-method-sensitive-design/e09s02-tasks.yaml
+  - specs/epics/archive/e09-method-sensitive-design/e09s03-methodology-comparison-sampling-measurement-and-pilot-plans.md
+  - specs/epics/archive/e09-method-sensitive-design/e09s03-tasks.yaml
+  - specs/epics/archive/e09-method-sensitive-design/e09s04-method-profiles-across-supported-contexts.md
+  - specs/epics/archive/e09-method-sensitive-design/e09s04-tasks.yaml
+  - specs/epics/archive/e09-method-sensitive-design/e09s05-alignment-audits-and-analysis-plans.md
+  - specs/epics/archive/e09-method-sensitive-design/e09s05-tasks.yaml
   - specs/tech-architecture/e09-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e09/THREAT_MODEL.md

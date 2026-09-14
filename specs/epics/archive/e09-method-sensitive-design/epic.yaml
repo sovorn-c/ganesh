@@ -65,7 +65,7 @@ bcp_estimate:
     schema-ensure at marker version 1. No survey, stats, ontology or recruitment package
     is required.
 status: complete
-planning_stage: stories_complete
+planning_stage: complete
 risk: P0
 story_planning: complete
 requirement_deltas:
@@ -165,8 +165,8 @@ stories:
   - e09s04
   spec_file: e09s05-alignment-audits-and-analysis-plans.md
   tasks_file: e09s05-tasks.yaml
-capsule_dir: epics/e09-method-sensitive-design
-next_skill: bp-review
+capsule_dir: epics/archive/e09-method-sensitive-design
+next_skill: bp-plan
 plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
 plan_approval: approved_exact_revision
 plan_approval_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5

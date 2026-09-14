@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e09_stories
-active_epic: e09
-active_story: e09s05
-note: Owner approved E09 plan revision sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5. Implementation starts only on /bp-build from e09s01. E01-E08, E14, E15, and E16 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e09_complete
+active_epic: none
+active_story: none
+note: E09 was locally released on main under approved plan revision sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5. All five stories and 20 task checks passed; the whole-epic review passed. E01-E08, E14, E15, and E16 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -568,7 +568,7 @@ epics:
     nfr_evidence: specs/verifications/NFR-e09.json
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-13T15:12:27Z"
-  rationale: "All 45 stories are traceable with no dark stories; E16 has passing per-story verification evidence across 16 task checks and 275 passing tests. No HIGH blind spots remain; the remaining MEDIUM findings are shared-story tag warnings. Completeness critic: BLOCKER=0 WARNING=0. Independent whole-epic review passed after all corrections."
+  generated_at: "2026-09-14T10:05:00Z"
+  rationale: "All 46 stories are traceable with no dark stories; E09 has passing per-story verification evidence across 20 task checks and 368 passing tests. No HIGH blind spots remain; the remaining MEDIUM findings are shared-story tag warnings. Completeness critic: BLOCKER=0 WARNING=0. Independent whole-epic review passed after all corrections."
   heuristic_ratio: 0.27
   downgrade_applied: false
