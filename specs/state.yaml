@@ -7,8 +7,8 @@ handoff:
   next_skill: bp-review
   next_command: "/bp-review"
   summary: >-
-    E09 build corrections complete: all 6 review findings resolved, referential integrity and fail-closed writes enforced across all 5 stores, verification evidence recorded in e09s01-verify.yaml through e09s05-verify.yaml and e09-verify.yaml, all 20 tasks and full test suite passing. Ready for whole-epic review.
-  last_step_completed: e09 build corrections complete
+    E09 pass-2 corrections complete: intermittent positionality ordering fixed with deterministic rowid DESC tie-break, 35/35 flake-gate runs passed, oversized methodology modules split into responsibility-focused sub-modules under 300 lines with zero any annotations, formal security review section added to specs/security/REVIEW.md with documented process limitations, and NFR evidence generated for all P0 stories. Ready for review pass 3.
+  last_step_completed: e09 pass-2 build corrections complete
   required_reading:
   - CONVENTIONS.md
   - specs/epics/e09-method-sensitive-design/epic.yaml

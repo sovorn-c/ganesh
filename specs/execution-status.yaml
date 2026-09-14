@@ -519,6 +519,7 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e09s01-verify.yaml
+        nfr_evidence: specs/verifications/NFR-e09s01.json
       e09s02:
         title: Constructs, Theory, Frameworks and Positionality
         status: done
@@ -529,6 +530,7 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e09s02-verify.yaml
+        nfr_evidence: specs/verifications/NFR-e09s02.json
       e09s03:
         title: Methodology Comparison, Sampling, Measurement and Pilot Plans
         status: done
@@ -539,6 +541,7 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e09s03-verify.yaml
+        nfr_evidence: specs/verifications/NFR-e09s03.json
       e09s04:
         title: Method Profiles Across Supported Contexts
         status: done
@@ -549,6 +552,7 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e09s04-verify.yaml
+        nfr_evidence: specs/verifications/NFR-e09s04.json
       e09s05:
         title: Alignment Audits and Analysis Plans
         status: done
@@ -559,7 +563,9 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e09s05-verify.yaml
+        nfr_evidence: specs/verifications/NFR-e09s05.json
     verification_evidence: specs/verifications/e09-verify.yaml
+    nfr_evidence: specs/verifications/NFR-e09.json
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-13T15:12:27Z"

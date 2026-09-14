@@ -1,194 +1,21 @@
 // story: e09s05
-import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
-import { assertWritable } from "../project/project-store.js";
+import type { ProjectHandle } from "../project/project-types.js";
 import {
   assertMethodologySchema,
   assertMethodologyAccess,
-  allowedMethodology,
-  newId,
-  isoNow,
-  validateRqVersionIds
+  allowedMethodology
 } from "./methodology-utils.js";
 import type {
   AlignmentAuditRecord,
-  AlignmentAuditRequest,
   AlignmentChainLink,
   AlignmentAuditStatus,
   AnalysisPlanRecord,
-  AnalysisPlanRequest,
   AnalysisPlanStatus,
   AlignmentInspection
 } from "./alignment-types.js";
 
-export function recordAlignmentAudit(
-  handle: ProjectHandle,
-  capability: unknown,
-  request: AlignmentAuditRequest
-): AlignmentAuditRecord {
-  assertWritable(handle);
-  assertMethodologySchema(handle.db);
-  assertMethodologyAccess(handle, capability, "methodology:audit");
-
-  const comp = handle.db
-    .prepare(`SELECT id, rq_ids FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string; rq_ids: string } | undefined;
-
-  if (!comp) {
-    throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
-  }
-
-  if (!Array.isArray(request.rqVersionIds) || request.rqVersionIds.length === 0) {
-    throw new ProjectStoreError("invalid-argument", "At least one RQ version ID is required");
-  }
-
-  const compRqIds = JSON.parse(comp.rq_ids) as string[];
-  const compOrientationId = validateRqVersionIds(handle.db, compRqIds);
-  const auditOrientationId = validateRqVersionIds(handle.db, request.rqVersionIds);
-  if (compOrientationId !== auditOrientationId) {
-    throw new ProjectStoreError("invalid-argument", "research question orientation does not match design comparison");
-  }
-
-  if (!Array.isArray(request.chainLinks) || request.chainLinks.length === 0) {
-    throw new ProjectStoreError("invalid-argument", "Chain links are required");
-  }
-
-  for (const link of request.chainLinks) {
-    if (link.status === "not-applicable" && (!link.notApplicableReason || !link.notApplicableReason.trim())) {
-      throw new ProjectStoreError(
-        "invalid-argument",
-        `Chain link '${link.link}' marked not-applicable requires a methodological reason`
-      );
-    }
-  }
-
-  const issues: string[] = request.issues ? [...request.issues] : [];
-
-  // AC-12: Causal claim on associational/cross-sectional evidence requires identification.
-  // Setting designLabel to "longitudinal" without identification strategy does NOT clear the mismatch.
-  const isCausalClaim = request.claimType === "causal";
-  const isAssociational =
-    request.evidenceType === "associational" || request.evidenceType === "cross-sectional";
-  const hasIdentification = Boolean(request.identificationStrategy && request.identificationStrategy.trim());
-
-  let hasCausalMismatch = false;
-  if (isCausalClaim && isAssociational && !hasIdentification) {
-    hasCausalMismatch = true;
-    issues.push(
-      "Causal claim on associational/cross-sectional evidence requires explicit identification strategy; longitudinal design label alone does not establish causal identification."
-    );
-  }
-
-  let status: AlignmentAuditStatus;
-  if (hasCausalMismatch || request.chainLinks.some((l) => l.status === "mismatch")) {
-    status = "mismatch";
-  } else if (request.chainLinks.some((l) => l.status === "gap")) {
-    status = "gap";
-  } else {
-    status = "aligned";
-  }
-
-  const id = newId("alg");
-  const now = isoNow();
-
-  handle.db
-    .prepare(
-      `INSERT INTO alignment_audits (id, comparison_id, rq_version_ids, chain_links, status, issues, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      id,
-      request.comparisonId,
-      JSON.stringify(request.rqVersionIds),
-      JSON.stringify(request.chainLinks),
-      status,
-      JSON.stringify(issues),
-      now,
-      now
-    );
-
-  return {
-    id,
-    comparisonId: request.comparisonId,
-    rqVersionIds: [...request.rqVersionIds],
-    chainLinks: request.chainLinks.map((l) => ({ ...l })),
-    status,
-    issues,
-    createdAt: now,
-    updatedAt: now
-  };
-}
-
-export function recordAnalysisPlan(
-  handle: ProjectHandle,
-  capability: unknown,
-  request: AnalysisPlanRequest
-): AnalysisPlanRecord {
-  assertWritable(handle);
-  assertMethodologySchema(handle.db);
-  assertMethodologyAccess(handle, capability, "methodology:audit");
-
-  const comp = handle.db
-    .prepare(`SELECT id, rq_ids FROM design_comparisons WHERE id = ?`)
-    .get(request.comparisonId) as { id: string; rq_ids: string } | undefined;
-
-  if (!comp) {
-    throw new ProjectStoreError("not-found", `Design comparison not found: ${request.comparisonId}`);
-  }
-
-  if (!Array.isArray(request.rqVersionIds) || request.rqVersionIds.length === 0) {
-    throw new ProjectStoreError("invalid-argument", "At least one RQ version ID is required");
-  }
-
-  const compRqIds = JSON.parse(comp.rq_ids) as string[];
-  const compOrientationId = validateRqVersionIds(handle.db, compRqIds);
-  const planOrientationId = validateRqVersionIds(handle.db, request.rqVersionIds);
-  if (compOrientationId !== planOrientationId) {
-    throw new ProjectStoreError("invalid-argument", "research question orientation does not match design comparison");
-  }
-
-  if (request.escalation === "none" && (!request.escalationReason || !request.escalationReason.trim())) {
-    throw new ProjectStoreError("invalid-argument", "Escalation 'none' requires a stored reason");
-  }
-
-  const id = newId("anp");
-  const now = isoNow();
-  const status: AnalysisPlanStatus = "current";
-
-  handle.db
-    .prepare(
-      `INSERT INTO analysis_plans (id, comparison_id, profile_id, rq_version_ids, confirmatory_or_exploratory, assumptions, uncertainty, escalation, escalation_reason, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    .run(
-      id,
-      request.comparisonId,
-      request.profileId,
-      JSON.stringify(request.rqVersionIds),
-      request.confirmatoryOrExploratory,
-      JSON.stringify(request.assumptions),
-      JSON.stringify(request.uncertainty),
-      request.escalation,
-      request.escalationReason ?? null,
-      status,
-      now,
-      now
-    );
-
-  return {
-    id,
-    comparisonId: request.comparisonId,
-    profileId: request.profileId,
-    rqVersionIds: [...request.rqVersionIds],
-    confirmatoryOrExploratory: request.confirmatoryOrExploratory,
-    assumptions: [...request.assumptions],
-    uncertainty: [...request.uncertainty],
-    escalation: request.escalation,
-    escalationReason: request.escalationReason,
-    status,
-    createdAt: now,
-    updatedAt: now
-  };
-}
+export { recordAlignmentAudit } from "./alignment-audit-store.js";
+export { recordAnalysisPlan } from "./analysis-plan-store.js";
 
 export function inspectAlignment(
   handle: ProjectHandle,

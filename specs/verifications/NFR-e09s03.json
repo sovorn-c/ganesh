@@ -1,0 +1,31 @@
+{
+  "epic_id": "e09",
+  "story_id": "e09s03",
+  "verdict": "PASS",
+  "status": "observed",
+  "dimensions": {
+    "performance": {
+      "status": "not_assessed",
+      "evidence": "The e09s03 test plan defines no fixed latency or throughput threshold."
+    },
+    "reliability": {
+      "status": "observed_pass",
+      "evidence": "Design comparison across framed RQs, non-execution of recruitment/contact/consent, rights basis tracking, construct validation for instruments, branch isolation, and fail-closed read-only handling passed under Node.js 24."
+    },
+    "operability": {
+      "status": "observed_pass",
+      "evidence": "Study design inspection surfaces comparison, sampling plans, instruments, pilot plans, and fit summary."
+    }
+  },
+  "checks": {
+    "story_scenarios": {
+      "passed": true,
+      "evidence": "SC-e09s03-P0-01, SC-e09s03-P0-02, SC-e09s03-P0-03, and SC-e09s03-P1-04 covered in study-design.test.ts."
+    },
+    "project_gates": {
+      "passed": true,
+      "evidence": "npm run typecheck, npm run lint, npm run build, and npm test passed under Node.js 24."
+    }
+  },
+  "next_gate": "review"
+}

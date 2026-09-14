@@ -1,12 +1,13 @@
 story_id: e09s05
-verified_at: "2026-09-14T08:00:00Z"
+verified_at: "2026-09-14T08:46:00Z"
 verifier: bp-build
 branch: feat/e09-method-sensitive-design
-commit: be9375c
+commit: pending_correction_commit
 working_tree: clean
 runtime: Node.js 24.21.0
 status: passed
 plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
+nfr_evidence: specs/verifications/NFR-e09s05.json
 phases:
   task_verifications:
     passed: true
@@ -14,7 +15,7 @@ phases:
   tests:
     passed: true
     command: npm test
-    evidence: "367/367 tests passed, including E09 alignment audits, analysis plans, causal mismatch identification, referential integrity, and RQ supersession tracking."
+    evidence: "Full test suite passed, including E09 alignment audits, analysis plans, causal mismatch identification, referential integrity, and RQ supersession tracking."
   typecheck:
     passed: true
     command: npm run typecheck

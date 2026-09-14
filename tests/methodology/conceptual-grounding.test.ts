@@ -96,7 +96,7 @@ describe("e09s02 conceptual grounding and positionality", () => {
             philosophicalStance: "Critical Realism",
             attribution: "human-stated"
           }),
-        (err: any) => err.code === "forbidden"
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden"
       );
 
       // Worker can write agent-inferred stance
@@ -181,7 +181,7 @@ describe("e09s02 conceptual grounding and positionality", () => {
       // Forged capability
       assert.throws(
         () => recordConstruct(fixture.handle, { role: "owner" }, constructReq),
-        (err: any) => err.code === "forbidden"
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden"
       );
 
       // Wrong project worker
@@ -192,14 +192,14 @@ describe("e09s02 conceptual grounding and positionality", () => {
       });
       assert.throws(
         () => recordConstruct(fixture.handle, wrongProjectWorker, constructReq),
-        (err: any) => err.code === "forbidden"
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden"
       );
 
       // Wrong owner
       const wrongOwner = createOwnerCapability("different-owner");
       assert.throws(
         () => recordConstruct(fixture.handle, wrongOwner, constructReq),
-        (err: any) => err.code === "forbidden"
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden"
       );
     } finally {
       disposeMethodologyFixture(fixture);
@@ -343,6 +343,43 @@ describe("e09s02 conceptual grounding and positionality", () => {
         );
       } finally {
         roHandle.close();
+      }
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s02 regression: positionality selection deterministically tie-breaks same-millisecond records by rowid DESC", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const orientation = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Deterministic Grounding",
+        discipline: "computer-science",
+        immediateGoal: "Verify rowid tie-break"
+      });
+
+      // Insert two positionality records with identical created_at timestamp
+      const fixedTimestamp = "2026-09-14T08:00:00.000Z";
+      fixture.handle.db
+        .prepare(`
+          INSERT INTO positionality_records (id, orientation_id, philosophical_stance, situated_stance, attribution, origin, command_id, created_at)
+          VALUES ('pos-1', ?, 'First Stance', 'First Context', 'human-stated', 'owner-recorded', 'cmd-1', ?)
+        `)
+        .run(orientation.id, fixedTimestamp);
+
+      fixture.handle.db
+        .prepare(`
+          INSERT INTO positionality_records (id, orientation_id, philosophical_stance, situated_stance, attribution, origin, command_id, created_at)
+          VALUES ('pos-2', ?, 'Second Stance (Latest rowid)', 'Second Context', 'agent-inferred', 'specialist-proposed', 'cmd-2', ?)
+        `)
+        .run(orientation.id, fixedTimestamp);
+
+      // Repeatedly inspect to prove deterministic selection of the highest rowid (pos-2)
+      for (let i = 0; i < 35; i++) {
+        const inspection = inspectConceptualGrounding(fixture.handle, fixture.ownerCap, orientation.id);
+        assert.equal(inspection.positionality?.id, "pos-2", `Run ${i}: must select latest record by rowid DESC`);
+        assert.equal(inspection.philosophicalStance, "Second Stance (Latest rowid)");
+        assert.equal(inspection.attribution, "agent-inferred");
       }
     } finally {
       disposeMethodologyFixture(fixture);

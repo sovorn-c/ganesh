@@ -113,11 +113,11 @@ describe("e09s01 orientation framing research question and reopen", () => {
 
       // Forged capability
       const forged = { role: "owner", ownerId: fixture.ownerId };
-      assert.throws(() => recordOrientation(fixture.handle, forged, validReq), (err: any) => err.code === "forbidden");
+      assert.throws(() => recordOrientation(fixture.handle, forged, validReq), (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden");
 
       // Wrong owner
       const wrongOwner = createOwnerCapability("another-owner-id");
-      assert.throws(() => recordOrientation(fixture.handle, wrongOwner, validReq), (err: any) => err.code === "forbidden");
+      assert.throws(() => recordOrientation(fixture.handle, wrongOwner, validReq), (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden");
 
       // Worker without methodology:frame
       const inspectOnlyWorker = createWorkerCapabilities({
@@ -125,7 +125,7 @@ describe("e09s01 orientation framing research question and reopen", () => {
         projectRoot: fixture.root,
         allowedOperations: ["methodology:inspect"]
       });
-      assert.throws(() => recordOrientation(fixture.handle, inspectOnlyWorker, validReq), (err: any) => err.code === "forbidden");
+      assert.throws(() => recordOrientation(fixture.handle, inspectOnlyWorker, validReq), (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden");
 
       // Cross-project worker
       const crossProjectWorker = createWorkerCapabilities({
@@ -133,7 +133,7 @@ describe("e09s01 orientation framing research question and reopen", () => {
         projectRoot: fixture.root,
         allowedOperations: ["methodology:frame"]
       });
-      assert.throws(() => recordOrientation(fixture.handle, crossProjectWorker, validReq), (err: any) => err.code === "forbidden");
+      assert.throws(() => recordOrientation(fixture.handle, crossProjectWorker, validReq), (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden");
 
       // Confirm no orientation was inserted
       const count = (fixture.handle.db.prepare("SELECT COUNT(*) as cnt FROM orientations").get() as { cnt: number }).cnt;
