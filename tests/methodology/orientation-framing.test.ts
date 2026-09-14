@@ -9,6 +9,8 @@ import {
   recordResearchQuestionAlternative,
   listResearchQuestionAlternatives,
   inspectFraming,
+  ingestMethodologyCandidate,
+  listCommitments,
   PROJECT_SCHEMA_VERSION,
   createOwnerCapability,
   createWorkerCapabilities
@@ -130,6 +132,55 @@ describe("e09s01 orientation framing research question and reopen", () => {
       // Confirm no orientation was inserted
       const count = (fixture.handle.db.prepare("SELECT COUNT(*) as cnt FROM orientations").get() as { cnt: number }).cnt;
       assert.equal(count, 0, "no orientation rows inserted on denied writes");
+    } finally {
+      disposeMethodologyFixture(fixture);
+    }
+  });
+
+  it("e09s01 research questions remain candidates and specialist ingest produces specialist-proposed candidate without E04 commitment (SC-e09s01-P0-02)", () => {
+    const fixture = createMethodologyFixture();
+    try {
+      const orientation = recordOrientation(fixture.handle, fixture.ownerCap, {
+        topic: "Autonomous Coding Agents",
+        discipline: "software-engineering",
+        immediateGoal: "Investigate supervision mechanisms"
+      });
+
+      // Owner records an RQ alternative
+      const ownerRq = recordResearchQuestionAlternative(fixture.handle, fixture.ownerCap, {
+        orientationId: orientation.id,
+        questionText: "How do deterministic verification gates prevent specification drift in LLM-assisted pipelines?"
+      });
+      assert.equal(ownerRq.status, "candidate");
+      assert.equal(ownerRq.origin, "owner-recorded");
+      assert.equal(ownerRq.attribution, "human-stated");
+
+      // Worker ingests a candidate
+      const candidate = ingestMethodologyCandidate(fixture.handle, fixture.workerCap, {
+        orientationId: orientation.id,
+        specialistRole: "methodology",
+        candidateType: "research-question",
+        payload: {
+          questionText: "What feedback loops best constrain speculative abstractions in multi-agent workflows?"
+        }
+      });
+      assert.equal(candidate.origin, "specialist-proposed");
+      assert.ok(candidate.researchQuestion, "specialist candidate generates RQ record");
+      assert.equal(candidate.researchQuestion?.origin, "specialist-proposed");
+      assert.equal(candidate.researchQuestion?.attribution, "agent-inferred");
+      assert.equal(candidate.researchQuestion?.status, "candidate");
+
+      // Verify inspectFraming returns both
+      const inspection = inspectFraming(fixture.handle, fixture.ownerCap, orientation.id);
+      assert.equal(inspection.researchQuestions.length, 2);
+      const specialistRq = inspection.researchQuestions.find((r) => r.id === candidate.researchQuestion?.id);
+      assert.ok(specialistRq);
+      assert.equal(specialistRq?.origin, "specialist-proposed");
+      assert.equal(specialistRq?.attribution, "agent-inferred");
+
+      // Verify no E04 commitment exists
+      const commitments = listCommitments(fixture.handle);
+      assert.equal(commitments.length, 0, "no E04 commitments minted from methodology records");
     } finally {
       disposeMethodologyFixture(fixture);
     }
