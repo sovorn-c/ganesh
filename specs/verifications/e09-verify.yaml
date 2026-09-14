@@ -1,0 +1,81 @@
+---
+epic_id: e09
+title: Research framing and method-sensitive design
+verified_at: "2026-09-14T08:00:00Z"
+verifier: bp-build
+branch: feat/e09-method-sensitive-design
+commit: be9375c
+working_tree: clean
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
+stories:
+  e09s01:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e09-method-sensitive-design/e09s01-tasks.yaml
+  e09s02:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e09-method-sensitive-design/e09s02-tasks.yaml
+  e09s03:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e09-method-sensitive-design/e09s03-tasks.yaml
+  e09s04:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e09-method-sensitive-design/e09s04-tasks.yaml
+  e09s05:
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/epics/e09-method-sensitive-design/e09s05-tasks.yaml
+checks:
+  task_verifications:
+    passed: true
+    evidence: 20/20 E09 task commands passed under Node.js 24.21.0
+  tests:
+    passed: true
+    command: npm test
+    evidence: 367/367 tests passed
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: exit 0 with execution-mode not_configured warning
+  audit:
+    passed: true
+    command: npm audit --omit=dev --audit-level=high
+    evidence: 0 vulnerabilities
+  security_scope:
+    passed: true
+    evidence: Referential integrity enforced across write boundaries; read-only handles fail closed; non-execution and recruitment refusal enforced; capability boundaries enforced without privilege leaks; no foreign recruitment packages or second database.
+  traceability:
+    passed: true
+    evidence: All 5 E09 stories and 20 tasks verified and passing; AC-01, AC-07, AC-08, AC-11, AC-12, AC-13 satisfied.
+  review:
+    status: pending_review
+    passed: false
+    evidence: Build corrections completed and verified across all 5 stories; pending whole-epic review.
+summary:
+  task_verifications: 20
+  task_verifications_passing: 20
+  tests_passing: 367
+  review_started: false
+  review_passed: false
+  release_started: false
+  production_readiness_claimed: false
+next_skill: /bp-review
