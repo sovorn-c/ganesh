@@ -1,0 +1,31 @@
+{
+  "epic_id": "e09",
+  "story_id": "e09s01",
+  "verdict": "PASS",
+  "status": "observed",
+  "dimensions": {
+    "performance": {
+      "status": "not_assessed",
+      "evidence": "The e09s01 test plan defines no fixed latency or throughput threshold."
+    },
+    "reliability": {
+      "status": "observed_pass",
+      "evidence": "Orientation, problem framing, and research question candidate creation; schema idempotency; supersession versioning; cross-orientation referential validation; and fail-closed read-only handling passed under Node.js 24."
+    },
+    "operability": {
+      "status": "observed_pass",
+      "evidence": "Orientations, problem framings, and research question alternatives are inspectable through typed APIs with explicit attribution and origin."
+    }
+  },
+  "checks": {
+    "story_scenarios": {
+      "passed": true,
+      "evidence": "SC-e09s01-P0-01, SC-e09s01-P0-02, SC-e09s01-P0-03, and SC-e09s01-P1-04 covered in orientation-framing.test.ts."
+    },
+    "project_gates": {
+      "passed": true,
+      "evidence": "npm run typecheck, npm run lint, npm run build, and npm test passed under Node.js 24."
+    }
+  },
+  "next_gate": "review"
+}

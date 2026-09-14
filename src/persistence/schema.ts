@@ -108,6 +108,7 @@ export function createSchema(db: DatabaseSync): void {
   createE08Schema(db);
   createE15Schema(db);
   createE16Schema(db);
+  createE09Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -803,6 +804,206 @@ export function createE16Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE09Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS methodology_operations (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      entity_id TEXT,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_methodology_operations_kind ON methodology_operations(kind);
+
+    CREATE TABLE IF NOT EXISTS orientations (
+      id TEXT PRIMARY KEY,
+      topic TEXT NOT NULL,
+      discipline TEXT NOT NULL,
+      immediate_goal TEXT NOT NULL,
+      unknowns TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_orientations_created ON orientations(created_at);
+
+    CREATE TABLE IF NOT EXISTS problem_framings (
+      id TEXT PRIMARY KEY,
+      orientation_id TEXT NOT NULL REFERENCES orientations(id),
+      statement TEXT NOT NULL,
+      boundaries TEXT NOT NULL,
+      gap_assessment_id TEXT,
+      contribution_proposal_id TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_problem_framings_orientation ON problem_framings(orientation_id);
+
+    CREATE TABLE IF NOT EXISTS research_questions (
+      id TEXT PRIMARY KEY,
+      orientation_id TEXT NOT NULL REFERENCES orientations(id),
+      framing_id TEXT REFERENCES problem_framings(id),
+      question_text TEXT NOT NULL,
+      status TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      superseded_by TEXT,
+      gap_assessment_id TEXT,
+      contribution_proposal_id TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_research_questions_orientation ON research_questions(orientation_id);
+
+    CREATE TABLE IF NOT EXISTS methodology_candidates (
+      id TEXT PRIMARY KEY,
+      orientation_id TEXT NOT NULL,
+      specialist_role TEXT NOT NULL,
+      candidate_type TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS constructs (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      definition TEXT NOT NULL,
+      rq_version_ids TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS theoretical_frameworks (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      construct_relations TEXT NOT NULL,
+      rq_version_ids TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS positionality_records (
+      id TEXT PRIMARY KEY,
+      orientation_id TEXT NOT NULL REFERENCES orientations(id),
+      philosophical_stance TEXT NOT NULL,
+      situated_stance TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      command_id TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_positionality_orientation ON positionality_records(orientation_id);
+
+    CREATE TABLE IF NOT EXISTS design_comparisons (
+      id TEXT PRIMARY KEY,
+      branch_id TEXT NOT NULL,
+      rq_ids TEXT NOT NULL,
+      designs TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_design_comparisons_branch ON design_comparisons(branch_id);
+
+    CREATE TABLE IF NOT EXISTS sampling_plans (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      design_id TEXT NOT NULL,
+      population TEXT NOT NULL,
+      access_path TEXT NOT NULL,
+      recruitment_approach TEXT NOT NULL,
+      non_execution_flag INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_sampling_plans_comparison ON sampling_plans(comparison_id);
+
+    CREATE TABLE IF NOT EXISTS instruments (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      design_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      construct_ids TEXT,
+      rights_basis TEXT NOT NULL,
+      rights_issue INTEGER NOT NULL,
+      validated_by_generation INTEGER NOT NULL DEFAULT 0,
+      fit_notes TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_instruments_comparison ON instruments(comparison_id);
+
+    CREATE TABLE IF NOT EXISTS pilot_plans (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      design_id TEXT NOT NULL,
+      feasibility_questions TEXT NOT NULL,
+      stop_conditions TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_pilot_plans_comparison ON pilot_plans(comparison_id);
+
+    CREATE TABLE IF NOT EXISTS method_profile_bindings (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      profile_id TEXT NOT NULL,
+      context_id TEXT NOT NULL,
+      details TEXT NOT NULL,
+      competence TEXT NOT NULL,
+      profile_fit TEXT NOT NULL,
+      fit_reasons TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_method_profile_bindings_comparison ON method_profile_bindings(comparison_id);
+
+    CREATE TABLE IF NOT EXISTS alignment_audits (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      rq_version_ids TEXT NOT NULL,
+      chain_links TEXT NOT NULL,
+      status TEXT NOT NULL,
+      issues TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_alignment_audits_comparison ON alignment_audits(comparison_id);
+
+    CREATE TABLE IF NOT EXISTS analysis_plans (
+      id TEXT PRIMARY KEY,
+      comparison_id TEXT NOT NULL REFERENCES design_comparisons(id),
+      profile_id TEXT NOT NULL,
+      rq_version_ids TEXT NOT NULL,
+      confirmatory_or_exploratory TEXT NOT NULL,
+      assumptions TEXT NOT NULL,
+      uncertainty TEXT NOT NULL,
+      escalation TEXT NOT NULL,
+      escalation_reason TEXT,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_analysis_plans_comparison ON analysis_plans(comparison_id);
+  `);
+}
+
 export function createE08Schema(db: DatabaseSync): void {
   configureDatabase(db);
   db.exec(`
@@ -892,6 +1093,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE08Schema(db);
       createE15Schema(db);
       createE16Schema(db);
+      createE09Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

@@ -1,0 +1,176 @@
+---
+id: e09
+title: Research framing and method-sensitive design
+scope_ids:
+- R09
+outcome: Researchers compare coherent questions, theories and designs suited to their
+  methodological context.
+boundaries:
+  includes:
+  - Orientation, problem framing, RQ alternatives, constructs, theory/frameworks and
+    philosophy/positionality distinguish human views from agent inference.
+  - Methodology comparison, sampling/recruitment planning, measurement/instrument
+    design, rights and pilot plans explain fit and feasibility without executing recruitment.
+  - Quantitative, qualitative, mixed-methods and artifact-evaluation/design-science
+    profiles cover empirical social science, IS, HCI, education and computing.
+  - Alignment audits and analysis plans retain method-specific assumptions, exploratory/confirmatory
+    status, escalation and uncertainty rather than universal rigor rules.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Human commitments, reasoned overrides and non-waivable gates; E04 owns those.
+  - Located source appraisal MethodKind; E07 owns those and remains unchanged.
+  - Gap/contribution challenge; E08 owns those and remains optional input.
+  - Terminal presentation, wizards and native viewers; E14 stays frozen.
+  - Ethics risk registers, NZ institutional guidance and external authorization; E10 owns those.
+  - Local analysis and test execution; E11 owns those.
+  - Protocol-in-force, amendments and deviations; E12 owns those.
+  - Expert-human grading of methodological quality; E17 owns those.
+  - Recruitment, contact, consent, data collection, extra npm packages, a second database
+    and a separate web application.
+depends_on:
+- e08
+- e04
+acceptance_outcomes:
+- Orientation, problem framing, RQ alternatives, constructs, theory/frameworks and
+  philosophy/positionality distinguish human views from agent inference.
+- Methodology comparison, sampling/recruitment planning, measurement/instrument design,
+  rights and pilot plans explain fit and feasibility without executing recruitment.
+- Quantitative, qualitative, mixed-methods and artifact-evaluation/design-science
+  profiles cover empirical social science, IS, HCI, education and computing.
+- Alignment audits and analysis plans retain method-specific assumptions, exploratory/confirmatory
+  status, escalation and uncertainty rather than universal rigor rules.
+acceptance_scenarios:
+- AC-01
+- AC-07
+- AC-08
+- AC-11
+- AC-12
+- AC-13
+wsjf: 0.705882
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 6
+  risk_reduction: 8
+  security_boost: 0
+  job_size: 34
+total_bcps: 34
+bcp_estimate:
+  range:
+  - 34
+  - 34
+  confidence: medium
+  basis: Five vertical story slices total 34 BCP after inspection of E04 decision
+    packets and branch isolation, E05 methodology specialist role, E07 source MethodKind,
+    E08 optional gap/contribution records, E02 registerArtifactVersion, and additive
+    schema-ensure at marker version 1. No survey, stats, ontology or recruitment package
+    is required.
+status: complete
+planning_stage: stories_complete
+risk: P0
+story_planning: complete
+requirement_deltas:
+- story_id: e09s01
+  type: ADDED
+  requirement: Orientation, problem framing and RQ alternatives from incomplete context
+  after: An owner can record topic, discipline, goal, unknowns, a problem framing
+    and RQ alternatives as artifact-backed candidates. Incomplete context is enough.
+    No approved question or complete protocol is invented.
+- story_id: e09s01
+  type: MODIFIED
+  requirement: Ready-project feature schema initialization
+  before: Writable ready-project open idempotently ensured E04, E06, E05, E07, E08,
+    E15 and E16 additive tables; schema marker version 1 remained unchanged.
+  after: New-project creation, explicit migration and writable ready-project open
+    also idempotently ensure additive methodology tables without changing schema marker
+    version 1. Missing methodology tables return methodology-schema-unavailable. Read-only,
+    migration-required and unknown-future opens never mutate schema.
+- story_id: e09s02
+  type: ADDED
+  requirement: Constructs, theoretical frameworks and attributed positionality
+  after: Constructs and frameworks link to exact RQ versions. Positionality stores
+    view attribution. Workers cannot persist human-stated identity. Missing philosophy
+    remains unknown.
+- story_id: e09s03
+  type: ADDED
+  requirement: Design comparison, sampling, instruments and pilot plans without recruitment
+  after: At least two designs are compared against framed RQs with fit and feasibility.
+    Sampling, instrument and pilot records explain planned work. Execute/recruit/contact
+    actions fail. Branch-local designs do not mutate each other. Unknown instrument
+    rights are issues, not validation.
+- story_id: e09s04
+  type: ADDED
+  requirement: Method profiles across supported contexts
+  after: Quantitative, qualitative, mixed-methods and artifact-evaluation/design-science
+    profiles bind to a compared design. Supported contexts are named. Reflexive TA
+    is not failed solely for missing inter-coder agreement or power. Mixed-methods
+    needs an integration rationale. Implementation without evaluation is not a contribution.
+    Unsupported contexts are outside-competence.
+- story_id: e09s05
+  type: ADDED
+  requirement: Alignment audits and analysis plans
+  after: Alignment audits retain the question-to-claim chain, method-specific assumptions,
+    confirmatory or exploratory status, uncertainty and escalation. Associational
+    evidence plus a causal claim stays a mismatch when a longitudinal label is applied
+    without identification. Analysis plans do not execute. RQ supersession marks dependents
+    needs-review.
+stories:
+- id: e09s01
+  title: Orientation, Problem Framing and RQ Alternatives
+  status: done
+  bcps: 8
+  risk: P0
+  delta: "ADDED + MODIFIED"
+  depends_on: []
+  spec_file: e09s01-orientation-problem-framing-and-rq-alternatives.md
+  tasks_file: e09s01-tasks.yaml
+- id: e09s02
+  title: Constructs, Theory, Frameworks and Positionality
+  status: done
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e09s01
+  spec_file: e09s02-constructs-theory-frameworks-and-positionality.md
+  tasks_file: e09s02-tasks.yaml
+- id: e09s03
+  title: Methodology Comparison, Sampling, Measurement and Pilot Plans
+  status: done
+  bcps: 7
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e09s01
+  spec_file: e09s03-methodology-comparison-sampling-measurement-and-pilot-plans.md
+  tasks_file: e09s03-tasks.yaml
+- id: e09s04
+  title: Method Profiles Across Supported Contexts
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e09s03
+  spec_file: e09s04-method-profiles-across-supported-contexts.md
+  tasks_file: e09s04-tasks.yaml
+- id: e09s05
+  title: Alignment Audits and Analysis Plans
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e09s01
+  - e09s03
+  - e09s04
+  spec_file: e09s05-alignment-audits-and-analysis-plans.md
+  tasks_file: e09s05-tasks.yaml
+capsule_dir: epics/e09-method-sensitive-design
+next_skill: bp-review
+plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
+plan_approved_at: "2026-09-13T23:11:15Z"
+plan_approval_source: explicit_owner_message
+implementation_authorized: true
+sequence: 12
