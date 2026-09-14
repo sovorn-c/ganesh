@@ -2,7 +2,7 @@ story_id: e09s02
 verified_at: "2026-09-14T08:46:00Z"
 verifier: bp-build
 branch: feat/e09-method-sensitive-design
-commit: pending_correction_commit
+commit: be1f649
 working_tree: clean
 runtime: Node.js 24.21.0
 status: passed
