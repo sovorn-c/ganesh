@@ -136,3 +136,4 @@ export * from "./operations/retention.js";
 export * from "./operations/runbooks.js";
 export * from "./methodology/methodology-types.js";
 export * from "./methodology/framing-store.js";
+export * from "./methodology/grounding-store.js";

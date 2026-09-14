@@ -112,3 +112,76 @@ export interface FramingInspection {
   readonly unknowns: readonly string[];
   readonly candidates: readonly MethodologyCandidateRecord[];
 }
+
+export interface ConstructRecord {
+  readonly id: string;
+  readonly name: string;
+  readonly definition: string;
+  readonly rqVersionIds: readonly string[];
+  readonly attribution: ViewAttribution;
+  readonly origin: MethodologyOrigin;
+  readonly artifactVersionId: string;
+  readonly commandId: string;
+  readonly createdAt: string;
+}
+
+export interface ConstructRequest {
+  readonly name: string;
+  readonly definition: string;
+  readonly rqVersionIds: readonly string[];
+  readonly attribution?: ViewAttribution;
+  readonly origin?: MethodologyOrigin;
+  readonly commandId?: string;
+}
+
+export interface FrameworkRecord {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly constructRelations: readonly string[];
+  readonly rqVersionIds: readonly string[];
+  readonly attribution: ViewAttribution;
+  readonly origin: MethodologyOrigin;
+  readonly artifactVersionId: string;
+  readonly commandId: string;
+  readonly createdAt: string;
+}
+
+export interface FrameworkRequest {
+  readonly name: string;
+  readonly description: string;
+  readonly constructRelations?: readonly string[];
+  readonly rqVersionIds: readonly string[];
+  readonly attribution?: ViewAttribution;
+  readonly origin?: MethodologyOrigin;
+  readonly commandId?: string;
+}
+
+export interface PositionalityRecord {
+  readonly id: string;
+  readonly orientationId: string;
+  readonly philosophicalStance: string;
+  readonly situatedStance: string;
+  readonly attribution: ViewAttribution;
+  readonly origin: MethodologyOrigin;
+  readonly commandId: string;
+  readonly createdAt: string;
+}
+
+export interface PositionalityRequest {
+  readonly orientationId: string;
+  readonly philosophicalStance?: string;
+  readonly situatedStance?: string;
+  readonly attribution?: ViewAttribution;
+  readonly origin?: MethodologyOrigin;
+  readonly commandId?: string;
+}
+
+export interface ConceptualGroundingInspection {
+  readonly orientationId: string;
+  readonly constructs: readonly ConstructRecord[];
+  readonly frameworks: readonly FrameworkRecord[];
+  readonly positionality?: PositionalityRecord;
+  readonly philosophicalStance: string;
+  readonly attribution: ViewAttribution;
+}
