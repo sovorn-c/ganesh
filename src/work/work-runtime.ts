@@ -14,6 +14,8 @@ import type { BudgetDimension, CandidateAcceptance, CandidateSubmission, Disagre
 import { recordDiagnostic, operationsSchemaAvailable } from "../operations/diagnostic-store.js";
 import { redactDiagnostic } from "../runtime/preflight.js";
 import { admitProviderAttempt, releaseProviderAttemptReservation } from "./provider-admission.js";
+import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
+import { RESEARCH_ACTIVITIES, type ActivityAuthorizationContext, type ResearchActivity } from "../ethics/ethics-types.js";
 
 function requireOwner(handle: ProjectHandle, capability: unknown): OwnerCapability {
   if (!isOwnerCapability(capability) || capability.ownerId !== handle.project.ownerId) {throw new ProjectStoreError("forbidden", "work owner operation requires the project's trusted OwnerCapability");}
@@ -86,6 +88,92 @@ function requestedReservation(contract: WorkContractRecord, request: WorkRunInpu
   return { tokens: contract.limits.tokens, calls: 1, timeMs: contract.limits.timeMs, ...(contract.limits.spend === undefined ? {} : { spend: quote?.status === "known" ? quote.amount ?? 0 : 0 }) };
 }
 
+function contractScopeValue(scope: Record<string, unknown>, ...keys: string[]): unknown {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(scope, key)) {
+      return scope[key];
+    }
+  }
+  return undefined;
+}
+
+function sameScopeValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function standingScopeMatchesContract(standingScope: unknown, contractScope: unknown): boolean {
+  if (standingScope === null || typeof standingScope !== "object" || Array.isArray(standingScope) || contractScope === null || typeof contractScope !== "object" || Array.isArray(contractScope)) {
+    return false;
+  }
+  const standing = standingScope as Record<string, unknown>;
+  const contract = contractScope as Record<string, unknown>;
+  for (const [key, value] of Object.entries(standing)) {
+    const keys = key === "dataUse" || key === "data-use" ? ["dataUse", "data-use"] : [key];
+    const contractValue = contractScopeValue(contract, ...keys);
+    if (contractValue === undefined || !sameScopeValue(value, contractValue)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function contractActivity(contract: WorkContractRecord): ResearchActivity | undefined {
+  const activity = contractScopeValue(contract.scope, "activity");
+  if (activity === undefined) {
+    return undefined;
+  }
+  if (typeof activity !== "string" || !RESEARCH_ACTIVITIES.includes(activity as ResearchActivity)) {
+    throw new ProjectStoreError("forbidden", "authorized contract activity scope is invalid");
+  }
+  return activity as ResearchActivity;
+}
+
+function assertRunContextMatchesContract(contract: WorkContractRecord, request: WorkRunInput): ResearchActivity | undefined {
+  const activity = contractActivity(contract);
+  if (request.activity !== undefined && activity !== request.activity) {
+    throw new ProjectStoreError("forbidden", "run activity must match the authorized contract scope");
+  }
+  if (activity === undefined && request.activity !== undefined) {
+    throw new ProjectStoreError("forbidden", "named activity must be bound to the authorized contract scope");
+  }
+  const fields = [
+    ["population", request.population, contractScopeValue(contract.scope, "population")],
+    ["dataClasses", request.dataClasses, contractScopeValue(contract.scope, "dataClasses")],
+    ["dataUse", request.dataUse, contractScopeValue(contract.scope, "dataUse", "data-use")],
+    ["conditions", request.conditions, contractScopeValue(contract.scope, "conditions")]
+  ] as const;
+  for (const [label, requested, authorized] of fields) {
+    if (requested !== undefined && (authorized === undefined || !sameScopeValue(requested, authorized))) {
+      throw new ProjectStoreError("forbidden", `run ${label} must match the authorized contract scope`);
+    }
+  }
+  return activity;
+}
+
+function authorizationContext(contract: WorkContractRecord): Omit<ActivityAuthorizationContext, "activity"> {
+  const scope = contract.scope;
+  const scopedDataClasses = contractScopeValue(scope, "dataClasses");
+  if (scopedDataClasses !== undefined && (!Array.isArray(scopedDataClasses) || scopedDataClasses.length === 0 || !scopedDataClasses.every((item) => typeof item === "string" && item.trim() !== ""))) {
+    throw new ProjectStoreError("forbidden", "authorized contract dataClasses scope is invalid");
+  }
+  const population = contractScopeValue(scope, "population");
+  const dataUse = contractScopeValue(scope, "dataUse", "data-use");
+  if (population !== undefined && (typeof population !== "string" || population.trim() === "")) {
+    throw new ProjectStoreError("forbidden", "authorized contract population scope is invalid");
+  }
+  if (dataUse !== undefined && (typeof dataUse !== "string" || dataUse.trim() === "")) {
+    throw new ProjectStoreError("forbidden", "authorized contract data-use scope is invalid");
+  }
+  return {
+    population: population as string | undefined,
+    dataClasses: scopedDataClasses as string[] | undefined,
+    dataUse: dataUse as string | undefined,
+    destination: contract.destination,
+    purpose: contract.purpose,
+    conditions: contractScopeValue(scope, "conditions")
+  };
+}
+
 export function proposeContract(handle: ProjectHandle, capability: unknown, request: WorkContractInput): WorkContractRecord {
   const owner = requireOwner(handle, capability);
   const result = insertContract(handle, { ...request, authorizationBasis: request.authorizationBasis ?? `owner:${owner.ownerId}` });
@@ -103,7 +191,9 @@ export function authorizeContract(handle: ProjectHandle, capability: unknown, re
     const objectiveMatches = pattern === "*" || (pattern.endsWith("*") ? contract.objective.startsWith(pattern.slice(0, -1)) : contract.objective === pattern);
     const inputsMatch = contract.inputVersionIds.every((id) => standing.inputVersionIds === undefined || standing.inputVersionIds.includes(id));
     const limitsMatch = (Object.keys(contract.limits) as Array<keyof WorkContractRecord["limits"]>).every((key) => key === "currency" || standing.limits[key] === undefined || Number(standing.limits[key]) >= Number(contract.limits[key]));
-    if (standing.role !== contract.permittedRoles[0] || (standing.destination !== contract.destination) || (standing.purpose !== contract.purpose) || !objectiveMatches || !inputsMatch || !limitsMatch) {throw new ProjectStoreError("forbidden", "standing permission does not match the contract");}
+    const rolesMatch = contract.permittedRoles.every((role) => role === standing.role);
+    const scopeMatches = standingScopeMatchesContract(standing.scope, contract.scope);
+    if (!rolesMatch || (standing.destination !== contract.destination) || (standing.purpose !== contract.purpose) || !objectiveMatches || !inputsMatch || !limitsMatch || !scopeMatches) {throw new ProjectStoreError("forbidden", "standing permission does not match the contract");}
     if (standing.expiresAt !== undefined && Date.parse(standing.expiresAt) <= Date.now()) {throw new ProjectStoreError("forbidden", "standing permission has expired");}
   }
   return authorizeStoredContract(handle, contract.id, contract.version);
@@ -120,17 +210,25 @@ export function queueRun(handle: ProjectHandle, capability: unknown, request: Wo
   const contract = getContract(handle, request.contractId, request.contractVersion);
   if (!contract || contract.status !== "authorized") {throw new ProjectStoreError("invalid-transition", "only an authorized contract can queue a run");}
   if ((request.destination !== undefined && request.destination !== contract.destination) || (request.purpose !== undefined && request.purpose !== contract.purpose)) {throw new ProjectStoreError("forbidden", "run destination and purpose must match the authorized contract");}
+  const activity = assertRunContextMatchesContract(contract, request);
   const role = request.role ?? contract.permittedRoles[0];
   if (!contract.permittedRoles.includes(role)) {throw new ProjectStoreError("forbidden", `role ${role} is not permitted by this contract`);}
+  const authorization = authorizationContext(contract);
+  if (activity !== undefined) {
+    const assessment = assessActivityAuthorization(handle, { activity, ...authorization });
+    if (!assessment.permitted) {
+      throw new ProjectStoreError("forbidden", `work run blocked by external authorization: ${assessment.reason}`);
+    }
+  }
   const inputVersionIds = normalizeInputIds(contract, request.inputVersionIds ?? request.expectedVersionIds);
-  const payload = { contractId: contract.id, version: contract.version, role, inputVersionIds, destination: request.destination ?? contract.destination, purpose: request.purpose ?? contract.purpose, reservation: request.reservation ?? null };
+  const payload = { contractId: contract.id, version: contract.version, role, inputVersionIds, ...authorization, reservation: request.reservation ?? null, activity };
   const payloadHash = hashPayload(payload);
   const duplicate = getRunByCommand(handle, request.commandId);
   if (duplicate) {
     if (duplicate.payloadHash !== payloadHash) {throw new ProjectStoreError("command-conflict", "command conflict: command ID was reused with a different work request");}
     return duplicate;
   }
-  const operation = createLifecycleOperation(handle, { id: newId("work-op"), operationType: "specialist-work", branchId: request.branchId ?? contract.branchId ?? null, inputSnapshot: { versionIds: inputVersionIds, contractId: contract.id, contractVersion: contract.version }, status: "queued" });
+  const operation = createLifecycleOperation(handle, { id: newId("work-op"), operationType: "specialist-work", branchId: request.branchId ?? contract.branchId ?? null, inputSnapshot: { versionIds: inputVersionIds, contractId: contract.id, contractVersion: contract.version, activity, ...authorization }, status: "queued" });
   const runId = newId("run");
   const reservation = requestedReservation(contract, request);
   const quote = request.providerQuote ?? (contract.destination === "local" ? { status: "known", amount: 0, currency: "USD", unit: "request" } : undefined);
@@ -146,8 +244,64 @@ export function retryRun(handle: ProjectHandle, capability: unknown, runId: stri
   const previous = getRun(handle, runId);
   if (!previous) {throw new ProjectStoreError("not-found", `work run not found: ${runId}`);}
   if (!["succeeded", "failed"].includes(previous.status)) {throw new ProjectStoreError("invalid-transition", "only a terminal run can be retried");}
+
+  const operation = getLifecycleOperation(handle, previous.operationId);
+  if (!operation) {throw new ProjectStoreError("invalid-transition", "terminal run has no lifecycle operation to retry");}
+  let activity: ResearchActivity | undefined;
+  let retryContext: Partial<Omit<ActivityAuthorizationContext, "activity">> = {};
+  try {
+    const parsed: unknown = JSON.parse(operation.inputSnapshot);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      throw new ProjectStoreError("forbidden", "run activity snapshot is invalid; retry blocked");
+    }
+    const snapshot = parsed as Record<string, unknown>;
+    const rawActivity = snapshot.activity;
+    if (rawActivity !== undefined) {
+      if (typeof rawActivity !== "string" || !RESEARCH_ACTIVITIES.includes(rawActivity as ResearchActivity)) {
+        throw new ProjectStoreError("forbidden", "run activity snapshot is invalid; retry blocked");
+      }
+      activity = rawActivity as ResearchActivity;
+    }
+    if (snapshot.population !== undefined && typeof snapshot.population !== "string") {
+      throw new ProjectStoreError("forbidden", "run authorization snapshot is invalid; retry blocked");
+    }
+    if (snapshot.dataClasses !== undefined && (!Array.isArray(snapshot.dataClasses) || !snapshot.dataClasses.every((item) => typeof item === "string"))) {
+      throw new ProjectStoreError("forbidden", "run authorization snapshot is invalid; retry blocked");
+    }
+    if (snapshot.dataUse !== undefined && typeof snapshot.dataUse !== "string") {
+      throw new ProjectStoreError("forbidden", "run authorization snapshot is invalid; retry blocked");
+    }
+    if (snapshot.destination !== undefined && typeof snapshot.destination !== "string") {
+      throw new ProjectStoreError("forbidden", "run authorization snapshot is invalid; retry blocked");
+    }
+    if (snapshot.purpose !== undefined && typeof snapshot.purpose !== "string") {
+      throw new ProjectStoreError("forbidden", "run authorization snapshot is invalid; retry blocked");
+    }
+    retryContext = {
+      population: snapshot.population as string | undefined,
+      dataClasses: snapshot.dataClasses as string[] | undefined,
+      dataUse: snapshot.dataUse as string | undefined,
+      destination: snapshot.destination as string | undefined,
+      purpose: snapshot.purpose as string | undefined,
+      conditions: snapshot.conditions
+    };
+  } catch (error: unknown) {
+    if (error instanceof ProjectStoreError) {throw error;}
+    throw new ProjectStoreError("forbidden", "run activity snapshot is unreadable; retry blocked");
+  }
+
   const command = commandId ?? `${previous.commandId}-retry-${newId("attempt")}`;
-  return queueRun(handle, capability, { contractId: previous.contractId, contractVersion: previous.contractVersion, commandId: command, role: previous.role, inputVersionIds: previous.inputVersionIds, branchId: getContract(handle, previous.contractId, previous.contractVersion)?.branchId, reservation: previous.reserved });
+  return queueRun(handle, capability, {
+    contractId: previous.contractId,
+    contractVersion: previous.contractVersion,
+    commandId: command,
+    role: previous.role,
+    inputVersionIds: previous.inputVersionIds,
+    branchId: getContract(handle, previous.contractId, previous.contractVersion)?.branchId,
+    reservation: previous.reserved,
+    activity,
+    ...retryContext
+  });
 }
 
 export function readAssignedInput(handle: ProjectHandle, capability: unknown, runId: string, versionId: string): import("./work-types.js").AssignedInput {
@@ -553,7 +707,7 @@ export async function acceptSubmission(handle: ProjectHandle, capability: unknow
     artifactVersionId = registerArtifactVersion(handle, { logicalId, version, content: submission.content, origin: submission.origin ?? "specialist-candidate", access: "full-text", dependencies: (submission.sourceVersionIds ?? []).map((versionId) => ({ versionId, relation: "derived-from" })) }).id;
   }
   const contract = getContract(handle, run.contractId, run.contractVersion);
-  const checkpoint = checkLifecyclePolicy(handle, operation, "acceptance", { destination: contract?.destination, purpose: contract?.purpose, allowCandidateSubmission: true });
+  const checkpoint = checkLifecyclePolicy(handle, operation, "acceptance", { capability, destination: contract?.destination, purpose: contract?.purpose, allowCandidateSubmission: true });
   if (checkpoint.status !== "passed") {
     insertCandidate(handle, { id: candidateId, runId: run.id, artifactVersionId, diagnostics, sourceVersionIds: submission.sourceVersionIds ?? run.inputVersionIds, status: "quarantined", reason: checkpoint.reason });
     return { status: "quarantined", runId: run.id, candidateId, artifactVersionId, reason: checkpoint.reason, diagnostics };

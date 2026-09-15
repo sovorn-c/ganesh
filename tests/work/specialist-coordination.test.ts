@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   createOwnerCapability,
   createWorkerCapabilities,
+  inspectWork,
   listDisagreements,
   queueRoleRun,
   readRoleSnapshot,
@@ -31,6 +32,7 @@ test("e05s02 role snapshots omit conversation and unassigned material while disa
     const disagreement = recordDisagreement(fixture.handle, worker, { contractId: `${authorized.id}@1`, question: "is this sound?", leftRole: "methodology", rightRole: "reviewer", leftCandidateVersionId: "candidate-left", rightCandidateVersionId: "candidate-right", leftSourceBasis: [input.id], rightSourceBasis: [input.id] });
     assert.equal(disagreement.contractId, authorized.id);
     assert.equal(listDisagreements(fixture.handle, `${authorized.id}@1`).length, 1);
+    assert.equal(inspectWork(fixture.handle, methodology.id).disagreements.length, 1);
     assert.notEqual(methodology.id, reviewer.id);
     const revision = requestTargetedRevision(fixture.handle, worker, disagreement.id);
     assert.equal(revision.status, "queued");

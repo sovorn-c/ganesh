@@ -75,7 +75,8 @@ describe("Provider cancellation and late results", () => {
         },
       };
 
-      // In the wait callback between attempt 1 and attempt 2, cancel the run!
+      // In the wait callback between attempt 1 and attempt 2, cancel dispatch via its signal.
+      const controller = new AbortController();
       const result = await dispatchRun(
         fixture.handle,
         owner,
@@ -83,11 +84,9 @@ describe("Provider cancellation and late results", () => {
         sessionPort,
         {
           minIntervalMs: 50,
+          signal: controller.signal,
           wait: async () => {
-            cancelRun(fixture.handle, owner, {
-              runId: run.id,
-              reason: "cancelled between attempts",
-            });
+            controller.abort(new Error("cancelled between attempts"));
           },
         },
       );

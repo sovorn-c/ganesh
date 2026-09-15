@@ -15,7 +15,7 @@ STAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 ruby -ryaml -rtime - "$STATE_YAML" "$ACTION" "$SKILL" "$STAMP" <<'RUBY'
 path, action, skill, stamp = ARGV
 data = if File.file?(path)
-  YAML.safe_load(File.read(path), [], [], false) || {}
+  YAML.safe_load(File.read(path), aliases: false) || {}
 else
   {}
 end

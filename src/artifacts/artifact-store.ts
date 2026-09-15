@@ -1,6 +1,6 @@
 // story: e02s01
 import { closeSync, existsSync, fsyncSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import {
   type ArtifactInspection,
   type ArtifactVersionInput,
@@ -31,14 +31,7 @@ function recordFor(handle: ProjectHandle, row: ArtifactRow): ArtifactVersionReco
   if (typeof row.storage_path === "string") {
     try {
       const candidate = safeChildPath(handle.project.artifactRoot, row.storage_path, "stored artifact path");
-      if (existsSync(candidate) && lstatSync(candidate).isSymbolicLink()) {
-        throw new ProjectStoreError("path-escape", "stored artifact path is a symbolic link");
-      }
-      const realRoot = realpathSync(handle.project.artifactRoot);
-      const realParent = realpathSync(dirname(candidate));
-      if (!pathInside(realRoot, realParent)) {
-        throw new ProjectStoreError("path-escape", "stored artifact path resolves outside the artifact root");
-      }
+      assertSafeStoredPath(handle.project.artifactRoot, candidate, "stored artifact path");
       storedPath = candidate;
     } catch (error) {
       if (error instanceof ProjectStoreError) {
@@ -90,6 +83,43 @@ function flushFile(path: string): void {
   }
 }
 
+function assertNoSymlinkComponents(root: string, candidate: string, label: string): void {
+  let current = root;
+  const components = relative(root, candidate).split(sep).filter(Boolean);
+  for (const component of components) {
+    current = join(current, component);
+    try {
+      if (lstatSync(current).isSymbolicLink()) {
+        throw new ProjectStoreError("path-escape", `${label} contains a symbolic-link component`);
+      }
+    } catch (error) {
+      if (error instanceof ProjectStoreError) {
+        throw error;
+      }
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return;
+      }
+      throw new ProjectStoreError("invalid-path", `${label} could not be inspected safely`);
+    }
+  }
+}
+
+function assertSafeStoredPath(root: string, candidate: string, label: string): void {
+  assertNoSymlinkComponents(root, candidate, label);
+  try {
+    const realRoot = realpathSync(root);
+    const realParent = realpathSync(dirname(candidate));
+    if (!pathInside(realRoot, realParent)) {
+      throw new ProjectStoreError("path-escape", `${label} resolves outside the artifact root`);
+    }
+  } catch (error) {
+    if (error instanceof ProjectStoreError) {
+      throw error;
+    }
+    throw new ProjectStoreError("invalid-path", `${label} parent could not be resolved safely`);
+  }
+}
+
 export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVersionInput): ArtifactVersionRecord {
   assertWritable(handle);
   assertIdentifier(input.logicalId, "logicalId");
@@ -125,17 +155,9 @@ export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVe
 
   try {
     if (content !== undefined) {
+      assertNoSymlinkComponents(artifactRoot, finalPath, "artifact storage path");
       mkdirSync(dirname(finalPath), { recursive: true });
-      try {
-        if (!pathInside(realpathSync(artifactRoot), realpathSync(dirname(finalPath)))) {
-          throw new ProjectStoreError("path-escape", "artifact storage path resolves outside the artifact root");
-        }
-      } catch (error) {
-        if (error instanceof ProjectStoreError) {
-          throw error;
-        }
-        throw new ProjectStoreError("invalid-path", "artifact storage parent could not be resolved safely");
-      }
+      assertSafeStoredPath(artifactRoot, finalPath, "artifact storage path");
       if (input.failAt === "before-finalize") {
         throw new ProjectStoreError("registration-failed", "injected failure before artifact finalization");
       }
@@ -212,6 +234,37 @@ export function registerArtifactVersion(handle: ProjectHandle, input: ArtifactVe
       } catch { /* best effort */ }
     }
     throw error;
+  }
+}
+
+/** Remove an artifact that was registered before its owning domain row committed. */
+export function discardArtifactVersion(handle: ProjectHandle, versionId: string): void {
+  assertWritable(handle);
+  const row = handle.db.prepare("SELECT storage_path FROM artifact_versions WHERE id = ?").get(versionId) as { storage_path?: unknown } | undefined;
+  if (row === undefined) {
+    return;
+  }
+
+  let path: string | undefined;
+  if (typeof row.storage_path === "string") {
+    path = safeChildPath(handle.project.artifactRoot, row.storage_path, "stored artifact path");
+    assertSafeStoredPath(handle.project.artifactRoot, path, "stored artifact path");
+  }
+
+  // Delete metadata first. If filesystem cleanup fails, an unreferenced file is
+  // safer than a row that points at missing bytes; the next cleanup can retry.
+  transaction(handle.db, () => {
+    const reference = handle.db.prepare(
+      "SELECT 1 AS present FROM dependencies WHERE artifact_version_id = ? OR dependency_version_id = ? LIMIT 1"
+    ).get(versionId, versionId);
+    if (reference !== undefined) {
+      throw new ProjectStoreError("invalid-transition", `artifact version ${versionId} is referenced by another artifact`);
+    }
+    handle.db.prepare("DELETE FROM artifact_versions WHERE id = ?").run(versionId);
+  });
+
+  if (path !== undefined) {
+    rmSync(path, { force: true });
   }
 }
 

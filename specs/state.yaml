@@ -1,18 +1,21 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
+active_flow: review
 active_epic: e10
-active_story: null
+active_story:
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: >-
-    E09 research framing and method-sensitive design local release complete: merged to local main, 5 stories done, capsule archived to specs/epics/archive/e09-method-sensitive-design. Ready for /bp-plan on the next eligible epic (e10).
-  last_step_completed: e09 release-branch local integration complete
+  next_skill: respond-review
+  next_command: "/respond-review"
+  summary: E10 whole-epic review pass 4 returned PASS after all pass-3 findings and
+    supplemental lifecycle, provenance, replay, retention, and authority fixes. Verification
+    is complete; do not merge, release, or claim production readiness.
+  last_step_completed: E10 whole-epic review pass 4 completed with PASS verdict
   required_reading:
   - CONVENTIONS.md
-  - specs/release-plan.yaml
-  - specs/tech-architecture/tech-stack.md
+  - specs/epics/e10-ethics-authorization/epic.yaml
+  - specs/tech-architecture/e10-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/verifications/e10-verify.yaml
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -48,6 +51,8 @@ discovery:
   e09_build: complete
   e09_review: complete_local_release
   e09_release: complete_local_release
+  e10_plan: approved_exact_revision
+  e10_build: complete
   environment:
     status: verified_node24_target
     runtime:
@@ -201,6 +206,23 @@ blueprint:
   first_eligible_epic: e10
   first_tracer_bullet_epic: e05
   selected_epic: e10
+  e10_plan: approved_exact_revision
+  e10_plan_revision: sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe
+  e10_plan_approved_at: '2026-09-14T10:49:12Z'
+  e10_plan_approval_source: explicit_owner_message
+  e10_plan_artifacts:
+  - specs/epics/e10-ethics-authorization/epic.yaml
+  - specs/epics/e10-ethics-authorization/e10s01-activity-specific-risk-registers.md
+  - specs/epics/e10-ethics-authorization/e10s01-tasks.yaml
+  - specs/epics/e10-ethics-authorization/e10s02-data-management-and-research-retention-plans.md
+  - specs/epics/e10-ethics-authorization/e10s02-tasks.yaml
+  - specs/epics/e10-ethics-authorization/e10s03-nz-guidance-citations-and-consultation-limits.md
+  - specs/epics/e10-ethics-authorization/e10s03-tasks.yaml
+  - specs/epics/e10-ethics-authorization/e10s04-external-authorization-registry-and-work-blocking.md
+  - specs/epics/e10-ethics-authorization/e10s04-tasks.yaml
+  - specs/tech-architecture/e10-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e10/THREAT_MODEL.md
   e06_plan: approved_exact_revision
   e06_plan_revision: sha256:ac23b8069f2390638f6d26d2c662766590fbed5bf71022cdafcc9510558e9440
   e06_plan_approved_at: '2026-09-11T00:55:28Z'
@@ -229,7 +251,7 @@ blueprint:
   implementation_start: not_authorized
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e08_e14_e15_e16_e09_complete;e10_pending
+  story_planning: e01_e09_e14_e15_e16_complete;e10_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -346,6 +368,7 @@ metrics:
       calls: 7
       total_seconds: 1694.0
       avg_seconds: 242.0
+      _start: '2026-09-15T02:10:22Z'
     plan-tests:
       calls: 2
       total_seconds: 440.0

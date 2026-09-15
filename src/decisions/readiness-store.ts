@@ -3,6 +3,7 @@
 import { inspectArtifactVersion } from "../artifacts/artifact-store.js";
 import { getBranch, snapshotReferences } from "../branches/branch-store.js";
 import { evaluatePolicy } from "../policy/policy-store.js";
+import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
 import { assertWritable } from "../project/project-store.js";
 import { ProjectStoreError, type ProjectHandle } from "../project/project-types.js";
 import { transaction } from "../persistence/schema.js";
@@ -37,6 +38,7 @@ export function assessReadiness(handle: ProjectHandle, request: ReadinessRequest
   const allVersions = [...new Set([...commitment.selectedCandidateVersionIds, ...commitment.dependencyVersionIds])];
   const causes: string[] = [];
   const affectedVersionIds = new Set<string>();
+  let authorizationBlocked = false;
   if (branch.revision !== commitment.branchRevision) {
     causes.push("current branch revision differs from the approved commitment");
   }
@@ -94,12 +96,31 @@ export function assessReadiness(handle: ProjectHandle, request: ReadinessRequest
       }
     }
   }
+  if (request.activity !== undefined) {
+    const authorization = assessActivityAuthorization(handle, {
+      activity: request.activity,
+      population: request.population,
+      dataClasses: request.dataClasses,
+      dataUse: request.dataUse,
+      destination: request.destination,
+      purpose: request.purpose,
+      conditions: request.conditions,
+      requireExplicitScope: true
+    });
+    if (!authorization.permitted) {
+      authorizationBlocked = authorization.status !== "needs-review";
+      causes.push(`current external authorization denied readiness: ${authorization.reason}`);
+      for (const versionId of allVersions) {
+        affectedVersionIds.add(versionId);
+      }
+    }
+  }
   if (packetStatusValue === "archived" || packetStatusValue === "superseded") {
     causes.push(`packet is ${packetStatusValue}`);
   }
-  const status = causes.some((cause) => /content is unavailable|content is missing|content is corrupt|policy context incomplete|policy denied|packet is/.test(cause)) ? "blocked" : causes.length > 0 ? "needs-review" : "ready";
+  const status = authorizationBlocked || causes.some((cause) => /content is unavailable|content is missing|content is corrupt|policy context incomplete|policy denied|packet is/.test(cause)) ? "blocked" : causes.length > 0 ? "needs-review" : "ready";
   const reason = status === "ready" ? "approved commitment is ready under the current project state" : causes.join("; ");
-  const nextAction = status === "ready" ? "proceed" : status === "needs-review" ? "review impacted versions and issue a new decision if needed" : /policy denied/.test(reason) ? "revalidate current policy" : /content is/.test(reason) ? "restore or replace unavailable evidence" : "resolve the blocking condition before use";
+  const nextAction = status === "ready" ? "proceed" : status === "needs-review" ? "review impacted versions and issue a new decision if needed" : /external authorization/.test(reason) ? "obtain or revalidate external authorization" : /policy denied/.test(reason) ? "revalidate current policy" : /content is/.test(reason) ? "restore or replace unavailable evidence" : "resolve the blocking condition before use";
   const createdAt = now();
   const assessmentId = id("readiness");
   const commandId = request.commandId ?? `readiness-${assessmentId}`;

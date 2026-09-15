@@ -1,5 +1,6 @@
 // story: e03s04
 import type { ExecutionMode } from "../runtime/preflight-types.js";
+import type { ActivityAuthorizationContext, ResearchActivity } from "../ethics/ethics-types.js";
 
 export type LifecyclePhase = "dispatch" | "external" | "resume" | "acceptance";
 
@@ -89,6 +90,11 @@ import type { BashGuardConfig } from "../authority/capability-types.js";
 export interface LifecycleCheckOptions {
   readonly destination?: string;
   readonly purpose?: string;
+  readonly activity?: ResearchActivity;
+  readonly population?: ActivityAuthorizationContext["population"];
+  readonly dataClasses?: ActivityAuthorizationContext["dataClasses"];
+  readonly dataUse?: ActivityAuthorizationContext["dataUse"];
+  readonly conditions?: ActivityAuthorizationContext["conditions"];
   readonly capability?: unknown;
   readonly executionMode?: ExecutionMode;
   readonly command?: string;

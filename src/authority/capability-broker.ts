@@ -17,7 +17,9 @@ import {
 } from "./capability-types.js";
 
 const OWNER_SECRET = Symbol("OWNER_SECRET");
+const OWNER_CONSTRUCTOR_SECRET = Symbol("OWNER_CONSTRUCTOR_SECRET");
 const WORKER_SECRET = Symbol("WORKER_SECRET");
+const ownerCapabilities = new WeakSet<object>();
 
 export class OwnerCapability {
   readonly [OWNER_SECRET] = true;
@@ -25,17 +27,22 @@ export class OwnerCapability {
   readonly ownerId: string;
   readonly createdAt: string;
 
-  constructor(ownerId: string) {
+  constructor(ownerId: string, constructorSecret?: symbol) {
+    if (constructorSecret !== OWNER_CONSTRUCTOR_SECRET) {
+      throw new ProjectStoreError("forbidden", "OwnerCapability must be created by the trusted capability factory");
+    }
     if (!ownerId) {
       throw new ProjectStoreError("invalid-argument", "ownerId is required");
     }
     this.ownerId = ownerId;
     this.createdAt = new Date().toISOString();
+    ownerCapabilities.add(this);
+    Object.freeze(this);
   }
 }
 
 export function isOwnerCapability(obj: unknown): obj is OwnerCapability {
-  return typeof obj === "object" && obj !== null && (obj as Record<symbol, unknown>)[OWNER_SECRET] === true;
+  return typeof obj === "object" && obj !== null && ownerCapabilities.has(obj);
 }
 
 export class WorkerCapability {
@@ -76,7 +83,7 @@ export function isWorkerCapability(obj: unknown): obj is WorkerCapability {
 }
 
 export function createOwnerCapability(ownerId: string): OwnerCapability {
-  return new OwnerCapability(ownerId);
+  return new OwnerCapability(ownerId, OWNER_CONSTRUCTOR_SECRET);
 }
 
 export function createWorkerCapabilities(scope: WorkerCapabilityScope): WorkerCapability {

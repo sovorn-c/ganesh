@@ -1,5 +1,7 @@
 // story: e04s04
 
+import type { ResearchActivity } from "../ethics/ethics-types.js";
+
 export type ExternalAuthorizationStatus =
   | "not-required"
   | "documented-approved"
@@ -66,6 +68,11 @@ export interface CommitmentGateRequest {
   readonly branchId?: string;
   readonly destination?: string;
   readonly purpose?: string;
+  readonly activity?: ResearchActivity;
+  readonly population?: string;
+  readonly dataClasses?: readonly string[];
+  readonly dataUse?: string;
+  readonly conditions?: unknown;
   readonly externalAuthorization?: ExternalAuthorizationStatus | { readonly status: ExternalAuthorizationStatus; readonly basis?: string };
   readonly operationId?: string;
   readonly lifecyclePhase?: "dispatch" | "external" | "resume" | "acceptance";

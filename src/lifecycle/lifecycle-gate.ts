@@ -6,6 +6,8 @@ import { isoNow, newId } from "../persistence/storage-utils.js";
 import { getClassification, evaluatePolicy, listPermissions } from "../policy/policy-store.js";
 import { effectiveRestriction } from "../policy/disclosure-gateway.js";
 import { isOwnerCapability, isWorkerCapability, executeLocalCommand } from "../authority/capability-broker.js";
+import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
+import { RESEARCH_ACTIVITIES, type ActivityAuthorizationContext, type ResearchActivity } from "../ethics/ethics-types.js";
 import type {
   AcceptanceResult,
   CandidateOutput,
@@ -19,6 +21,86 @@ import type {
   ResumeResult,
   RevocationFence
 } from "./lifecycle-types.js";
+
+type SnapshotAuthorizationContext = {
+  population?: ActivityAuthorizationContext["population"];
+  dataClasses?: ActivityAuthorizationContext["dataClasses"];
+  dataUse?: ActivityAuthorizationContext["dataUse"];
+  destination?: ActivityAuthorizationContext["destination"];
+  purpose?: ActivityAuthorizationContext["purpose"];
+  conditions?: ActivityAuthorizationContext["conditions"];
+};
+
+type SnapshotContextResult = {
+  readonly context: SnapshotAuthorizationContext;
+  readonly invalidReason?: string;
+};
+
+function snapshotObject(snapshot: string): Record<string, unknown> | undefined {
+  try {
+    const parsed: unknown = JSON.parse(snapshot);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : undefined;
+  } catch {
+    // E03 accepts a raw artifact version ID as an input snapshot.
+    return undefined;
+  }
+}
+
+function snapshotActivity(snapshot: string): ResearchActivity | "invalid" | undefined {
+  const parsed = snapshotObject(snapshot);
+  const value = parsed?.activity;
+  if (value === undefined) {
+    return undefined;
+  }
+  return typeof value === "string" && RESEARCH_ACTIVITIES.includes(value as ResearchActivity)
+    ? value as ResearchActivity
+    : "invalid";
+}
+
+function snapshotAuthorizationContext(snapshot: string): SnapshotContextResult {
+  const parsed = snapshotObject(snapshot);
+  if (parsed === undefined) {
+    return { context: {} };
+  }
+  const context: SnapshotAuthorizationContext = {};
+  for (const key of ["population", "dataUse", "destination", "purpose"] as const) {
+    if (parsed[key] !== undefined) {
+      if (typeof parsed[key] !== "string" || parsed[key].trim() === "") {
+        return { context: {}, invalidReason: `operation snapshot ${key} is malformed` };
+      }
+      context[key] = parsed[key];
+    }
+  }
+  if (parsed.dataClasses !== undefined) {
+    if (!Array.isArray(parsed.dataClasses) || parsed.dataClasses.length === 0 || !parsed.dataClasses.every((item) => typeof item === "string" && item.trim() !== "")) {
+      return { context: {}, invalidReason: "operation snapshot dataClasses is malformed" };
+    }
+    context.dataClasses = parsed.dataClasses as string[];
+  }
+  if (parsed.conditions !== undefined) {
+    if (parsed.conditions === null) {
+      return { context: {}, invalidReason: "operation snapshot conditions are malformed" };
+    }
+    context.conditions = parsed.conditions;
+  }
+  return { context };
+}
+
+function sameSnapshotValue(left: unknown, right: unknown): boolean {
+  if (Array.isArray(left) || Array.isArray(right)) {
+    return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((value, index) => sameSnapshotValue(value, right[index]));
+  }
+  if (typeof left === "object" && left !== null && typeof right === "object" && right !== null) {
+    const leftRecord = left as Record<string, unknown>;
+    const rightRecord = right as Record<string, unknown>;
+    const keys = Object.keys(leftRecord).sort();
+    const rightKeys = Object.keys(rightRecord).sort();
+    return keys.length === rightKeys.length && keys.every((key, index) => key === rightKeys[index] && sameSnapshotValue(leftRecord[key], rightRecord[key]));
+  }
+  return left === right;
+}
 
 function parseInputVersions(snapshot: string): string[] {
   if (!snapshot || typeof snapshot !== "string") {
@@ -205,7 +287,8 @@ export function checkLifecyclePolicy(
   phase: LifecyclePhase,
   options?: LifecycleCheckOptions
 ): PolicyCheckpoint {
-  const op = typeof operation === "string" ? getLifecycleOperation(handle, operation) : operation;
+  const operationId = typeof operation === "string" ? operation : operation.id;
+  const op = getLifecycleOperation(handle, operationId);
   if (!op) {
     throw new ProjectStoreError("not-found", "lifecycle operation not found");
   }
@@ -238,6 +321,114 @@ export function checkLifecyclePolicy(
       reason: "operation is cancelled",
       createdAt
     });
+  }
+
+  // 2b. External authorization is bound to the operation snapshot. A caller
+  // cannot relabel a data-collection operation as literature-only at check time.
+  const recordedActivity = snapshotActivity(op.inputSnapshot);
+  const snapshotContextResult = snapshotAuthorizationContext(op.inputSnapshot);
+  const snapshotContext = snapshotContextResult.context;
+  if (recordedActivity !== undefined && snapshotContextResult.invalidReason !== undefined) {
+    updateLifecycleOperationStatus(handle, op.id, "blocked");
+    return persistCheckpoint(handle, {
+      id: newId("chk"),
+      operationId: op.id,
+      phase,
+      status: "blocked",
+      reason: snapshotContextResult.invalidReason,
+      createdAt
+    });
+  }
+  if (recordedActivity === "invalid") {
+    updateLifecycleOperationStatus(handle, op.id, "blocked");
+    return persistCheckpoint(handle, {
+      id: newId("chk"),
+      operationId: op.id,
+      phase,
+      status: "blocked",
+      reason: "operation snapshot contains an invalid research activity",
+      createdAt
+    });
+  }
+  if (options?.activity !== undefined && recordedActivity === undefined) {
+    updateLifecycleOperationStatus(handle, op.id, "blocked");
+    return persistCheckpoint(handle, {
+      id: newId("chk"),
+      operationId: op.id,
+      phase,
+      status: "blocked",
+      reason: "named research activity must be bound to the persisted operation snapshot",
+      createdAt
+    });
+  }
+  if (recordedActivity !== undefined && options?.activity !== undefined && recordedActivity !== options.activity) {
+    updateLifecycleOperationStatus(handle, op.id, "blocked");
+    return persistCheckpoint(handle, {
+      id: newId("chk"),
+      operationId: op.id,
+      phase,
+      status: "blocked",
+      reason: `requested activity ${options.activity} does not match operation snapshot activity ${recordedActivity}`,
+      createdAt
+    });
+  }
+  for (const key of ["population", "dataClasses", "dataUse", "destination", "purpose", "conditions"] as const) {
+    const recorded = snapshotContext[key];
+    const requested = options?.[key];
+    if (recordedActivity !== undefined && recorded !== undefined && requested !== undefined && !sameSnapshotValue(recorded, requested)) {
+      updateLifecycleOperationStatus(handle, op.id, "blocked");
+      return persistCheckpoint(handle, {
+        id: newId("chk"),
+        operationId: op.id,
+        phase,
+        status: "blocked",
+        reason: `requested ${key} does not match operation snapshot ${key}`,
+        createdAt
+      });
+    }
+  }
+  const activity = recordedActivity;
+  if (activity !== undefined) {
+    const assessment = assessActivityAuthorization(handle, {
+      activity,
+      population: snapshotContext.population,
+      dataClasses: snapshotContext.dataClasses,
+      dataUse: snapshotContext.dataUse,
+      destination: snapshotContext.destination,
+      purpose: snapshotContext.purpose,
+      conditions: snapshotContext.conditions
+    });
+    if (!assessment.permitted) {
+      updateLifecycleOperationStatus(handle, op.id, "blocked");
+      let fenceReason = assessment.reason;
+      if (phase === "external") {
+        fenceReason += " (cannot-recall)";
+      }
+      if (assessment.status === "withdrawn" || assessment.status === "expired") {
+        fenceRevokedOperation(handle, op.id, fenceReason, options?.actor ?? "system");
+      }
+      return persistCheckpoint(handle, {
+        id: newId("chk"),
+        operationId: op.id,
+        phase,
+        status: "blocked",
+        reason: fenceReason,
+        createdAt
+      });
+    }
+    for (const key of ["population", "dataClasses", "dataUse", "destination", "purpose", "conditions"] as const) {
+      if (options?.[key] !== undefined && snapshotContext[key] === undefined) {
+        updateLifecycleOperationStatus(handle, op.id, "blocked");
+        return persistCheckpoint(handle, {
+          id: newId("chk"),
+          operationId: op.id,
+          phase,
+          status: "blocked",
+          reason: `requested ${key} is not present in the operation snapshot`,
+          createdAt
+        });
+      }
+    }
   }
 
   // 3. Input currency & classification & policy
@@ -355,6 +546,23 @@ export function checkLifecyclePolicy(
   }
 
   // 4. Capability & canonical write check for acceptance
+  if (options?.allowCandidateSubmission === true) {
+    const cap = options.capability;
+    const candidateAuthorized = isOwnerCapability(cap)
+      ? cap.ownerId === handle.project.ownerId
+      : isWorkerCapability(cap) && cap.projectId === handle.project.id && cap.canPerform("work:submit-candidate");
+    if (!candidateAuthorized) {
+      updateLifecycleOperationStatus(handle, op.id, "blocked");
+      return persistCheckpoint(handle, {
+        id: newId("chk"),
+        operationId: op.id,
+        phase,
+        status: "denied",
+        reason: "missing scoped capability for candidate submission",
+        createdAt
+      });
+    }
+  }
   if ((phase === "acceptance" && options?.allowCandidateSubmission !== true) || options?.requireCanonicalWrite) {
     const cap = options?.capability;
     if (!cap) {
@@ -370,8 +578,29 @@ export function checkLifecyclePolicy(
     }
 
     if (isOwnerCapability(cap)) {
-      // Owner capability is always authorized for canonical write
+      if (cap.ownerId !== handle.project.ownerId) {
+        updateLifecycleOperationStatus(handle, op.id, "blocked");
+        return persistCheckpoint(handle, {
+          id: newId("chk"),
+          operationId: op.id,
+          phase,
+          status: "denied",
+          reason: "owner capability does not belong to this project",
+          createdAt
+        });
+      }
     } else if (isWorkerCapability(cap)) {
+      if (cap.projectId !== handle.project.id) {
+        updateLifecycleOperationStatus(handle, op.id, "blocked");
+        return persistCheckpoint(handle, {
+          id: newId("chk"),
+          operationId: op.id,
+          phase,
+          status: "denied",
+          reason: "worker capability does not belong to this project",
+          createdAt
+        });
+      }
       if (!cap.allowedOperations.includes("canonical-project-write")) {
         updateLifecycleOperationStatus(handle, op.id, "blocked");
         return persistCheckpoint(handle, {
@@ -435,12 +664,21 @@ export function acceptCandidate(
   options?: LifecycleCheckOptions
 ): AcceptanceResult {
   assertWritable(handle);
-  const op = typeof operation === "string" ? getLifecycleOperation(handle, operation) : operation;
+  const operationId = typeof operation === "string" ? operation : operation.id;
+  const op = getLifecycleOperation(handle, operationId);
   if (!op) {
     throw new ProjectStoreError("not-found", "lifecycle operation not found");
   }
+  if (["accepted", "completed", "rejected"].includes(op.status)) {
+    return {
+      status: "blocked",
+      operationId: op.id,
+      candidateId: candidate.candidateId,
+      reason: `operation is already ${op.status}`
+    };
+  }
 
-  const checkpoint = checkLifecyclePolicy(handle, op, "acceptance", options);
+  const checkpoint = checkLifecyclePolicy(handle, op.id, "acceptance", options);
 
   if (checkpoint.status !== "passed") {
     // Quarantine output!
@@ -474,13 +712,26 @@ export function acceptCandidate(
     };
   }
 
-  // Checkpoint passed: accept candidate
+  // Checkpoint passed: accept candidate. The conditional update closes the
+  // race where two callers pass the checkpoint before either writes status.
   const acceptedAt = isoNow();
+  let accepted = false;
   transaction(handle.db, () => {
-    handle.db
-      .prepare("UPDATE lifecycle_operations SET status = 'accepted', updated_at = ? WHERE id = ?")
+    const result = handle.db
+      .prepare("UPDATE lifecycle_operations SET status = 'accepted', updated_at = ? WHERE id = ? AND status NOT IN ('accepted', 'completed', 'rejected', 'cancelled', 'fenced')")
       .run(acceptedAt, op.id);
+    accepted = result.changes === 1;
   });
+  if (!accepted) {
+    const current = getLifecycleOperation(handle, op.id);
+    return {
+      status: "blocked",
+      operationId: op.id,
+      candidateId: candidate.candidateId,
+      reason: `operation is already ${current?.status ?? "unavailable"}`,
+      checkpoint
+    };
+  }
 
   return {
     status: "accepted",
@@ -497,12 +748,13 @@ export function resumeOperation(
   options?: LifecycleCheckOptions
 ): ResumeResult {
   assertWritable(handle);
-  const op = typeof operation === "string" ? getLifecycleOperation(handle, operation) : operation;
+  const operationId = typeof operation === "string" ? operation : operation.id;
+  const op = getLifecycleOperation(handle, operationId);
   if (!op) {
     throw new ProjectStoreError("not-found", "lifecycle operation not found");
   }
 
-  const checkpoint = checkLifecyclePolicy(handle, op, "resume", options);
+  const checkpoint = checkLifecyclePolicy(handle, op.id, "resume", options);
 
   if (checkpoint.status !== "passed") {
     updateLifecycleOperationStatus(handle, op.id, "blocked");
