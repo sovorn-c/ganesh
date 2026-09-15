@@ -18,10 +18,10 @@ development_status:
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e10_approved
-active_epic: e10
-active_story: ~
-note: E10 plan revision sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe is owner-approved. Implementation starts only on /bp-build from e10s01. E01-E09, E14, E15 and E16 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed. Approval is not a build, task-passing claim, or ethics-committee certification.
+planning_level: e10_complete
+active_epic: none
+active_story: none
+note: E10 ethics and external authorization was locally released on main under approved plan revision sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe. Four stories and 16 task checks passed; the whole-epic review and final local validation passed. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
