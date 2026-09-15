@@ -28,6 +28,7 @@ import {
   createE16Schema,
   createE09Schema,
   createE10Schema,
+  createE12Schema,
   createSchema,
   configureDatabase,
   readSchemaVersion,
@@ -377,6 +378,7 @@ export function openProject(
       createE16Schema(db);
       createE09Schema(db);
       createE10Schema(db);
+      createE12Schema(db);
     } catch (error) {
       try {
         db.close();

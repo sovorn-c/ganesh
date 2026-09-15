@@ -110,6 +110,7 @@ export function createSchema(db: DatabaseSync): void {
   createE16Schema(db);
   createE09Schema(db);
   createE10Schema(db);
+  createE12Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -1241,6 +1242,172 @@ export function createE10Schema(db: DatabaseSync): void {
   ensureE10Column(db, "guidance_citations", "evidence_version_ids", "TEXT NOT NULL DEFAULT '[]'");
 }
 
+export function createE12Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS progress_operations (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      entity_id TEXT,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_progress_operations_kind ON progress_operations(kind);
+
+    CREATE TABLE IF NOT EXISTS protocol_versions (
+      id TEXT PRIMARY KEY,
+      version_label TEXT NOT NULL,
+      procedure_text TEXT NOT NULL,
+      rq_version_ids TEXT NOT NULL DEFAULT '[]',
+      design_comparison_id TEXT,
+      sampling_plan_id TEXT,
+      analysis_plan_id TEXT,
+      risk_register_item_ids TEXT NOT NULL DEFAULT '[]',
+      authorization_id TEXT,
+      activity TEXT,
+      population TEXT,
+      data_use TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_protocol_versions_branch ON protocol_versions(branch_id, status);
+
+    CREATE TABLE IF NOT EXISTS progress_records (
+      id TEXT PRIMARY KEY,
+      protocol_version_id TEXT NOT NULL REFERENCES protocol_versions(id),
+      summary TEXT NOT NULL,
+      occurred_on TEXT,
+      activity TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      retrospective INTEGER NOT NULL DEFAULT 0,
+      corrects_progress_id TEXT REFERENCES progress_records(id),
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_progress_records_protocol ON progress_records(protocol_version_id, created_at);
+
+    CREATE TABLE IF NOT EXISTS reported_execution_evidence (
+      id TEXT PRIMARY KEY,
+      protocol_version_id TEXT NOT NULL REFERENCES protocol_versions(id),
+      summary TEXT NOT NULL,
+      evidence_version_ids TEXT NOT NULL DEFAULT '[]',
+      reproduced INTEGER NOT NULL DEFAULT 0 CHECK (reproduced = 0),
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_reported_execution_protocol ON reported_execution_evidence(protocol_version_id, created_at);
+
+    CREATE TABLE IF NOT EXISTS progress_candidates (
+      id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      specialist_role TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      status TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_progress_candidates_kind ON progress_candidates(kind);
+
+    CREATE TABLE IF NOT EXISTS amendments (
+      id TEXT PRIMARY KEY,
+      from_protocol_version_id TEXT NOT NULL REFERENCES protocol_versions(id),
+      successor_protocol_version_id TEXT NOT NULL REFERENCES protocol_versions(id),
+      change_summary TEXT NOT NULL,
+      population_changed INTEGER NOT NULL DEFAULT 0,
+      data_use_changed INTEGER NOT NULL DEFAULT 0,
+      activity TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_amendments_source ON amendments(from_protocol_version_id, branch_id);
+
+    CREATE TABLE IF NOT EXISTS deviations (
+      id TEXT PRIMARY KEY,
+      protocol_version_id TEXT NOT NULL REFERENCES protocol_versions(id),
+      summary TEXT NOT NULL,
+      occurred_on TEXT,
+      population_changed INTEGER NOT NULL DEFAULT 0,
+      data_use_changed INTEGER NOT NULL DEFAULT 0,
+      activity TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_deviations_protocol ON deviations(protocol_version_id, branch_id);
+
+    CREATE TABLE IF NOT EXISTS reported_prior_commitments (
+      id TEXT PRIMARY KEY,
+      statement TEXT NOT NULL,
+      attributed_actor TEXT NOT NULL,
+      source_artifact_version_id TEXT REFERENCES artifact_versions(id),
+      source_kind TEXT NOT NULL,
+      occurred_on TEXT,
+      protocol_version_id TEXT REFERENCES protocol_versions(id),
+      authenticity TEXT NOT NULL CHECK (authenticity = 'reported'),
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT NOT NULL REFERENCES branches(id),
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_reported_prior_commitments_branch ON reported_prior_commitments(branch_id, created_at);
+
+    CREATE TRIGGER IF NOT EXISTS progress_records_insert_only_update
+      BEFORE UPDATE ON progress_records
+      BEGIN SELECT RAISE(ABORT, 'progress records are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS progress_records_insert_only_delete
+      BEFORE DELETE ON progress_records
+      BEGIN SELECT RAISE(ABORT, 'progress records are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS reported_execution_insert_only_update
+      BEFORE UPDATE ON reported_execution_evidence
+      BEGIN SELECT RAISE(ABORT, 'reported execution evidence is insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS reported_execution_insert_only_delete
+      BEFORE DELETE ON reported_execution_evidence
+      BEGIN SELECT RAISE(ABORT, 'reported execution evidence is insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS amendments_insert_only_delete
+      BEFORE DELETE ON amendments
+      BEGIN SELECT RAISE(ABORT, 'amendments are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS deviations_insert_only_update
+      BEFORE UPDATE ON deviations
+      BEGIN SELECT RAISE(ABORT, 'deviations are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS deviations_insert_only_delete
+      BEFORE DELETE ON deviations
+      BEGIN SELECT RAISE(ABORT, 'deviations are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS reported_prior_insert_only_update
+      BEFORE UPDATE ON reported_prior_commitments
+      BEGIN SELECT RAISE(ABORT, 'reported prior commitments are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS reported_prior_insert_only_delete
+      BEFORE DELETE ON reported_prior_commitments
+      BEGIN SELECT RAISE(ABORT, 'reported prior commitments are insert-only'); END;
+  `);
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -1262,6 +1429,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE16Schema(db);
       createE09Schema(db);
       createE10Schema(db);
+      createE12Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY
