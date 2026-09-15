@@ -1,21 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: review
-active_epic: e10
-active_story:
+active_flow: plan
+active_epic: none
+active_story: null
 handoff:
-  next_skill: respond-review
-  next_command: "/respond-review"
-  summary: E10 whole-epic review pass 4 returned PASS after all pass-3 findings and
-    supplemental lifecycle, provenance, replay, retention, and authority fixes. Verification
-    is complete; do not merge, release, or claim production readiness.
-  last_step_completed: E10 whole-epic review pass 4 completed with PASS verdict
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E10 ethics and external authorization local release complete: four stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed.
+  last_step_completed: E10 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
-  - specs/epics/e10-ethics-authorization/epic.yaml
-  - specs/tech-architecture/e10-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
-  - specs/verifications/e10-verify.yaml
+  - specs/release-plan.yaml
+  - specs/tech-architecture/tech-stack.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -53,6 +49,8 @@ discovery:
   e09_release: complete_local_release
   e10_plan: approved_exact_revision
   e10_build: complete
+  e10_review: complete_local_release
+  e10_release: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -211,15 +209,15 @@ blueprint:
   e10_plan_approved_at: '2026-09-14T10:49:12Z'
   e10_plan_approval_source: explicit_owner_message
   e10_plan_artifacts:
-  - specs/epics/e10-ethics-authorization/epic.yaml
-  - specs/epics/e10-ethics-authorization/e10s01-activity-specific-risk-registers.md
-  - specs/epics/e10-ethics-authorization/e10s01-tasks.yaml
-  - specs/epics/e10-ethics-authorization/e10s02-data-management-and-research-retention-plans.md
-  - specs/epics/e10-ethics-authorization/e10s02-tasks.yaml
-  - specs/epics/e10-ethics-authorization/e10s03-nz-guidance-citations-and-consultation-limits.md
-  - specs/epics/e10-ethics-authorization/e10s03-tasks.yaml
-  - specs/epics/e10-ethics-authorization/e10s04-external-authorization-registry-and-work-blocking.md
-  - specs/epics/e10-ethics-authorization/e10s04-tasks.yaml
+  - specs/epics/archive/e10-ethics-authorization/epic.yaml
+  - specs/epics/archive/e10-ethics-authorization/e10s01-activity-specific-risk-registers.md
+  - specs/epics/archive/e10-ethics-authorization/e10s01-tasks.yaml
+  - specs/epics/archive/e10-ethics-authorization/e10s02-data-management-and-research-retention-plans.md
+  - specs/epics/archive/e10-ethics-authorization/e10s02-tasks.yaml
+  - specs/epics/archive/e10-ethics-authorization/e10s03-nz-guidance-citations-and-consultation-limits.md
+  - specs/epics/archive/e10-ethics-authorization/e10s03-tasks.yaml
+  - specs/epics/archive/e10-ethics-authorization/e10s04-external-authorization-registry-and-work-blocking.md
+  - specs/epics/archive/e10-ethics-authorization/e10s04-tasks.yaml
   - specs/tech-architecture/e10-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e10/THREAT_MODEL.md
