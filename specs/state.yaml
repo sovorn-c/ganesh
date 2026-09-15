@@ -6,7 +6,9 @@ active_story: null
 handoff:
   next_skill: bp-plan
   next_command: "/bp-plan"
-  summary: E10 ethics and external authorization local release complete: four stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed.
+  summary: 'E10 ethics and external authorization local release complete: four stories
+    done, capsule archived, and branch merged into local main. Remote CI, publishing,
+    deployment, and production readiness remain unclaimed.'
   last_step_completed: E10 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
@@ -363,10 +365,9 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 7
-      total_seconds: 1694.0
-      avg_seconds: 242.0
-      _start: '2026-09-15T02:10:22Z'
+      calls: 8
+      total_seconds: 14268.0
+      avg_seconds: 1783.5
     plan-tests:
       calls: 2
       total_seconds: 440.0
