@@ -1,6 +1,7 @@
 // story: e05s01, e05s02, e05s03, e05s04, e05s05
 import type { OwnerCapability, WorkerCapability } from "../authority/capability-broker.js";
 import type { ProjectHandle } from "../project/project-types.js";
+import type { ResearchActivity } from "../ethics/ethics-types.js";
 
 export type WorkStatus = "proposed" | "authorized" | "queued" | "running" | "waiting-for-human" | "blocked" | "succeeded" | "failed" | "cancelled";
 export type WorkRunStatus = "queued" | "running" | "waiting-for-human" | "blocked" | "succeeded" | "failed" | "cancelled";
@@ -96,6 +97,11 @@ export interface WorkRunInput {
   readonly providerQuote?: PriceQuote;
   readonly reservation?: Partial<Record<BudgetDimension, number>>;
   readonly branchId?: string;
+  readonly activity?: ResearchActivity;
+  readonly population?: string;
+  readonly dataClasses?: readonly string[];
+  readonly dataUse?: string;
+  readonly conditions?: unknown;
 }
 
 export interface DispatchOptions {

@@ -11,13 +11,17 @@ import {
   getRun,
   getSearchEvent,
   grantDataUse,
+  grantStandingPermission,
   inspectDiagnostics,
   inspectQuarantine,
   listProviderAttempts,
   openProject,
+  ProjectStoreError,
   recordProviderAttempt,
   proposeContract,
   queueRun,
+  retryRun,
+  updateRun,
   runAuthorizedRetrieval,
   type ProjectHandle,
   type SpecialistSessionPort,
@@ -236,6 +240,135 @@ describe("Provider dispatch admission", () => {
         "sessionPort.start must never be called when run is already succeeded",
       );
       assert.equal(result.status, "succeeded");
+    } finally {
+      disposeFixture(fixture);
+    }
+  });
+
+  it("e10s04 standing authorization binds scope and every permitted role", () => {
+    const fixture = projectFixture();
+    try {
+      const owner = createOwnerCapability("owner-test");
+      const input = artifact(fixture.handle, "standing-scope-input", "v1", "test input");
+      const standing = grantStandingPermission(fixture.handle, owner, {
+        id: "standing-scope-permission",
+        role: "evidence",
+        scope: { dataClasses: ["public"] },
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 }
+      });
+      const mismatchedScope = proposeContract(fixture.handle, owner, {
+        id: "standing-scope-mismatch",
+        objective: "standing scope mismatch",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 },
+        scope: { dataClasses: ["identifiable"] },
+        permittedRoles: ["evidence"]
+      });
+      assert.throws(
+        () => authorizeContract(fixture.handle, owner, { contractId: mismatchedScope.id, standingPermissionId: standing.id }),
+        (error: unknown) => error instanceof ProjectStoreError && error.code === "forbidden"
+      );
+      const mismatchedRole = proposeContract(fixture.handle, owner, {
+        id: "standing-role-mismatch",
+        objective: "standing role mismatch",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 },
+        scope: { dataClasses: ["public"] },
+        permittedRoles: ["evidence", "reviewer"]
+      });
+      assert.throws(
+        () => authorizeContract(fixture.handle, owner, { contractId: mismatchedRole.id, standingPermissionId: standing.id }),
+        (error: unknown) => error instanceof ProjectStoreError && error.code === "forbidden"
+      );
+      const matching = proposeContract(fixture.handle, owner, {
+        id: "standing-scope-match",
+        objective: "standing scope match",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 },
+        scope: { dataClasses: ["public"] },
+        permittedRoles: ["evidence"]
+      });
+      assert.equal(authorizeContract(fixture.handle, owner, { contractId: matching.id, standingPermissionId: standing.id }).status, "authorized");
+    } finally {
+      disposeFixture(fixture);
+    }
+  });
+
+  it("e10s04 standing permission and structured contract context stay bound across retry", () => {
+    const fixture = projectFixture();
+    try {
+      const owner = createOwnerCapability("owner-test");
+      const input = artifact(fixture.handle, "standing-input", "v1", "test input");
+      const proposed = proposeContract(fixture.handle, owner, {
+        id: "standing-contract",
+        objective: "standing contract",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 },
+        scope: { dataClasses: ["survey"] },
+        permittedRoles: ["evidence"],
+      });
+      const standing = grantStandingPermission(fixture.handle, owner, {
+        id: "standing-permission",
+        role: "evidence",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 10, calls: 3, timeMs: 1000 },
+      });
+      const authorized = authorizeContract(fixture.handle, owner, {
+        contractId: proposed.id,
+        standingPermissionId: standing.id,
+      });
+      const run = queueRun(fixture.handle, owner, {
+        contractId: authorized.id,
+        commandId: "standing-run-1",
+        reservation: { tokens: 1, calls: 1, timeMs: 100 },
+      });
+      updateRun(fixture.handle, run.id, "failed", "retry coverage setup");
+      const retried = retryRun(fixture.handle, owner, run.id, "standing-run-2");
+      assert.notEqual(retried.id, run.id);
+      assert.deepEqual(retried.inputVersionIds, [input.id]);
+    } finally {
+      disposeFixture(fixture);
+    }
+  });
+
+  it("e10s04 queueRun removes its lifecycle operation when the initial budget reservation is rejected", () => {
+    const fixture = projectFixture();
+    try {
+      const owner = createOwnerCapability("owner-test");
+      const input = artifact(fixture.handle, "budget-input", "v1", "test input");
+      const proposed = proposeContract(fixture.handle, owner, {
+        id: "budget-reject-contract",
+        objective: "budget rejection",
+        inputVersionIds: [input.id],
+        destination: "local",
+        purpose: "testing",
+        limits: { tokens: 1, calls: 1, timeMs: 10 },
+      });
+      const authorized = authorizeContract(fixture.handle, owner, { contractId: proposed.id });
+      const beforeOperations = (fixture.handle.db.prepare("SELECT COUNT(*) AS count FROM lifecycle_operations").get() as { count: number }).count;
+      assert.throws(
+        () => queueRun(fixture.handle, owner, {
+          contractId: authorized.id,
+          commandId: "budget-reject-run",
+          reservation: { tokens: 2, calls: 1, timeMs: 10 },
+        }),
+        (error: unknown) => error instanceof ProjectStoreError && error.code === "budget-exhausted",
+      );
+      const afterOperations = (fixture.handle.db.prepare("SELECT COUNT(*) AS count FROM lifecycle_operations").get() as { count: number }).count;
+      assert.equal(afterOperations, beforeOperations);
     } finally {
       disposeFixture(fixture);
     }

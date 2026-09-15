@@ -12,6 +12,7 @@ import { transaction } from "../persistence/schema.js";
 import { assertIdentifier } from "../persistence/storage-utils.js";
 import { arrayFromJson, commandHash, id, json, now, requireOwner, setEqual, text, uniqueIds, valueFromJson } from "./decision-helpers.js";
 import { createDecisionPacket, getDecisionPacket, reviseDecisionPacketInTransaction } from "./decision-store.js";
+import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
 import type {
   CommitmentGateEvaluation,
   CommitmentGateRequest,
@@ -199,7 +200,8 @@ export function evaluateCommitmentGates(handle: ProjectHandle, request: Commitme
     try {
       const checkpoint = checkLifecyclePolicy(handle, request.operationId, request.lifecyclePhase ?? "acceptance", {
         capability: request.capability ?? request.ownerCapability, destination: request.destination, purpose: request.purpose,
-        actor: request.actor, expectedVersionIds: selected
+        activity: request.activity, population: request.population, dataClasses: request.dataClasses,
+        dataUse: request.dataUse, conditions: request.conditions, actor: request.actor, expectedVersionIds: selected
       });
       safetyPassed = checkpoint.status === "passed";
       safetyReason = checkpoint.reason;
@@ -208,11 +210,31 @@ export function evaluateCommitmentGates(handle: ProjectHandle, request: Commitme
       safetyReason = error instanceof Error ? error.message : "lifecycle safety check failed";
     }
   }
-  gates.push(gateResult("execution-safety", safetyPassed, safetyReason));
-  const authorization = authorizationEvidence(request.externalAuthorization, request.destination);
-  const authPassed = authorization.status === "documented-approved" ||
-    (authorization.status === "not-required" && authorization.basis.trim() !== "");
-  gates.push(gateResult("external-authorization", authPassed, authPassed ? "external authorization is documented or not required" : `external authorization status is ${authorization.status}${authorization.basis === "" ? " without a basis" : ""}`));
+  let authPassed: boolean;
+  let authReason: string;
+  if (request.activity !== undefined) {
+    const assessment = assessActivityAuthorization(handle, {
+      activity: request.activity,
+      population: request.population,
+      dataClasses: request.dataClasses,
+      dataUse: request.dataUse,
+      destination: request.destination,
+      purpose: request.purpose,
+      conditions: request.conditions
+    });
+    authPassed = assessment.permitted;
+    authReason = authPassed
+      ? "external authorization is documented and approved"
+      : assessment.reason;
+  } else {
+    const authorization = authorizationEvidence(request.externalAuthorization, request.destination);
+    authPassed = authorization.status === "documented-approved" ||
+      (authorization.status === "not-required" && authorization.basis.trim() !== "");
+    authReason = authPassed
+      ? "external authorization is documented or not required"
+      : `external authorization status is ${authorization.status}${authorization.basis === "" ? " without a basis" : ""}`;
+  }
+  gates.push(gateResult("external-authorization", authPassed, authReason));
   const readinessPassed = packet !== null && packet.status !== "archived" && packet.status !== "superseded" && provenancePassed;
   gates.push(gateResult("readiness", readinessPassed, readinessPassed ? "packet is current and eligible for a bounded decision" : "packet is not current and ready for commitment"));
 

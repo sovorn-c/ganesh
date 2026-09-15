@@ -1,5 +1,7 @@
 // story: e04s02
 
+import type { ResearchActivity } from "../ethics/ethics-types.js";
+
 export type CommitmentStatus = "active" | "rejected" | "deferred" | "archived" | "superseded";
 export type ReadinessStatus = "ready" | "needs-review" | "blocked";
 export type CommitmentEventType = "approved" | "rejected" | "deferred" | "reopened" | "archived" | "superseded" | "revised";
@@ -37,6 +39,11 @@ export interface ReadinessRequest {
   readonly action?: string;
   readonly destination?: string;
   readonly purpose?: string;
+  readonly activity?: ResearchActivity;
+  readonly population?: string;
+  readonly dataClasses?: readonly string[];
+  readonly dataUse?: string;
+  readonly conditions?: unknown;
   readonly commandId?: string;
   readonly actor?: string;
 }

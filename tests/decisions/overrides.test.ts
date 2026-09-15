@@ -8,7 +8,10 @@ import {
   createOwnerCapability,
   createWorkerCapabilities,
   evaluateCommitmentGates,
+  listCommitmentGateResults,
   listCommitments,
+  listReasonedOverrides,
+  listScholarlyFindings,
   recordReasonedOverride,
   recordScholarlyFinding,
   resolveReviewDisagreement,
@@ -49,6 +52,8 @@ test("records scholarly disagreement and a durable reasoned owner override", () 
     });
     assert.equal(override.status, "recorded");
     assert.equal(override.selectedCandidateVersionIds[0], candidate.id);
+    assert.equal(listScholarlyFindings(fixture.handle).length, 1);
+    assert.equal(listReasonedOverrides(fixture.handle, packet.id).length, 1);
     assert.throws(
       () => recordReasonedOverride(fixture.handle, {
         findingId: finding.id, packetId: packet.id, candidateVersionId: candidate.id,
@@ -163,6 +168,8 @@ test("passes documented gates and bounds finite disagreement regression to one r
     assert.equal(passed.status, "passed");
     assert.equal(passed.allowed, true);
     assert.ok(passed.gates.every((gate) => gate.passed));
+    assert.ok(listCommitmentGateResults(fixture.handle).length >= passed.gates.length);
+    assert.equal(listCommitmentGateResults(fixture.handle, packet.id).length, passed.gates.length);
   } finally {
     disposeFixture(fixture);
   }

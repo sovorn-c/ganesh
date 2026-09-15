@@ -109,6 +109,7 @@ export function createSchema(db: DatabaseSync): void {
   createE15Schema(db);
   createE16Schema(db);
   createE09Schema(db);
+  createE10Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -1074,6 +1075,172 @@ export function createE08Schema(db: DatabaseSync): void {
   `);
 }
 
+function ensureE10Column(db: DatabaseSync, table: string, column: string, definition: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: unknown }>;
+  if (!columns.some((entry) => entry.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
+export function createE10Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ethics_operations (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      entity_id TEXT,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_ethics_operations_kind ON ethics_operations(kind);
+
+    CREATE TABLE IF NOT EXISTS risk_register_items (
+      id TEXT PRIMARY KEY,
+      activity TEXT NOT NULL,
+      requirement_text TEXT NOT NULL,
+      institution_or_community TEXT NOT NULL,
+      evidence_version_ids TEXT NOT NULL,
+      methodology_ref TEXT,
+      residual_risk TEXT,
+      mitigations TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'recorded',
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_risk_register_activity ON risk_register_items(activity);
+    CREATE INDEX IF NOT EXISTS idx_risk_register_branch ON risk_register_items(branch_id);
+
+    CREATE TABLE IF NOT EXISTS ethics_candidates (
+      id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      status TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_ethics_candidates_kind ON ethics_candidates(kind);
+
+    CREATE TABLE IF NOT EXISTS data_management_plans (
+      id TEXT PRIMARY KEY,
+      activity TEXT NOT NULL,
+      data_classes TEXT NOT NULL,
+      intended_destinations TEXT NOT NULL,
+      purposes TEXT NOT NULL DEFAULT '[]',
+      storage_location TEXT NOT NULL DEFAULT 'local',
+      issues TEXT NOT NULL DEFAULT '[]',
+      evidence_version_ids TEXT NOT NULL,
+      status TEXT NOT NULL,
+      denied_destinations TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_dmp_activity ON data_management_plans(activity);
+    CREATE INDEX IF NOT EXISTS idx_dmp_branch ON data_management_plans(branch_id);
+
+    CREATE TABLE IF NOT EXISTS research_retention_plans (
+      id TEXT PRIMARY KEY,
+      activity TEXT NOT NULL,
+      data_classes TEXT NOT NULL DEFAULT '[]',
+      retain_until TEXT NOT NULL,
+      destruction_intent TEXT NOT NULL,
+      evidence_version_ids TEXT NOT NULL,
+      status TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      branch_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_retention_activity ON research_retention_plans(activity);
+    CREATE INDEX IF NOT EXISTS idx_retention_branch ON research_retention_plans(branch_id);
+
+    CREATE TABLE IF NOT EXISTS guidance_citations (
+      id TEXT PRIMARY KEY,
+      title TEXT,
+      publisher TEXT NOT NULL,
+      uri TEXT NOT NULL,
+      retrieved_at TEXT NOT NULL,
+      currency TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      scope_note TEXT,
+      jurisdiction TEXT,
+      topic TEXT,
+      evidence_version_ids TEXT NOT NULL DEFAULT '[]',
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_guidance_citations_uri ON guidance_citations(uri);
+
+    CREATE TABLE IF NOT EXISTS consultation_limits (
+      id TEXT PRIMARY KEY,
+      activity TEXT NOT NULL,
+      consulted_parties TEXT NOT NULL,
+      questions_asked TEXT NOT NULL,
+      claims_not_made TEXT NOT NULL,
+      status TEXT NOT NULL,
+      notes TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_consultation_limits_activity ON consultation_limits(activity);
+
+    CREATE TABLE IF NOT EXISTS external_authorizations (
+      id TEXT PRIMARY KEY,
+      activities TEXT NOT NULL,
+      population_or_data_use TEXT NOT NULL,
+      applicability_basis TEXT NOT NULL,
+      status TEXT NOT NULL,
+      evidence_version_ids TEXT NOT NULL,
+      expires_at TEXT,
+      withdrawn_at TEXT,
+      withdrawal_reason TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_authorizations_status ON external_authorizations(status);
+  `);
+
+  // E10 is additive while the project marker remains version 1. Existing ready
+  // projects may have created the original tables before these contract fields.
+  ensureE10Column(db, "data_management_plans", "purposes", "TEXT NOT NULL DEFAULT '[]'");
+  ensureE10Column(db, "data_management_plans", "storage_location", "TEXT NOT NULL DEFAULT 'local'");
+  ensureE10Column(db, "data_management_plans", "issues", "TEXT NOT NULL DEFAULT '[]'");
+  ensureE10Column(db, "research_retention_plans", "data_classes", "TEXT NOT NULL DEFAULT '[]'");
+  ensureE10Column(db, "guidance_citations", "title", "TEXT");
+  ensureE10Column(db, "guidance_citations", "jurisdiction", "TEXT");
+  ensureE10Column(db, "guidance_citations", "topic", "TEXT");
+  ensureE10Column(db, "guidance_citations", "evidence_version_ids", "TEXT NOT NULL DEFAULT '[]'");
+}
+
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {
   const isString = typeof target === "string";
   const db = isString
@@ -1094,6 +1261,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE15Schema(db);
       createE16Schema(db);
       createE09Schema(db);
+      createE10Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

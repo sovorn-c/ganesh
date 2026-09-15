@@ -12,16 +12,16 @@ development_status:
   e15: done
   e16: done
   e09: done
-  e10: backlog
+  e10: done
   e12: backlog
   e11: backlog
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e09_complete
-active_epic: none
-active_story: none
-note: E09 was locally released on main under approved plan revision sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5. All five stories and 20 task checks passed; the whole-epic review passed. E01-E08, E14, E15, and E16 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e10_approved
+active_epic: e10
+active_story: ~
+note: E10 plan revision sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe is owner-approved. Implementation starts only on /bp-build from e10s01. E01-E09, E14, E15 and E16 remain complete local releases; production readiness, remote CI, publishing and deployment remain unclaimed. Approval is not a build, task-passing claim, or ethics-committee certification.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -566,9 +566,54 @@ epics:
         nfr_evidence: specs/verifications/NFR-e09s05.json
     verification_evidence: specs/verifications/e09-verify.yaml
     nfr_evidence: specs/verifications/NFR-e09.json
+  e10:
+    title: Ethics and external authorization
+    status: done
+    stories:
+      e10s01:
+        title: Activity-Specific Risk Registers with Evidence
+        status: done
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e10s01-verify.yaml
+      e10s02:
+        title: Data-Management and Research Retention Plans
+        status: done
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e10s02-verify.yaml
+      e10s03:
+        title: NZ Guidance Citations and Consultation Limits
+        status: done
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e10s03-verify.yaml
+      e10s04:
+        title: External Authorization Registry and Work Blocking
+        status: done
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e10s04-verify.yaml
+    verification_evidence: specs/verifications/e10-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-14T10:05:00Z"
-  rationale: "All 46 stories are traceable with no dark stories; E09 has passing per-story verification evidence across 20 task checks and 368 passing tests. No HIGH blind spots remain; the remaining MEDIUM findings are shared-story tag warnings. Completeness critic: BLOCKER=0 WARNING=0. Independent whole-epic review passed after all corrections."
-  heuristic_ratio: 0.27
+  generated_at: "2026-09-15T00:15:49Z"
+  rationale: "Traceability gate PASS: all 54 stories are traceable with 0 dark stories; E10 stories e10s01-e10s04 are done and have verification evidence. Link oracle heuristic ratio is 0.2466 (54 task-reference links of 219 total), below the downgrade threshold. Blind spots contain 0 HIGH, 1 MEDIUM double-tag warning, and 54 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1. Adversarial refute attempt found no missing E10 story tag or verification bundle."
+  heuristic_ratio: 0.246575
   downgrade_applied: false

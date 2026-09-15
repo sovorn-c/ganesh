@@ -5,7 +5,9 @@ import { join } from "node:path";
 import test from "node:test";
 import {
   accessCredentials,
+  capabilityDecision,
   createOwnerCapability,
+  OwnerCapability,
   createWorkerCapabilities,
   executeLocalCommand,
   isOwnerCapability,
@@ -27,6 +29,10 @@ test("non-serializable capability objects distinguish owner and worker scope", (
     assert.equal(ownerCap.role, "owner");
     assert.equal(ownerCap.ownerId, "researcher-owner");
     assert.equal(isOwnerCapability(ownerCap), true);
+    assert.throws(
+      () => new OwnerCapability("researcher-owner"),
+      (err: unknown) => err instanceof ProjectStoreError && err.code === "forbidden"
+    );
 
     const workerCap = createWorkerCapabilities({
       projectId: fixture.handle.project.id,
@@ -51,6 +57,12 @@ test("non-serializable capability objects distinguish owner and worker scope", (
     const serialized = JSON.parse(JSON.stringify(ownerCap));
     assert.equal(isOwnerCapability(serialized), false);
     assert.equal(isWorkerCapability(serialized), false);
+
+    assert.deepEqual(capabilityDecision("ethics:inspect", true, "allowed"), {
+      operation: "ethics:inspect",
+      allowed: true,
+      reason: "allowed"
+    });
   } finally {
     disposeFixture(fixture);
   }
