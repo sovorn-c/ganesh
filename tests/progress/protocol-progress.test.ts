@@ -9,7 +9,9 @@ import {
   createWorkerCapabilities,
   inspectProgress,
   inspectProtocol,
+  ingestProgressCandidate,
   inspectReportedExecution,
+  listCommitments,
   openProject,
   recordOwnerDecision,
   recordProgress,
@@ -26,13 +28,26 @@ test("e12s01 protocol and progress persist after reopen without optional refs", 
     const owner = createOwnerCapability("owner-test");
     const protocol = recordProtocolVersion(fixture.handle, owner, {
       versionLabel: "v1",
-      procedureText: "Example Clinic North interview guide v1"
+      procedureText: "Example Clinic North interview guide v1",
+      commandId: "e12s01-persist-protocol"
     });
+    assert.equal(recordProtocolVersion(fixture.handle, owner, {
+      versionLabel: "v1",
+      procedureText: "Example Clinic North interview guide v1",
+      commandId: "e12s01-persist-protocol"
+    }).id, protocol.id);
     const progress = recordProgress(fixture.handle, owner, {
       protocolVersionId: protocol.id,
       summary: "Owner reported that the pilot briefing was drafted.",
-      occurredOn: "2026-09-15"
+      occurredOn: "2026-09-15",
+      commandId: "e12s01-persist-progress"
     });
+    assert.equal(recordProgress(fixture.handle, owner, {
+      protocolVersionId: protocol.id,
+      summary: "Owner reported that the pilot briefing was drafted.",
+      occurredOn: "2026-09-15",
+      commandId: "e12s01-persist-progress"
+    }).id, progress.id);
 
     assert.equal(protocol.status, "candidate");
     assert.equal(protocol.attribution, "human-stated");
@@ -110,6 +125,13 @@ test("e12s01 worker records specialist provenance and reported execution stays n
       projectRoot: fixture.root,
       allowedOperations: ["progress:record", "progress:inspect"]
     });
+    const candidate = ingestProgressCandidate(fixture.handle, worker, {
+      kind: "reported-execution",
+      payload: { summary: "A specialist supplied a prior execution note." },
+      specialistRole: "methodology",
+      commandId: "e12s01-specialist-candidate"
+    });
+    assert.equal(candidate.origin, "specialist-proposed");
     const protocol = recordProtocolVersion(fixture.handle, worker, {
       versionLabel: "worker-v1",
       procedureText: "Methodology specialist proposal"
@@ -132,7 +154,39 @@ test("e12s01 worker records specialist provenance and reported execution stays n
     assert.equal(inspectReportedExecution(fixture.handle, owner, protocol.id).length, 1);
     const runs = fixture.handle.db.prepare("SELECT COUNT(*) AS count FROM work_runs").get() as { count: number };
     assert.equal(runs.count, 0);
+    assert.equal(listCommitments(fixture.handle).length, 0);
   } finally {
+    disposeFixture(fixture);
+  }
+});
+
+test("e12s01 missing progress tables fail closed on read-only inspection", () => {
+  const fixture = projectFixture();
+  let closed = false;
+  try {
+    fixture.handle.db.exec(`
+      DROP TABLE reported_prior_commitments;
+      DROP TABLE deviations;
+      DROP TABLE amendments;
+      DROP TABLE progress_candidates;
+      DROP TABLE reported_execution_evidence;
+      DROP TABLE progress_records;
+      DROP TABLE protocol_versions;
+      DROP TABLE progress_operations;
+    `);
+    fixture.handle.close();
+    closed = true;
+    const readonly = openProject(fixture.root, { readOnly: true });
+    try {
+      assert.throws(
+        () => inspectProtocol(readonly, createOwnerCapability("owner-test")),
+        (error: unknown) => (error as { code?: string }).code === "progress-schema-unavailable"
+      );
+    } finally {
+      readonly.close();
+    }
+  } finally {
+    if (!closed) fixture.handle.close();
     disposeFixture(fixture);
   }
 });

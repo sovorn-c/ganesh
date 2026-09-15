@@ -170,7 +170,7 @@ export function recordProtocolVersion(
     content: JSON.stringify(payload),
     origin: "study-protocol",
     access: "metadata-only",
-    dependencies: dependencies.map((dependencyVersionId) => ({ dependencyVersionId, relation: "protocol-reference" }))
+    dependencies: dependencies.map((versionId) => ({ versionId, relation: "protocol-reference" }))
   });
   try {
     transaction(handle.db, () => {
