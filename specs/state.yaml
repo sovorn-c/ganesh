@@ -1,20 +1,29 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
-active_epic: none
-active_story: null
+active_flow: build_epic
+active_epic: e12
+active_story: e12s03
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: 'E10 ethics and external authorization local release complete: four stories
-    done, capsule archived, and branch merged into local main. Remote CI, publishing,
-    deployment, and production readiness remain unclaimed.'
-  last_step_completed: E10 release-branch local integration complete
+  next_skill: commit-message
+  next_command: "/bp-build E12"
+  summary: E12 implementation and verification completed on the authorized feature
+    branch under plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f.
+    Product changes remain uncommitted pending the local commit step. Production readiness
+    remains unclaimed.
+  last_step_completed: verify-work, security-review, and audit-code passed
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
-  - specs/tech-architecture/tech-stack.md
+  - specs/epics/e12-study-progress/epic.yaml
+  - specs/tech-architecture/e12-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
   open_decisions: []
+epic_cycle:
+  step: 7
+  story_bcps: 3
+  completed_steps: '0,1,3,4,5,6'
+  audit_result: pass
+  branch: feat/e12-study-progress
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -53,6 +62,9 @@ discovery:
   e10_build: complete
   e10_review: complete_local_release
   e10_release: complete_local_release
+  e12_plan: approved_exact_revision
+  e12_build: complete
+  e12_review: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -203,13 +215,28 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e10
+  first_eligible_epic: e12
   first_tracer_bullet_epic: e05
-  selected_epic: e10
+  selected_epic: e12
   e10_plan: approved_exact_revision
   e10_plan_revision: sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe
   e10_plan_approved_at: '2026-09-14T10:49:12Z'
   e10_plan_approval_source: explicit_owner_message
+  e12_plan: approved_exact_revision
+  e12_plan_revision: sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f
+  e12_plan_approved_at: '2026-09-15T15:44:05Z'
+  e12_plan_approval_source: explicit_owner_message
+  e12_plan_artifacts:
+  - specs/epics/e12-study-progress/epic.yaml
+  - specs/epics/e12-study-progress/e12s01-protocol-progress-and-reported-execution.md
+  - specs/epics/e12-study-progress/e12s01-tasks.yaml
+  - specs/epics/e12-study-progress/e12s02-amendments-deviations-and-impact-review.md
+  - specs/epics/e12-study-progress/e12s02-tasks.yaml
+  - specs/epics/e12-study-progress/e12s03-late-entry-reported-prior-commitments.md
+  - specs/epics/e12-study-progress/e12s03-tasks.yaml
+  - specs/tech-architecture/e12-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e12/THREAT_MODEL.md
   e10_plan_artifacts:
   - specs/epics/archive/e10-ethics-authorization/epic.yaml
   - specs/epics/archive/e10-ethics-authorization/e10s01-activity-specific-risk-registers.md
@@ -251,7 +278,7 @@ blueprint:
   implementation_start: not_authorized
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e09_e14_e15_e16_complete;e10_approved_exact_revision
+  story_planning: e01_e10_e14_e15_e16_complete;e12_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -365,26 +392,31 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 8
-      total_seconds: 14268.0
-      avg_seconds: 1783.5
+      calls: 9
+      total_seconds: 14997.0
+      avg_seconds: 1666.3333333333333
     plan-tests:
-      calls: 2
+      calls: 3
       total_seconds: 440.0
-      avg_seconds: 220.0
+      avg_seconds: 146.66666666666666
     plan-work:
-      calls: 2
+      calls: 3
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 4
-      total_seconds: 3361.0
-      avg_seconds: 840.25
+      calls: 5
+      total_seconds: 4434.0
+      avg_seconds: 886.8
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
     slice-tasks:
-      calls: 3
-      total_seconds: 3053.0
-      avg_seconds: 1017.6666666666666
+      calls: 4
+      total_seconds: 3484.0
+      avg_seconds: 871.0
+    develop-tdd:
+      calls: 0
+      total_seconds: 0
+      avg_seconds: 0
+      _start: '2026-09-15T16:46:19Z'

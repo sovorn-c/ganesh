@@ -42,6 +42,7 @@ export interface WorkContractInput {
   readonly executionMode?: string;
   readonly authorizationBasis?: string;
   readonly branchId?: string;
+  readonly protocolVersionId?: string;
   readonly parentContractId?: string;
   readonly providerPrice?: PriceQuote;
 }
@@ -61,6 +62,7 @@ export interface WorkContractRecord {
   readonly executionMode?: string;
   readonly authorizationBasis: string;
   readonly branchId?: string;
+  readonly protocolVersionId?: string;
   readonly status: "proposed" | "authorized" | "superseded" | "cancelled";
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -97,6 +99,7 @@ export interface WorkRunInput {
   readonly providerQuote?: PriceQuote;
   readonly reservation?: Partial<Record<BudgetDimension, number>>;
   readonly branchId?: string;
+  readonly protocolVersionId?: string;
   readonly activity?: ResearchActivity;
   readonly population?: string;
   readonly dataClasses?: readonly string[];

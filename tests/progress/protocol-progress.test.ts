@@ -186,7 +186,7 @@ test("e12s01 missing progress tables fail closed on read-only inspection", () =>
       readonly.close();
     }
   } finally {
-    if (!closed) fixture.handle.close();
+    if (!closed) {fixture.handle.close();}
     disposeFixture(fixture);
   }
 });

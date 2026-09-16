@@ -1351,6 +1351,8 @@ export function createE12Schema(db: DatabaseSync): void {
       occurred_on TEXT,
       population_changed INTEGER NOT NULL DEFAULT 0,
       data_use_changed INTEGER NOT NULL DEFAULT 0,
+      new_population TEXT,
+      new_data_use TEXT,
       activity TEXT,
       attribution TEXT NOT NULL,
       origin TEXT NOT NULL,
@@ -1393,6 +1395,47 @@ export function createE12Schema(db: DatabaseSync): void {
     CREATE TRIGGER IF NOT EXISTS amendments_insert_only_delete
       BEFORE DELETE ON amendments
       BEGIN SELECT RAISE(ABORT, 'amendments are insert-only'); END;
+    CREATE TRIGGER IF NOT EXISTS amendments_immutable_update
+      BEFORE UPDATE ON amendments
+      WHEN NEW.id IS NOT OLD.id
+        OR NEW.from_protocol_version_id IS NOT OLD.from_protocol_version_id
+        OR NEW.successor_protocol_version_id IS NOT OLD.successor_protocol_version_id
+        OR NEW.change_summary IS NOT OLD.change_summary
+        OR NEW.population_changed IS NOT OLD.population_changed
+        OR NEW.data_use_changed IS NOT OLD.data_use_changed
+        OR NEW.activity IS NOT OLD.activity
+        OR NEW.attribution IS NOT OLD.attribution
+        OR NEW.origin IS NOT OLD.origin
+        OR NEW.command_id IS NOT OLD.command_id
+        OR NEW.branch_id IS NOT OLD.branch_id
+        OR NEW.created_at IS NOT OLD.created_at
+        OR NOT (OLD.status = 'proposed' AND NEW.status IN ('adopted', 'superseded'))
+      BEGIN SELECT RAISE(ABORT, 'amendments are immutable except for adoption status'); END;
+    CREATE TRIGGER IF NOT EXISTS protocol_versions_immutable_update
+      BEFORE UPDATE ON protocol_versions
+      WHEN NEW.id IS NOT OLD.id
+        OR NEW.version_label IS NOT OLD.version_label
+        OR NEW.procedure_text IS NOT OLD.procedure_text
+        OR NEW.rq_version_ids IS NOT OLD.rq_version_ids
+        OR NEW.design_comparison_id IS NOT OLD.design_comparison_id
+        OR NEW.sampling_plan_id IS NOT OLD.sampling_plan_id
+        OR NEW.analysis_plan_id IS NOT OLD.analysis_plan_id
+        OR NEW.risk_register_item_ids IS NOT OLD.risk_register_item_ids
+        OR NEW.authorization_id IS NOT OLD.authorization_id
+        OR NEW.activity IS NOT OLD.activity
+        OR NEW.population IS NOT OLD.population
+        OR NEW.data_use IS NOT OLD.data_use
+        OR NEW.attribution IS NOT OLD.attribution
+        OR NEW.origin IS NOT OLD.origin
+        OR NEW.artifact_version_id IS NOT OLD.artifact_version_id
+        OR NEW.command_id IS NOT OLD.command_id
+        OR NEW.branch_id IS NOT OLD.branch_id
+        OR NEW.created_at IS NOT OLD.created_at
+        OR NOT (NEW.status = OLD.status OR (OLD.status = 'candidate' AND NEW.status = 'in-force') OR (OLD.status = 'in-force' AND NEW.status = 'superseded'))
+      BEGIN SELECT RAISE(ABORT, 'protocol versions are immutable except for lifecycle status'); END;
+    CREATE TRIGGER IF NOT EXISTS protocol_versions_insert_only_delete
+      BEFORE DELETE ON protocol_versions
+      BEGIN SELECT RAISE(ABORT, 'protocol versions are insert-only'); END;
     CREATE TRIGGER IF NOT EXISTS deviations_insert_only_update
       BEFORE UPDATE ON deviations
       BEGIN SELECT RAISE(ABORT, 'deviations are insert-only'); END;
@@ -1406,6 +1449,15 @@ export function createE12Schema(db: DatabaseSync): void {
       BEFORE DELETE ON reported_prior_commitments
       BEGIN SELECT RAISE(ABORT, 'reported prior commitments are insert-only'); END;
   `);
+  ensureE12Column(db, "deviations", "new_population", "TEXT");
+  ensureE12Column(db, "deviations", "new_data_use", "TEXT");
+}
+
+function ensureE12Column(db: DatabaseSync, table: string, column: string, definition: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: unknown }>;
+  if (!columns.some((entry) => entry.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
 }
 
 export function migrateSchema(target: string | DatabaseSync): { fromVersion: number; toVersion: number } {

@@ -159,3 +159,13 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Credential, network, and sink checks:** Credential-pattern scan over `src`, `tests`, and `scripts` found no matches. Changed E10 paths import no shell, network client, unsafe deserializer, or dynamic code execution. No unresolved high-confidence vulnerability (confidence ≥8) was identified.
 - **Process limitations:** The repository has no `scripts/verify-cwe-fixture-sync.sh`, `scripts/land-branch.sh`, or CI workflow helper; this release is explicitly local-only. These limitations are not treated as remote-CI, production-readiness, or institutional authorization approval.
 - **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding. This is local security evidence only and does not satisfy the separate production `release-check` gate.
+
+## e12 security review — local release gate
+
+- **Scope:** Current `feat/e12-study-progress` changes covering protocol progress, amendments, deviations, consultations, lifecycle/work admission, and additive schema persistence.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --audit-level=high` reports `found 0 vulnerabilities`; no dependencies changed.
+- **Authority and data boundaries:** E12 reads and writes require capability and project checks. Owner-only protocol adoption requires an active E04 commitment; workers cannot bind protocols or authenticate reported prior commitments. Reported execution and prior commitments remain attributed evidence and cannot create commitments, grants, or analysis runs.
+- **Persistence and currency controls:** Protocol, amendment, deviation, progress, and reported-prior history is append-only. Material scope flags are fail-closed, impact records retain direct protocol references and branch-local dependents, and protocol currency is rechecked at queue and lifecycle-resume boundaries. Dynamic impact table names are compile-time allowlisted; row values use bound parameters.
+- **Credential, network, and sink checks:** Changed E12 paths introduce no shell, network, disclosure, or restricted-workspace paths, and no secrets or unsafe deserialization. The reviewed E12 verification reports 418 full tests passing, with build, typecheck, lint, preflight, and coverage gates passing.
+- **Process limitations:** `scripts/land-branch.sh` and the CWE fixture-sync helper are absent; this is a local-only integration and does not claim remote CI or production readiness.
+- **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8). This is local security evidence only and does not satisfy the separate production `release-check` gate.

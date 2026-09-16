@@ -277,6 +277,15 @@ export function bindProtocolInForce(
   transaction(handle.db, () => {
     handle.db.prepare("UPDATE protocol_versions SET status = 'superseded', updated_at = ? WHERE branch_id = ? AND status = 'in-force' AND id <> ?").run(now, branchId, protocol.id);
     handle.db.prepare("UPDATE protocol_versions SET status = 'in-force', updated_at = ? WHERE id = ?").run(now, protocol.id);
+    handle.db.prepare("UPDATE amendments SET status = 'adopted', updated_at = ? WHERE successor_protocol_version_id = ? AND status = 'proposed'").run(now, protocol.id);
+    handle.db.prepare(`
+      UPDATE amendments SET status = 'superseded', updated_at = ?
+      WHERE branch_id = ? AND successor_protocol_version_id <> ? AND status = 'proposed'
+        AND from_protocol_version_id = (
+          SELECT from_protocol_version_id FROM amendments
+          WHERE successor_protocol_version_id = ? AND branch_id = ? LIMIT 1
+        )
+    `).run(now, branchId, protocol.id, protocol.id, branchId);
     recordOperation(handle, commandId, "bind-protocol", payloadHash, protocol.id, now);
   });
   return protocolById(handle, protocol.id);

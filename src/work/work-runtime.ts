@@ -15,6 +15,8 @@ import { recordDiagnostic, operationsSchemaAvailable } from "../operations/diagn
 import { redactDiagnostic } from "../runtime/preflight.js";
 import { admitProviderAttempt, releaseProviderAttemptReservation } from "./provider-admission.js";
 import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
+import { assessProtocolCurrency } from "../progress/change-store.js";
+import { assertProgressSchema } from "../progress/progress-utils.js";
 import { RESEARCH_ACTIVITIES, type ActivityAuthorizationContext, type ResearchActivity } from "../ethics/ethics-types.js";
 
 function requireOwner(handle: ProjectHandle, capability: unknown): OwnerCapability {
@@ -214,6 +216,33 @@ export function queueRun(handle: ProjectHandle, capability: unknown, request: Wo
   const role = request.role ?? contract.permittedRoles[0];
   if (!contract.permittedRoles.includes(role)) {throw new ProjectStoreError("forbidden", `role ${role} is not permitted by this contract`);}
   const authorization = authorizationContext(contract);
+  if (request.protocolVersionId !== undefined && contract.protocolVersionId !== undefined && request.protocolVersionId !== contract.protocolVersionId) {
+    throw new ProjectStoreError("forbidden", "run protocolVersionId must match the authorized contract scope");
+  }
+  const protocolVersionId = request.protocolVersionId ?? contract.protocolVersionId;
+  let operationBranchId = request.branchId ?? contract.branchId;
+  if (protocolVersionId !== undefined) {
+    assertProgressSchema(handle);
+    const protocolRow = handle.db.prepare("SELECT branch_id FROM protocol_versions WHERE id = ?").get(protocolVersionId) as { branch_id?: unknown } | undefined;
+    if (!protocolRow || typeof protocolRow.branch_id !== "string") { throw new ProjectStoreError("not-found", `protocol version ${protocolVersionId} was not found`); }
+    if (operationBranchId !== undefined && operationBranchId !== protocolRow.branch_id) {
+      throw new ProjectStoreError("forbidden", "work branch must match the protocol version branch");
+    }
+    operationBranchId ??= protocolRow.branch_id;
+    const currency = assessProtocolCurrency(handle, capability, {
+      protocolVersionId,
+      branchId: operationBranchId,
+      population: authorization.population,
+      dataUse: authorization.dataUse,
+      activity
+    });
+    if (currency.status === "superseded") {
+      throw new ProjectStoreError("forbidden", `work run blocked: ${currency.reason}`);
+    }
+    if (currency.materialChange && !currency.contextMatches) {
+      throw new ProjectStoreError("forbidden", `work run blocked: ${currency.reason}`);
+    }
+  }
   if (activity !== undefined) {
     const assessment = assessActivityAuthorization(handle, { activity, ...authorization });
     if (!assessment.permitted) {
@@ -221,14 +250,14 @@ export function queueRun(handle: ProjectHandle, capability: unknown, request: Wo
     }
   }
   const inputVersionIds = normalizeInputIds(contract, request.inputVersionIds ?? request.expectedVersionIds);
-  const payload = { contractId: contract.id, version: contract.version, role, inputVersionIds, ...authorization, reservation: request.reservation ?? null, activity };
+  const payload = { contractId: contract.id, version: contract.version, role, inputVersionIds, ...authorization, reservation: request.reservation ?? null, activity, protocolVersionId: protocolVersionId ?? null };
   const payloadHash = hashPayload(payload);
   const duplicate = getRunByCommand(handle, request.commandId);
   if (duplicate) {
     if (duplicate.payloadHash !== payloadHash) {throw new ProjectStoreError("command-conflict", "command conflict: command ID was reused with a different work request");}
     return duplicate;
   }
-  const operation = createLifecycleOperation(handle, { id: newId("work-op"), operationType: "specialist-work", branchId: request.branchId ?? contract.branchId ?? null, inputSnapshot: { versionIds: inputVersionIds, contractId: contract.id, contractVersion: contract.version, activity, ...authorization }, status: "queued" });
+  const operation = createLifecycleOperation(handle, { id: newId("work-op"), operationType: "specialist-work", branchId: operationBranchId ?? null, inputSnapshot: { versionIds: inputVersionIds, contractId: contract.id, contractVersion: contract.version, activity, protocolVersionId, ...authorization }, status: "queued" });
   const runId = newId("run");
   const reservation = requestedReservation(contract, request);
   const quote = request.providerQuote ?? (contract.destination === "local" ? { status: "known", amount: 0, currency: "USD", unit: "request" } : undefined);
@@ -238,6 +267,20 @@ export function queueRun(handle: ProjectHandle, capability: unknown, request: Wo
     throw new ProjectStoreError("budget-exhausted", budget.reason ?? "work budget rejected");
   }
   return insertRun(handle, { id: runId, contractId: contract.id, contractVersion: contract.version, role, commandId: request.commandId, payloadHash, operationId: operation.id, inputVersionIds, reserved: reservation, status: "queued" });
+}
+
+function parseProtocolVersionId(snapshot: string): string | "invalid" | undefined {
+  try {
+    const parsed: unknown = JSON.parse(snapshot);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const value = (parsed as Record<string, unknown>).protocolVersionId;
+      if (value === undefined) { return undefined; }
+      return typeof value === "string" && value.trim() !== "" ? value : "invalid";
+    }
+  } catch {
+    // Older lifecycle snapshots do not carry protocol identity.
+  }
+  return undefined;
 }
 
 export function retryRun(handle: ProjectHandle, capability: unknown, runId: string, commandId?: string): WorkRunRecord {
@@ -290,6 +333,8 @@ export function retryRun(handle: ProjectHandle, capability: unknown, runId: stri
     throw new ProjectStoreError("forbidden", "run activity snapshot is unreadable; retry blocked");
   }
 
+  const protocolVersionId = parseProtocolVersionId(operation.inputSnapshot);
+  if (protocolVersionId === "invalid") { throw new ProjectStoreError("forbidden", "run protocol identity is malformed; retry blocked"); }
   const command = commandId ?? `${previous.commandId}-retry-${newId("attempt")}`;
   return queueRun(handle, capability, {
     contractId: previous.contractId,
@@ -300,6 +345,7 @@ export function retryRun(handle: ProjectHandle, capability: unknown, runId: stri
     branchId: getContract(handle, previous.contractId, previous.contractVersion)?.branchId,
     reservation: previous.reserved,
     activity,
+    protocolVersionId,
     ...retryContext
   });
 }
@@ -461,7 +507,7 @@ async function dispatchRunLoop(handle: ProjectHandle, capability: unknown, run: 
     updateLifecycleOperationStatus(handle, run.operationId, "blocked");
     return updateRun(handle, run.id, "blocked", `input ${unavailableInput} is unavailable; dispatch requires revalidation`);
   }
-  const checkpoint = checkLifecyclePolicy(handle, operation, "dispatch", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
+  const checkpoint = checkLifecyclePolicy(handle, operation, "dispatch", { capability, destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
   if (checkpoint.status !== "passed") {
     if (operationsSchemaAvailable(handle)) {
       try {
@@ -504,7 +550,7 @@ async function dispatchRunLoop(handle: ProjectHandle, capability: unknown, run: 
     const reservationId = admission.reservationId;
     const snapshot = snapshotFor(handle, run);
     if (contract.destination !== "local") {
-      const disclosure = requestDisclosure(handle, { sourceVersions: run.inputVersionIds, operation: "prompt", destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator", branchId: contract.branchId });
+      const disclosure = requestDisclosure(handle, { sourceVersions: run.inputVersionIds, operation: "prompt", destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator", branchId: operation.branchId ?? contract.branchId });
       if (disclosure.status !== "allow") {
         if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
         if (operationsSchemaAvailable(handle)) {
@@ -516,7 +562,7 @@ async function dispatchRunLoop(handle: ProjectHandle, capability: unknown, run: 
         updateLifecycleOperationStatus(handle, run.operationId, "blocked");
         return updateRun(handle, run.id, "blocked", disclosure.reason);
       }
-      const external = checkLifecyclePolicy(handle, operation, "external", { destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
+      const external = checkLifecyclePolicy(handle, operation, "external", { capability, destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator" });
       if (external.status !== "passed") {
         if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
         settleBudget(handle, run.id, {}, false);
@@ -535,6 +581,25 @@ async function dispatchRunLoop(handle: ProjectHandle, capability: unknown, run: 
       if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
       await settleBudget(handle, run.id, {}, true);
       return active.controller.signal.aborted ? finalizeDispatchCancellation(handle, run, "dispatch cancelled") : freshRunBefore ?? run;
+    }
+    if (parseProtocolVersionId(operation.inputSnapshot) !== undefined) {
+      let finalCheckpoint: ReturnType<typeof checkLifecyclePolicy>;
+      try {
+        finalCheckpoint = checkLifecyclePolicy(handle, operation, contract.destination === "local" ? "dispatch" : "external", {
+          capability, destination: contract.destination, purpose: contract.purpose, actor: "work-coordinator"
+        });
+      } catch (error) {
+        if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
+        await settleBudget(handle, run.id, {}, true);
+        updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+        return updateRun(handle, run.id, "blocked", error instanceof Error ? error.message : "final dispatch authorization check failed");
+      }
+      if (finalCheckpoint.status !== "passed") {
+        if (reservationId) { releaseProviderAttemptReservation(handle, reservationId); }
+        await settleBudget(handle, run.id, {}, true);
+        updateLifecycleOperationStatus(handle, run.operationId, "blocked");
+        return updateRun(handle, run.id, "blocked", finalCheckpoint.reason);
+      }
     }
     const invocationStartedAt = Date.now();
     const invocation = await invokeProviderAttempt(handle, capability, run, contract, snapshot, sessionPort, active, admission.deadlineAt);

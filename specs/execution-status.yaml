@@ -13,15 +13,15 @@ development_status:
   e16: done
   e09: done
   e10: done
-  e12: backlog
+  e12: done
   e11: backlog
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e10_complete
-active_epic: none
-active_story: none
-note: E10 ethics and external authorization was locally released on main under approved plan revision sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe. Four stories and 16 task checks passed; the whole-epic review and final local validation passed. Production readiness, remote CI, publishing and deployment remain unclaimed.
+planning_level: e12_complete
+active_epic: e12
+active_story: e12s03
+note: E12 study progress and protocol change is complete under owner-approved plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f. Implementation and verification passed on feat/e12-study-progress. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -611,9 +611,51 @@ epics:
         tasks_failing: 0
         verification_evidence: specs/verifications/e10s04-verify.yaml
     verification_evidence: specs/verifications/e10-verify.yaml
+  e12:
+    title: Study progress and protocol change
+    status: done
+    completed_at: "2026-09-15T18:42:42Z"
+    verification_evidence: specs/verifications/e12-verify.yaml
+    stories:
+      e12s01:
+        title: Protocol Versions, Attributed Progress and Reported Execution Evidence
+        status: done
+        started_at: "2026-09-15T16:45:52Z"
+        completed_at: "2026-09-15T18:42:42Z"
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e12-verify.yaml
+      e12s02:
+        title: Amendments, Deviations and Impact Review
+        status: done
+        started_at: "2026-09-15T18:01:51Z"
+        completed_at: "2026-09-15T18:42:42Z"
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e12-verify.yaml
+      e12s03:
+        title: Late-Entry Reported Prior Commitments vs Authenticated Decisions
+        status: done
+        started_at: "2026-09-15T18:01:51Z"
+        completed_at: "2026-09-15T18:42:42Z"
+        planning_status: ready
+        bcps: 3
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e12-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-15T00:15:49Z"
-  rationale: "Traceability gate PASS: all 54 stories are traceable with 0 dark stories; E10 stories e10s01-e10s04 are done and have verification evidence. Link oracle heuristic ratio is 0.2466 (54 task-reference links of 219 total), below the downgrade threshold. Blind spots contain 0 HIGH, 1 MEDIUM double-tag warning, and 54 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1. Adversarial refute attempt found no missing E10 story tag or verification bundle."
-  heuristic_ratio: 0.246575
+  generated_at: "2026-09-15T18:37:05Z"
+  rationale: "Traceability gate PASS: all 57 stories are traceable with 0 dark stories; E12 stories e12s01-e12s03 are done and have verification evidence. Link oracle heuristic ratio is 0.253333 (57 task-reference links of 225 total), below the downgrade threshold. Blind spots contain 0 HIGH, 1 MEDIUM double-tag warning, and 57 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=0 FILLED=1. Adversarial refute attempt found no missing E12 story tag or verification bundle."
+  heuristic_ratio: 0.253333
   downgrade_applied: false

@@ -53,11 +53,17 @@ function safeStoredDiagnostics(value: unknown): readonly WorkDiagnostic[] {
 }
 
 function contractRow(row: Record<string, unknown>): WorkContractRecord {
+  const scope = parseJson<Record<string, unknown>>(row.scope, {});
+  const protocolValue = scope.protocolVersionId;
+  if (protocolValue !== undefined && (typeof protocolValue !== "string" || protocolValue.trim() === "")) {
+    throw new ProjectStoreError("forbidden", "stored contract protocolVersionId is invalid");
+  }
   return {
     id: String(row.id), version: Number(row.version),
     parentContractId: typeof row.parent_contract_id === "string" ? row.parent_contract_id : undefined,
     budgetGroupId: String(row.budget_group_id), objective: String(row.objective),
-    scope: parseJson<Record<string, unknown>>(row.scope, {}),
+    scope,
+    protocolVersionId: typeof protocolValue === "string" ? protocolValue : undefined,
     inputVersionIds: parseJson<string[]>(row.input_version_ids, []),
     permittedRoles: parseJson<SpecialistRole[]>(row.permitted_roles, ["supervisor"]),
     limits: parseJson(row.limits, { tokens: 0, calls: 0, timeMs: 0 }),
@@ -113,11 +119,16 @@ export function insertContract(handle: ProjectHandle, input: WorkContractInput, 
   if (limits.spend !== undefined && (!Number.isFinite(limits.spend) || limits.spend < 0)) {throw new ProjectStoreError("invalid-limit", "spend must be finite and non-negative");}
   const now = isoNow();
   const group = budgetGroupId ?? newId("budget");
+  const scope = { ...(input.scope ?? {}), ...(input.protocolVersionId === undefined ? {} : { protocolVersionId: input.protocolVersionId }) };
+  if (scope.protocolVersionId !== undefined) {
+    if (typeof scope.protocolVersionId !== "string") { throw new ProjectStoreError("invalid-identifier", "protocolVersionId must be a string"); }
+    assertIdentifier(scope.protocolVersionId, "protocolVersionId");
+  }
   transaction(handle.db, () => {
     handle.db.prepare(`INSERT INTO work_contracts
       (id, version, parent_contract_id, budget_group_id, objective, scope, input_version_ids, permitted_roles, limits, destination, purpose, execution_mode, authorization_basis, branch_id, status, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(id, version, input.parentContractId ?? null, group, input.objective, JSON.stringify(input.scope ?? {}), JSON.stringify(inputVersionIds), JSON.stringify(permittedRoles), JSON.stringify(limits), input.destination ?? "local", input.purpose ?? "research-work", input.executionMode ?? null, input.authorizationBasis ?? "owner-action", input.branchId ?? null, status, now, now);
+      .run(id, version, input.parentContractId ?? null, group, input.objective, JSON.stringify(scope), JSON.stringify(inputVersionIds), JSON.stringify(permittedRoles), JSON.stringify(limits), input.destination ?? "local", input.purpose ?? "research-work", input.executionMode ?? null, input.authorizationBasis ?? "owner-action", input.branchId ?? null, status, now, now);
   });
   return getContract(handle, id, version)!;
 }
