@@ -7,6 +7,7 @@ import { getClassification, evaluatePolicy, listPermissions } from "../policy/po
 import { effectiveRestriction } from "../policy/disclosure-gateway.js";
 import { isOwnerCapability, isWorkerCapability, executeLocalCommand } from "../authority/capability-broker.js";
 import { assessActivityAuthorization } from "../ethics/authorization-assessment.js";
+import { assessProtocolCurrency } from "../progress/change-store.js";
 import { RESEARCH_ACTIVITIES, type ActivityAuthorizationContext, type ResearchActivity } from "../ethics/ethics-types.js";
 import type {
   AcceptanceResult,
@@ -46,6 +47,12 @@ function snapshotObject(snapshot: string): Record<string, unknown> | undefined {
     // E03 accepts a raw artifact version ID as an input snapshot.
     return undefined;
   }
+}
+
+function snapshotProtocolVersionId(snapshot: string): string | "invalid" | undefined {
+  const parsed = snapshotObject(snapshot);
+  if (parsed === undefined || parsed.protocolVersionId === undefined) { return undefined; }
+  return typeof parsed.protocolVersionId === "string" && parsed.protocolVersionId.trim() !== "" ? parsed.protocolVersionId : "invalid";
 }
 
 function snapshotActivity(snapshot: string): ResearchActivity | "invalid" | undefined {
@@ -388,6 +395,44 @@ export function checkLifecyclePolicy(
     }
   }
   const activity = recordedActivity;
+  const protocolVersionId = snapshotProtocolVersionId(op.inputSnapshot);
+  if (protocolVersionId === "invalid") {
+    updateLifecycleOperationStatus(handle, op.id, "blocked");
+    return persistCheckpoint(handle, {
+      id: newId("chk"), operationId: op.id, phase, status: "blocked",
+      reason: "operation snapshot protocolVersionId is malformed", createdAt
+    });
+  }
+  if (protocolVersionId !== undefined) {
+    let currency: ReturnType<typeof assessProtocolCurrency>;
+    try {
+      currency = assessProtocolCurrency(handle, options?.capability, {
+        protocolVersionId,
+        branchId: op.branchId ?? undefined,
+        population: snapshotContext.population,
+        dataUse: snapshotContext.dataUse,
+        activity
+      });
+    } catch (error) {
+      if (!(error instanceof ProjectStoreError) || error.code !== "not-found") { throw error; }
+      updateLifecycleOperationStatus(handle, op.id, "blocked");
+      return persistCheckpoint(handle, {
+        id: newId("chk"), operationId: op.id, phase, status: "blocked",
+        reason: "operation snapshot protocolVersionId was not found", createdAt
+      });
+    }
+    if (currency.status === "superseded" || (currency.materialChange && !currency.contextMatches)) {
+      updateLifecycleOperationStatus(handle, op.id, "blocked");
+      return persistCheckpoint(handle, {
+        id: newId("chk"),
+        operationId: op.id,
+        phase,
+        status: "blocked",
+        reason: `protocol currency blocked: ${currency.reason}`,
+        createdAt
+      });
+    }
+  }
   if (activity !== undefined) {
     const assessment = assessActivityAuthorization(handle, {
       activity,
