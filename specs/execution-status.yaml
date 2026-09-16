@@ -19,9 +19,9 @@ development_status:
   e17: backlog
   e18: backlog
 planning_level: e12_complete
-active_epic: e12
-active_story: e12s03
-note: E12 study progress and protocol change is complete under owner-approved plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f. Implementation and verification passed on feat/e12-study-progress. Production readiness, remote CI, publishing and deployment remain unclaimed.
+active_epic: none
+active_story: none
+note: E12 study progress and protocol change was locally released on main under owner-approved plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f. Three stories and 12 task checks passed; the whole-epic review and final local validation passed. Production readiness, remote CI, publishing and deployment remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline

@@ -1,29 +1,18 @@
 ---
 workflow_mode: solo-git
-active_flow: build_epic
-active_epic: e12
-active_story: e12s03
+active_flow: plan
+active_epic: none
+active_story: null
 handoff:
-  next_skill: commit-message
-  next_command: "/bp-build E12"
-  summary: E12 implementation and verification completed on the authorized feature
-    branch under plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f.
-    Product changes remain uncommitted pending the local commit step. Production readiness
-    remains unclaimed.
-  last_step_completed: verify-work, security-review, and audit-code passed
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E12 study progress and protocol change local release complete: three stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed.
+  last_step_completed: E12 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
-  - specs/epics/e12-study-progress/epic.yaml
-  - specs/tech-architecture/e12-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
+  - specs/tech-architecture/tech-stack.md
   open_decisions: []
-epic_cycle:
-  step: 7
-  story_bcps: 3
-  completed_steps: '0,1,3,4,5,6'
-  audit_result: pass
-  branch: feat/e12-study-progress
 discovery:
   seed_conventions: confirmed
   elaborate_spec: confirmed
@@ -65,6 +54,7 @@ discovery:
   e12_plan: approved_exact_revision
   e12_build: complete
   e12_review: complete_local_release
+  e12_release: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -227,13 +217,13 @@ blueprint:
   e12_plan_approved_at: '2026-09-15T15:44:05Z'
   e12_plan_approval_source: explicit_owner_message
   e12_plan_artifacts:
-  - specs/epics/e12-study-progress/epic.yaml
-  - specs/epics/e12-study-progress/e12s01-protocol-progress-and-reported-execution.md
-  - specs/epics/e12-study-progress/e12s01-tasks.yaml
-  - specs/epics/e12-study-progress/e12s02-amendments-deviations-and-impact-review.md
-  - specs/epics/e12-study-progress/e12s02-tasks.yaml
-  - specs/epics/e12-study-progress/e12s03-late-entry-reported-prior-commitments.md
-  - specs/epics/e12-study-progress/e12s03-tasks.yaml
+  - specs/epics/archive/e12-study-progress/epic.yaml
+  - specs/epics/archive/e12-study-progress/e12s01-protocol-progress-and-reported-execution.md
+  - specs/epics/archive/e12-study-progress/e12s01-tasks.yaml
+  - specs/epics/archive/e12-study-progress/e12s02-amendments-deviations-and-impact-review.md
+  - specs/epics/archive/e12-study-progress/e12s02-tasks.yaml
+  - specs/epics/archive/e12-study-progress/e12s03-late-entry-reported-prior-commitments.md
+  - specs/epics/archive/e12-study-progress/e12s03-tasks.yaml
   - specs/tech-architecture/e12-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e12/THREAT_MODEL.md
