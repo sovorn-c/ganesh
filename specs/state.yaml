@@ -6,7 +6,7 @@ active_story: null
 handoff:
   next_skill: bp-plan
   next_command: "/bp-plan"
-  summary: E12 study progress and protocol change local release complete: three stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed.
+  summary: "E12 study progress and protocol change local release complete: three stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed."
   last_step_completed: E12 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
