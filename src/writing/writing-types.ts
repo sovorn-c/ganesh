@@ -167,8 +167,17 @@ export interface RequestDraftRevisionRequest {
 }
 
 // e13s03 types
-export type ReviewCycleStatus = "open" | "completed" | "returned-to-owner";
-export type ReviewCycleDisposition = "adopted" | "revised" | "rejected" | "returned-to-owner";
+export type ReviewCycleStatus = "open" | "completed" | "returned-to-owner" | "revision-requested" | "closed";
+export type ReviewCycleDisposition =
+  | "adopted"
+  | "revised"
+  | "rejected"
+  | "returned-to-owner"
+  | "request-revision"
+  | "return-to-owner"
+  | "acknowledge"
+  | "close";
+
 
 export interface OpenReviewCycleRequest {
   readonly draftId: string;

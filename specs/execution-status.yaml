@@ -20,7 +20,7 @@ development_status:
   e18: backlog
 planning_level: e13_stories_ready
 active_epic: e13
-active_story: e13s03
+active_story: e13s04
 note: E13 interpretation writing and supervisor exchange is planned as four vertical stories totalling 21 BCP. Implementation starts only after owner approval of the exact plan revision and /bp-build from e13s01. Remote CI, publishing, deployment and production readiness remain unclaimed.
 epics:
   e01:
@@ -741,13 +741,13 @@ epics:
         tasks_failing: 0
       e13s03:
         title: Supervisor Request/Response Cycles, Dissent and Decision History
-        status: planned
+        status: done
         planning_status: ready
         bcps: 5
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
       e13s04:
         title: Permitted Markdown, DOCX, Bibliography, CSV and Review-Packet Export
         status: planned
