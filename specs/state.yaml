@@ -1,16 +1,16 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
+active_flow: review
 active_epic: e13
 active_story: e13s04
 handoff:
-  next_skill: bp-build
-  next_command: "/bp-build"
-  summary: E13 interpretation writing and supervisor exchange owner-approved for exact
-    plan revision sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e.
-    Implementation is authorized; /bp-build was not started by this approval. Remote
-    CI, publishing, deployment, and production readiness remain unclaimed.
-  last_step_completed: E13 owner approved exact plan revision; /bp-build not started
+  next_skill: bp-review
+  next_command: "/bp-review"
+  summary: E13 interpretation writing and supervisor exchange implementation complete
+    across all 4 stories (e13s01, e13s02, e13s03, e13s04 - 21 BCP). Ready for independent
+    whole-epic review. Remote CI, publishing, deployment, and production readiness
+    remain unclaimed.
+  last_step_completed: E13 implementation complete across all 4 stories on feat/e13-writing-review
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
@@ -65,6 +65,7 @@ discovery:
   e11_review: complete_local_release
   e11_release: complete_local_release
   e13_plan: approved_exact_revision
+  e13_build: complete
   environment:
     status: verified_node24_target
     runtime:
@@ -452,7 +453,6 @@ metrics:
       total_seconds: 4457.0
       avg_seconds: 891.4
     develop-tdd:
-      calls: 0
-      total_seconds: 0
-      avg_seconds: 0
-      _start: '2026-09-17T08:54:13Z'
+      calls: 1
+      total_seconds: 2308.0
+      avg_seconds: 2308.0

@@ -15,7 +15,7 @@ development_status:
   e10: done
   e12: done
   e11: done
-  e13: planned
+  e13: done
   e17: backlog
   e18: backlog
 planning_level: e13_stories_ready
@@ -719,7 +719,7 @@ epics:
         verification_evidence: specs/verifications/e11s05-verify.yaml
   e13:
     title: Interpretation writing and supervisor exchange
-    status: planned
+    status: complete
     stories:
       e13s01:
         title: Traceable Drafts, Evidence Links and Honest Negative Findings
@@ -750,13 +750,13 @@ epics:
         tasks_failing: 0
       e13s04:
         title: Permitted Markdown, DOCX, Bibliography, CSV and Review-Packet Export
-        status: planned
+        status: done
         planning_status: ready
         bcps: 4
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-17T01:03:19Z"
