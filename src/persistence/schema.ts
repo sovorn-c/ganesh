@@ -111,6 +111,7 @@ export function createSchema(db: DatabaseSync): void {
   createE09Schema(db);
   createE10Schema(db);
   createE12Schema(db);
+  createE11Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -1076,6 +1077,146 @@ export function createE08Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE11Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS analysis_operations (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      entity_id TEXT,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_analysis_operations_kind ON analysis_operations(kind);
+
+    CREATE TABLE IF NOT EXISTS analysis_execution_policies (
+      project_id TEXT PRIMARY KEY REFERENCES projects(id),
+      mode TEXT NOT NULL,
+      bash_guard TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS analysis_command_confirmations (
+      id TEXT PRIMARY KEY,
+      command_id TEXT NOT NULL,
+      argv_digest TEXT NOT NULL,
+      argv TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      UNIQUE(command_id, argv_digest)
+    );
+    CREATE INDEX IF NOT EXISTS idx_analysis_confirmations_digest ON analysis_command_confirmations(argv_digest);
+
+    CREATE TABLE IF NOT EXISTS analysis_runs (
+      id TEXT PRIMARY KEY,
+      command_id TEXT NOT NULL UNIQUE,
+      input_version_ids TEXT NOT NULL DEFAULT '[]',
+      argv TEXT NOT NULL,
+      argv_digest TEXT NOT NULL,
+      cwd TEXT NOT NULL,
+      script_version_id TEXT,
+      command_or_script_version TEXT,
+      parameters TEXT NOT NULL DEFAULT '{}',
+      stdout_artifact_id TEXT REFERENCES artifact_versions(id),
+      stderr_artifact_id TEXT REFERENCES artifact_versions(id),
+      diagnostics TEXT NOT NULL DEFAULT '{}',
+      environment TEXT NOT NULL DEFAULT '{}',
+      mode TEXT NOT NULL,
+      status TEXT NOT NULL,
+      exit_code INTEGER,
+      signal TEXT,
+      repeatability TEXT NOT NULL DEFAULT 'reported',
+      reproduced INTEGER NOT NULL DEFAULT 0 CHECK (reproduced IN (0, 1)),
+      analysis_plan_id TEXT REFERENCES analysis_plans(id),
+      protocol_version_id TEXT REFERENCES protocol_versions(id),
+      activity TEXT,
+      population TEXT,
+      data_classes TEXT NOT NULL DEFAULT '[]',
+      data_use TEXT,
+      profile_id TEXT,
+      confirmatory_or_exploratory TEXT,
+      external_output_id TEXT,
+      attribution TEXT NOT NULL DEFAULT 'human-stated',
+      origin TEXT NOT NULL DEFAULT 'owner-recorded',
+      started_at TEXT NOT NULL,
+      ended_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_analysis_runs_created ON analysis_runs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_analysis_runs_external ON analysis_runs(external_output_id);
+
+    CREATE TABLE IF NOT EXISTS analysis_candidates (
+      id TEXT PRIMARY KEY,
+      payload TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      status TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS analysis_tool_probes (
+      id TEXT PRIMARY KEY,
+      tools TEXT NOT NULL,
+      packages TEXT NOT NULL,
+      results TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS analysis_diagnostics (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES analysis_runs(id),
+      profile_id TEXT,
+      status TEXT NOT NULL,
+      diagnostics TEXT NOT NULL,
+      limitations TEXT NOT NULL,
+      design_label TEXT,
+      evidence_type TEXT,
+      claim_type TEXT,
+      identification_strategy TEXT,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_analysis_diagnostics_run ON analysis_diagnostics(run_id, created_at);
+
+    CREATE TABLE IF NOT EXISTS external_analysis_outputs (
+      id TEXT PRIMARY KEY,
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      input_version_ids TEXT NOT NULL DEFAULT '[]',
+      argv_digest TEXT,
+      command_or_script_version TEXT,
+      parameters TEXT NOT NULL DEFAULT '{}',
+      authenticity TEXT NOT NULL DEFAULT 'reported' CHECK (authenticity = 'reported'),
+      reproduced INTEGER NOT NULL DEFAULT 0 CHECK (reproduced = 0),
+      source TEXT,
+      notes TEXT,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_external_analysis_outputs_created ON external_analysis_outputs(created_at);
+
+    CREATE TABLE IF NOT EXISTS analysis_quarantined_outputs (
+      id TEXT PRIMARY KEY,
+      run_id TEXT NOT NULL REFERENCES analysis_runs(id),
+      stdout TEXT,
+      stderr TEXT,
+      reason TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+  `);
+}
+
 function ensureE10Column(db: DatabaseSync, table: string, column: string, definition: string): void {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: unknown }>;
   if (!columns.some((entry) => entry.name === column)) {
@@ -1482,6 +1623,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE09Schema(db);
       createE10Schema(db);
       createE12Schema(db);
+      createE11Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

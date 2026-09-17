@@ -1,17 +1,23 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
-active_epic: none
-active_story: null
+active_flow: build_epic
+active_epic: e11
+active_story:
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: "E12 study progress and protocol change local release complete: three stories done, capsule archived, and branch merged into local main. Remote CI, publishing, deployment, and production readiness remain unclaimed."
-  last_step_completed: E12 release-branch local integration complete
+  next_skill: release-branch
+  next_command: "/bp-release"
+  summary: E11 implementation and local verification are complete on feat/e11-isolated-analysis
+    under owner-approved plan revision sha256:b5d83b32d70d063ed63ddc83912f967fa2183cf0a85bc539036d435727cb6496.
+    Release decision, remote CI, publishing, deployment and production readiness remain
+    unclaimed.
+  last_step_completed: E11 stories implemented; verification and audit checks complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
-  - specs/tech-architecture/tech-stack.md
+  - specs/epics/e11-isolated-analysis/epic.yaml
+  - specs/tech-architecture/e11-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e11/THREAT_MODEL.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -55,6 +61,9 @@ discovery:
   e12_build: complete
   e12_review: complete_local_release
   e12_release: complete_local_release
+  e11_plan: approved_exact_revision
+  e11_build: complete
+  e11_review: complete_local_verification
   environment:
     status: verified_node24_target
     runtime:
@@ -205,9 +214,28 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e12
+  first_eligible_epic: e11
   first_tracer_bullet_epic: e05
-  selected_epic: e12
+  selected_epic: e11
+  e11_plan: approved_exact_revision
+  e11_plan_revision: sha256:b5d83b32d70d063ed63ddc83912f967fa2183cf0a85bc539036d435727cb6496
+  e11_plan_approved_at: '2026-09-16T13:51:10Z'
+  e11_plan_approval_source: explicit_owner_message
+  e11_plan_artifacts:
+  - specs/epics/e11-isolated-analysis/epic.yaml
+  - specs/epics/e11-isolated-analysis/e11s01-execution-modes-bash-guard-and-first-command.md
+  - specs/epics/e11-isolated-analysis/e11s01-tasks.yaml
+  - specs/epics/e11-isolated-analysis/e11s02-provenance-recorded-analysis-and-test-runs.md
+  - specs/epics/e11-isolated-analysis/e11s02-tasks.yaml
+  - specs/epics/e11-isolated-analysis/e11s03-missing-tools-packages-and-mode-governed-installation.md
+  - specs/epics/e11-isolated-analysis/e11s03-tasks.yaml
+  - specs/epics/e11-isolated-analysis/e11s04-method-profile-diagnostics-and-plan-consistency.md
+  - specs/epics/e11-isolated-analysis/e11s04-tasks.yaml
+  - specs/epics/e11-isolated-analysis/e11s05-external-outputs-reported-until-reproduced.md
+  - specs/epics/e11-isolated-analysis/e11s05-tasks.yaml
+  - specs/tech-architecture/e11-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e11/THREAT_MODEL.md
   e10_plan: approved_exact_revision
   e10_plan_revision: sha256:de845574ff1cdd3c9105b8d8f537dfa06a1a252d288789a35fbde424dab213fe
   e10_plan_approved_at: '2026-09-14T10:49:12Z'
@@ -265,10 +293,10 @@ blueprint:
   - specs/tech-architecture/e14-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   audit_plan: READY_implementation_mode_approved
-  implementation_start: not_authorized
+  implementation_start: authorized_owner_plan_approval
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e10_e14_e15_e16_complete;e12_approved_exact_revision
+  story_planning: e01_e10_e12_e14_e15_e16_complete;e11_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -382,9 +410,10 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 9
-      total_seconds: 14997.0
-      avg_seconds: 1666.3333333333333
+      calls: 10
+      total_seconds: 15187.0
+      avg_seconds: 1518.7
+      _start: '2026-09-17T00:07:46Z'
     plan-tests:
       calls: 3
       total_seconds: 440.0
@@ -405,6 +434,7 @@ metrics:
       calls: 4
       total_seconds: 3484.0
       avg_seconds: 871.0
+      _start: '2026-09-16T10:34:29Z'
     develop-tdd:
       calls: 0
       total_seconds: 0

@@ -14,14 +14,14 @@ development_status:
   e09: done
   e10: done
   e12: done
-  e11: backlog
+  e11: done
   e13: backlog
   e17: backlog
   e18: backlog
-planning_level: e12_complete
+planning_level: e11_complete
 active_epic: none
 active_story: none
-note: E12 study progress and protocol change was locally released on main under owner-approved plan revision sha256:141f21c3a9b56b1a8b252776038f627bcfdc4bccf4c89a49bdf361e1cd120a9f. Three stories and 12 task checks passed; the whole-epic review and final local validation passed. Production readiness, remote CI, publishing and deployment remain unclaimed.
+note: E11 corrective review blockers E11-R1, E11-R2 and E11-R3 are fixed and locally verified on feat/e11-isolated-analysis under the unchanged owner-approved plan revision; the E11-R2 residual is fixed by verifying artifact availability and integrity before reproduction comparison. Remote CI, publishing, deployment and production readiness remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -653,9 +653,73 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e12-verify.yaml
+  e11:
+    title: User-controlled local analysis and test execution
+    status: complete
+    stories:
+      e11s01:
+        title: Execution Modes, Bash Guard and First Authorized Local Command
+        status: done
+        started_at: "2026-09-16T10:34:29Z"
+        completed_at: "2026-09-16T17:45:55Z"
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e11s01-verify.yaml
+      e11s02:
+        title: Provenance-Recorded Analysis and Test Runs
+        status: done
+        started_at: "2026-09-16T10:34:29Z"
+        completed_at: "2026-09-16T17:45:55Z"
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e11s02-verify.yaml
+      e11s03:
+        title: Missing Tools, Packages and Mode-Governed Installation
+        status: done
+        started_at: "2026-09-16T10:34:29Z"
+        completed_at: "2026-09-16T17:45:55Z"
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e11s03-verify.yaml
+      e11s04:
+        title: Method-Profile Diagnostics and Plan-Consistency Limits
+        status: done
+        started_at: "2026-09-16T10:34:29Z"
+        completed_at: "2026-09-16T17:45:55Z"
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e11s04-verify.yaml
+      e11s05:
+        title: External Outputs Remain Reported Until Independently Reproduced
+        status: done
+        started_at: "2026-09-16T10:34:29Z"
+        completed_at: "2026-09-16T18:57:26Z"
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e11s05-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-15T18:37:05Z"
-  rationale: "Traceability gate PASS: all 57 stories are traceable with 0 dark stories; E12 stories e12s01-e12s03 are done and have verification evidence. Link oracle heuristic ratio is 0.253333 (57 task-reference links of 225 total), below the downgrade threshold. Blind spots contain 0 HIGH, 1 MEDIUM double-tag warning, and 57 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=0 FILLED=1. Adversarial refute attempt found no missing E12 story tag or verification bundle."
-  heuristic_ratio: 0.253333
+  generated_at: "2026-09-17T00:50:00Z"
+  rationale: "Traceability gate PASS: all 59 stories are traceable with 0 dark stories; E11 stories e11s01-e11s05 are done and each has per-story verification evidence. Link oracle heuristic ratio is 0.253219 (59 heuristic links of 233 total), below the downgrade threshold. Blind spots contain 0 HIGH, 4 MEDIUM warnings (three E11 test-file filename heuristic gaps and one pre-existing double-tag), and 59 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the unset active_story field. Adversarial refute attempt found and closed the missing E11 per-story verification bundles; E11 task matchers and scenario tests are present and passing."
+  heuristic_ratio: 0.253219
   downgrade_applied: false
