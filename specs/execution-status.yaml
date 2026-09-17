@@ -720,6 +720,7 @@ epics:
   e13:
     title: Interpretation writing and supervisor exchange
     status: complete
+    verification_evidence: specs/verifications/e13-verify.yaml
     stories:
       e13s01:
         title: Traceable Drafts, Evidence Links and Honest Negative Findings
@@ -730,6 +731,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e13s01-verify.yaml
       e13s02:
         title: Ranked Version-Linked Review Issues Without Rewriting Originals
         status: done
@@ -739,6 +741,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e13s02-verify.yaml
       e13s03:
         title: Supervisor Request/Response Cycles, Dissent and Decision History
         status: done
@@ -748,6 +751,7 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e13s03-verify.yaml
       e13s04:
         title: Permitted Markdown, DOCX, Bibliography, CSV and Review-Packet Export
         status: done
@@ -757,9 +761,10 @@ epics:
         tasks_total: 4
         tasks_passing: 4
         tasks_failing: 0
+        verification_evidence: specs/verifications/e13s04-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-17T01:03:19Z"
-  rationale: "Traceability gate PASS: all 62 stories are traceable with 0 dark stories; E11 stories e11s01-e11s05 are done and each has per-story verification evidence. Link oracle heuristic ratio is 0.259414 (62 heuristic links of 239 total), below the downgrade threshold. Blind spots contain 0 HIGH, 4 MEDIUM warnings (three E11 test-file filename heuristic gaps and one pre-existing double-tag), and 62 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the unset active_story field. Adversarial refute attempt found and closed the missing E11 per-story verification bundles; E11 task matchers and scenario tests are present and passing."
-  heuristic_ratio: 0.259414
+  generated_at: "2026-09-17T10:53:13Z"
+  rationale: "Traceability gate PASS: all 66 stories are traceable with 0 dark stories; E13 stories e13s01-e13s04 are done and each has per-story verification evidence along with e13-verify.yaml. Link oracle heuristic ratio is 0.260870 (66 heuristic links of 253 total), below the downgrade threshold. Blind spots contain 0 HIGH, 4 MEDIUM warnings (three E11 test-file filename heuristic gaps and one pre-existing double-tag), and 66 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=0 FILLED=1. Adversarial refute attempt verified that all E13 task matchers, scenario tests and verification bundles are present and passing."
+  heuristic_ratio: 0.260870
   downgrade_applied: false

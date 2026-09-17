@@ -159,6 +159,51 @@ describe("e13s04 permitted writing and review-packet export", () => {
       const csvText = readFileSync(csvDest, "utf-8");
       assert.ok(csvText.includes("Group,Participants,ResponseRate"));
       assert.ok(csvText.includes("Intervention,120,0.78"));
+
+      // 9. Neutralize CSV formula injection (CWE-1236)
+      const formulaTable = recordDraftTable(fixture.handle, owner, {
+        commandId: "e13s04-p01-table-formulas",
+        draftId: draft.id,
+        title: "Formula Injection Test",
+        headers: ["Standard", "=SUM(A1:A2)", "+100", "@HYPERLINK", "-DIFF"],
+        rows: [
+          ["Row1", "=cmd|'/C calc'!A0", "+calc", "-sub", "\tTabLead"]
+        ]
+      });
+      const formulaCsvDest = join(fixture.root, "output", "formula-safe.csv");
+      exportDraftTableCsv(fixture.handle, owner, {
+        commandId: "e13s04-p01-exp-formula-csv",
+        draftId: draft.id,
+        tableId: formulaTable.id,
+        destinationPath: formulaCsvDest
+      });
+      const formulaCsvText = readFileSync(formulaCsvDest, "utf-8");
+      assert.ok(formulaCsvText.includes("'=SUM(A1:A2)"));
+      assert.ok(formulaCsvText.includes("'+100"));
+      assert.ok(formulaCsvText.includes("'@HYPERLINK"));
+      assert.ok(formulaCsvText.includes("'-DIFF"));
+      assert.ok(formulaCsvText.includes("'=cmd|'/C calc'!A0") || formulaCsvText.includes("''=cmd"));
+      assert.ok(formulaCsvText.includes("'+calc"));
+      assert.ok(formulaCsvText.includes("'-sub"));
+      assert.ok(formulaCsvText.includes("'\tTabLead"));
+
+      // 10. Bibliography export with unlinked draft falls back to source_records query (record_kind)
+      const unlinkedDraft = recordDraft(fixture.handle, owner, {
+        commandId: "e13s04-p01-unlinked-draft",
+        title: "Unlinked Draft for Bib Fallback",
+        bodyMarkdown: "Content without direct assertion links."
+      });
+      const fallbackBibDest = join(fixture.root, "output", "fallback-refs.bib");
+      const fallbackBibExport = exportDraftBibliography(fixture.handle, owner, {
+        commandId: "e13s04-p01-exp-fallback-bib",
+        draftId: unlinkedDraft.id,
+        destinationPath: fallbackBibDest,
+        format: "bibtex"
+      });
+      assert.ok(existsSync(fallbackBibDest));
+      assert.equal(fallbackBibExport.format, "bibtex");
+      const fallbackBibText = readFileSync(fallbackBibDest, "utf-8");
+      assert.ok(fallbackBibText.includes("doe2025"));
     } finally {
       disposeFixture(fixture);
     }
@@ -250,14 +295,47 @@ describe("e13s04 permitted writing and review-packet export", () => {
 
       // Inspect omissions.json
       const omissionsContent = JSON.parse(readFileSync(join(packetDir, "omissions.json"), "utf-8")) as string[];
-      assert.ok(omissionsContent.length > 0);
-      assert.ok(omissionsContent[0].includes("evidence-source"));
+      assert.ok(omissionsContent.some((o) => o.includes("evidence-source")));
+      assert.ok(omissionsContent.some((o) => o.includes("draft-content")));
 
       // Verify evidence references keep IDs but omit restricted raw content
       const evidenceRefs = JSON.parse(readFileSync(join(packetDir, "evidence-references.json"), "utf-8")) as Array<Record<string, unknown>>;
       assert.equal(evidenceRefs.length, 1);
       assert.equal(evidenceRefs[0].status, "omitted-restricted");
       assert.ok(evidenceRefs[0].reason);
+
+      // Refuse review cycle belonging to another draft (CWE-345/639)
+      const otherDraft = recordDraft(fixture.handle, owner, {
+        commandId: "e13s04-p02-other-draft",
+        title: "Other Unrelated Draft",
+        bodyMarkdown: "Unrelated content."
+      });
+      assert.throws(
+        () => exportReviewPacket(fixture.handle, owner, {
+          commandId: "e13s04-p02-exp-mismatch-cycle",
+          draftId: otherDraft.id,
+          cycleId: cycle.id,
+          destinationPath: join(fixture.root, "mismatch-packet")
+        }),
+        (err: unknown) => err instanceof ProjectStoreError && err.code === "invalid-argument"
+      );
+
+      // Omit restricted draft content when draft version disclosure is denied (CWE-200)
+      classifyInput(fixture.handle, draft.artifactVersionId, {
+        sensitivity: "restricted",
+        basis: "confidential protocol specification"
+      });
+      const restrictedDraftPacketDir = join(fixture.root, "restricted-draft-review-packet");
+      const restrictedDraftExport = exportReviewPacket(fixture.handle, owner, {
+        commandId: "e13s04-p02-exp-restricted-draft",
+        draftId: draft.id,
+        cycleId: cycle.id,
+        destinationPath: restrictedDraftPacketDir
+      });
+      assert.ok(restrictedDraftExport.omissions.some((o) => o.includes("draft-content")));
+      const exportedDraftMd = readFileSync(join(restrictedDraftPacketDir, "draft.md"), "utf-8");
+      assert.ok(!exportedDraftMd.includes("Discussion of participant records."));
+      assert.ok(exportedDraftMd.includes("[Omitted per policy disclosure denial"));
     } finally {
       disposeFixture(fixture);
     }

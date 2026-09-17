@@ -147,10 +147,14 @@ function buildDocx(paragraphs: readonly string[]): Buffer {
 }
 
 function escapeCsvValue(val: string): string {
-  if (val.includes(",") || val.includes('"') || val.includes("\n") || val.includes("\r")) {
-    return `"${val.replace(/"/g, '""')}"`;
+  let sanitized = val;
+  if (/^\s*[=+\-@\t\r]/u.test(sanitized)) {
+    sanitized = `'${sanitized}`;
   }
-  return val;
+  if (sanitized.includes(",") || sanitized.includes('"') || sanitized.includes("\n") || sanitized.includes("\r")) {
+    return `"${sanitized.replace(/"/g, '""')}"`;
+  }
+  return sanitized;
 }
 
 function mapTableRow(row: Record<string, unknown>): DraftTable {
@@ -439,7 +443,7 @@ export function exportDraftBibliography(
 
   if (sourceVersionIds.size === 0) {
     const allBibSources = handle.db.prepare(
-      "SELECT DISTINCT source_version_id FROM source_records WHERE record_type = 'bibliographic'"
+      "SELECT DISTINCT source_version_id FROM source_records WHERE record_kind = 'bibliographic'"
     ).all() as Array<{ source_version_id: string }>;
     for (const s of allBibSources) {
       sourceVersionIds.add(s.source_version_id);
@@ -641,6 +645,12 @@ export function exportReviewPacket(
   let cycleRow: Record<string, unknown> | undefined;
   if (request.cycleId) {
     cycleRow = handle.db.prepare("SELECT * FROM review_cycles WHERE id = ?").get(request.cycleId) as Record<string, unknown> | undefined;
+    if (!cycleRow) {
+      throw new ProjectStoreError("not-found", `review cycle not found: ${request.cycleId}`);
+    }
+    if (String(cycleRow.draft_id) !== request.draftId) {
+      throw new ProjectStoreError("invalid-argument", `review cycle ${request.cycleId} belongs to draft ${String(cycleRow.draft_id)}, not ${request.draftId}`);
+    }
   } else {
     cycleRow = handle.db.prepare("SELECT * FROM review_cycles WHERE draft_id = ? ORDER BY created_at DESC LIMIT 1").get(request.draftId) as Record<string, unknown> | undefined;
   }
@@ -656,6 +666,18 @@ export function exportReviewPacket(
 
   const omissions: string[] = [];
   const permittedEvidenceRefs: Array<Record<string, unknown>> = [];
+
+  const draftVersionId = String(draftRow.artifact_version_id);
+  const draftDisclosure = requestDisclosure(handle, {
+    operation: "export",
+    destination: "review-packet",
+    purpose: "supervisor-review",
+    sourceVersions: [draftVersionId]
+  });
+
+  if (draftDisclosure.status === "deny") {
+    omissions.push(`draft-content-${draftVersionId}: ${draftDisclosure.reason}`);
+  }
 
   for (const link of linkRows) {
     if (link.evidence_item_id) {
@@ -714,7 +736,10 @@ export function exportReviewPacket(
     files: []
   }, null, 2), "utf-8");
 
-  writeFileSync(join(packetDir, "draft.md"), `# ${String(draftRow.title)}\n\n${String(draftRow.body_markdown)}\n`, "utf-8");
+  const draftContent = draftDisclosure.status === "deny"
+    ? `<!-- [OMITTED: draft content restricted per policy disclosure - ${draftDisclosure.reason}] -->\n[Omitted per policy disclosure denial]\n`
+    : `# ${String(draftRow.title)}\n\n${String(draftRow.body_markdown)}\n`;
+  writeFileSync(join(packetDir, "draft.md"), draftContent, "utf-8");
   writeFileSync(join(packetDir, "issues.json"), JSON.stringify(issueRows, null, 2), "utf-8");
   writeFileSync(join(packetDir, "questions.json"), JSON.stringify(feedbackRows, null, 2), "utf-8");
   writeFileSync(join(packetDir, "evidence-references.json"), JSON.stringify(permittedEvidenceRefs, null, 2), "utf-8");
