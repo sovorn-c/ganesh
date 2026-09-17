@@ -170,6 +170,17 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Process limitations:** `scripts/land-branch.sh` and the CWE fixture-sync helper are absent; this is a local-only integration and does not claim remote CI or production readiness.
 - **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8). This is local security evidence only and does not satisfy the separate production `release-check` gate.
 
+## e13 security review — local release gate (2026-09-17)
+
+- **Scope:** Current `feat/e13-writing-review` diff from local `main` at `b1a0d1f`, covering traceable drafts, ranked review issues, supervisor cycles, writing exports, review packets, additive SQLite schema, and the Pass 1 correction commit.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev --audit-level=high` reported `found 0 vulnerabilities`; `package.json` and `package-lock.json` are unchanged.
+- **Authority and integrity:** Writing mutations and inspections retain owner/worker capability and project checks. Review cycles now reject missing cycles and cycles belonging to another draft. Draft history remains insert-only, and review packets retain `kind: review` without entering project/backup restore paths.
+- **Disclosure and export sinks:** Review-packet export requests disclosure for draft content before writing bytes, omits denied draft content with an explicit notice, and continues to omit restricted evidence. CSV formula-leading values are neutralized for `=`, `+`, `-`, `@`, tab, and carriage return prefixes. Bibliography fallback uses the schema's `record_kind` column.
+- **Credential, network, and sink checks:** Changed E13 source introduces no shell execution, network client, dynamic code execution, unsafe deserialization, or credential-shaped literals. SQL uses prepared statements for values; the only `db.exec` addition is developer-authored additive schema DDL.
+- **Verification evidence:** Build, typecheck, lint, full tests (456/456), all 16 E13 story verifications, blind-spot scan (0 HIGH), completeness critic (`BLOCKER=0`), and Pass 2 review passed.
+- **Process limitation:** This is a local-only security gate. No remote CI, publishing, deployment, production-readiness, or separate `release-check` approval is claimed.
+- **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8).
+
 ## e11 security review — local release gate (2026-09-17)
 
 - **Scope:** Current E11 isolated-analysis changes on `feat/e11-isolated-analysis`, including execution-mode policy, guarded local command execution, provenance-recorded analysis runs, tool/package probing, method diagnostics, external-output reproduction, additive schema fields, and project integration.
