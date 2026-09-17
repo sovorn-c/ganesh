@@ -1,22 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: review
-active_epic: e13
-active_story: e13s04
+active_flow: plan
+active_epic: none
+active_story: null
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
-  summary: E13 interpretation writing and supervisor exchange implementation complete
-    across all 4 stories (e13s01, e13s02, e13s03, e13s04 - 21 BCP). Ready for independent
-    whole-epic review. Remote CI, publishing, deployment, and production readiness
-    remain unclaimed.
-  last_step_completed: E13 implementation complete across all 4 stories on feat/e13-writing-review
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: "E13 interpretation writing and supervisor exchange local release complete: four stories done, capsule archived, and branch merged into local main under owner-approved plan revision sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e. Remote CI, publishing, deployment, and production readiness remain unclaimed."
+  last_step_completed: E13 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
-  - specs/epics/e13-writing-review/epic.yaml
-  - specs/tech-architecture/e13-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
+  - specs/tech-architecture/tech-stack.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -66,6 +61,8 @@ discovery:
   e11_release: complete_local_release
   e13_plan: approved_exact_revision
   e13_build: complete
+  e13_review: complete_local_release
+  e13_release: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -224,15 +221,15 @@ blueprint:
   e13_plan_approved_at: '2026-09-17T08:37:21Z'
   e13_plan_approval_source: explicit_owner_message
   e13_plan_artifacts:
-  - specs/epics/e13-writing-review/epic.yaml
-  - specs/epics/e13-writing-review/e13s01-traceable-drafts-and-honest-negative-findings.md
-  - specs/epics/e13-writing-review/e13s01-tasks.yaml
-  - specs/epics/e13-writing-review/e13s02-ranked-review-issues-without-rewriting.md
-  - specs/epics/e13-writing-review/e13s02-tasks.yaml
-  - specs/epics/e13-writing-review/e13s03-supervisor-cycles-dissent-and-history.md
-  - specs/epics/e13-writing-review/e13s03-tasks.yaml
-  - specs/epics/e13-writing-review/e13s04-permitted-writing-and-review-packet-export.md
-  - specs/epics/e13-writing-review/e13s04-tasks.yaml
+  - specs/epics/archive/e13-writing-review/epic.yaml
+  - specs/epics/archive/e13-writing-review/e13s01-traceable-drafts-and-honest-negative-findings.md
+  - specs/epics/archive/e13-writing-review/e13s01-tasks.yaml
+  - specs/epics/archive/e13-writing-review/e13s02-ranked-review-issues-without-rewriting.md
+  - specs/epics/archive/e13-writing-review/e13s02-tasks.yaml
+  - specs/epics/archive/e13-writing-review/e13s03-supervisor-cycles-dissent-and-history.md
+  - specs/epics/archive/e13-writing-review/e13s03-tasks.yaml
+  - specs/epics/archive/e13-writing-review/e13s04-permitted-writing-and-review-packet-export.md
+  - specs/epics/archive/e13-writing-review/e13s04-tasks.yaml
   - specs/tech-architecture/e13-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e13/THREAT_MODEL.md

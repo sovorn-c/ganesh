@@ -9,6 +9,8 @@ checks:
   lint: "npm run lint passed, exit 0"
   targeted_writing_tests: "16 planned E13 scenario tests passed across 4 test suites, 0 failed"
   full_tests: "456 passed, 0 failed"
+  overall_coverage: "Node.js test coverage passed: 84.68% lines, 92.25% functions, 72.60% branches"
+  business_logic_coverage: "E13 business-logic include set passed the 95% function gate: 97.25% functions, 89.80% lines"
   test_filter_no_match: "require-test-match exited 1 for an unmatched pattern"
   test_filter_valid_match: "require-test-match exited 0 for valid task patterns"
   affected_e13s04_verification: "e13s04-t01, e13s04-t02, e13s04-t03 and e13s04-t04 each exited 0"
