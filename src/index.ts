@@ -66,7 +66,7 @@ export * from "./sources/structured-parser.js";
 export * from "./sources/source-matching.js";
 export * from "./sources/source-access.js";
 export { FULL_ACCESS_NOTICE } from "./runtime/preflight-constants.js";
-export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema, createE09Schema, createE10Schema, createE12Schema, createE11Schema } from "./persistence/schema.js";
+export { migrateSchema, createE03Schema, createE04Schema, createE05Schema, createE06Schema, createE07Schema, createE08Schema, createE15Schema, createE16Schema, createE09Schema, createE10Schema, createE12Schema, createE11Schema, createE13Schema } from "./persistence/schema.js";
 export * from "./analysis/analysis-types.js";
 export * from "./analysis/command-runner.js";
 export * from "./analysis/run-store.js";
@@ -166,3 +166,11 @@ export * from "./progress/progress-store.js";
 export * from "./progress/execution-store.js";
 export * from "./progress/change-store.js";
 export * from "./progress/consultation-store.js";
+export * from "./writing/writing-types.js";
+export * from "./writing/writing-utils.js";
+export * from "./writing/draft-store.js";
+export * from "./writing/issue-store.js";
+export * from "./writing/cycle-store.js";
+export * from "./writing/export-store.js";
+
+

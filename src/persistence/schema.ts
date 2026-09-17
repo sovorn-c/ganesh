@@ -112,6 +112,7 @@ export function createSchema(db: DatabaseSync): void {
   createE10Schema(db);
   createE12Schema(db);
   createE11Schema(db);
+  createE13Schema(db);
 }
 
 export function createE03Schema(db: DatabaseSync): void {
@@ -1217,6 +1218,166 @@ export function createE11Schema(db: DatabaseSync): void {
   `);
 }
 
+export function createE13Schema(db: DatabaseSync): void {
+  configureDatabase(db);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS writing_operations (
+      command_id TEXT PRIMARY KEY,
+      kind TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      status TEXT NOT NULL,
+      entity_id TEXT,
+      result_data TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_writing_operations_kind ON writing_operations(kind);
+
+    CREATE TABLE IF NOT EXISTS drafts (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      body_markdown TEXT NOT NULL,
+      body_hash TEXT NOT NULL,
+      finding_kind TEXT NOT NULL CHECK (finding_kind IN ('positive', 'negative', 'inconclusive', 'insufficient-evidence')),
+      next_action TEXT,
+      attribution TEXT NOT NULL DEFAULT 'human-stated',
+      origin TEXT NOT NULL DEFAULT 'owner-recorded',
+      artifact_version_id TEXT NOT NULL REFERENCES artifact_versions(id),
+      branch_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'candidate',
+      version_number INTEGER NOT NULL DEFAULT 1,
+      prior_draft_id TEXT REFERENCES drafts(id),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_drafts_created ON drafts(created_at);
+    CREATE INDEX IF NOT EXISTS idx_drafts_artifact ON drafts(artifact_version_id);
+
+    CREATE TABLE IF NOT EXISTS draft_assertion_links (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      claim_id TEXT REFERENCES claims(id),
+      evidence_item_id TEXT REFERENCES evidence_items(id),
+      analysis_run_id TEXT REFERENCES analysis_runs(id),
+      role TEXT NOT NULL CHECK (role IN ('supports', 'qualifies', 'challenges')),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_draft_assertions_draft ON draft_assertion_links(draft_id);
+
+    CREATE TABLE IF NOT EXISTS draft_limitations (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      limitation_text TEXT NOT NULL,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_draft_limitations_draft ON draft_limitations(draft_id);
+
+    CREATE TABLE IF NOT EXISTS ai_contributions (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      summary TEXT NOT NULL,
+      disclosure_needed INTEGER NOT NULL CHECK (disclosure_needed IN (0, 1)),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_contributions_draft ON ai_contributions(draft_id);
+
+    CREATE TABLE IF NOT EXISTS writing_candidates (
+      id TEXT PRIMARY KEY,
+      payload TEXT NOT NULL,
+      attribution TEXT NOT NULL,
+      origin TEXT NOT NULL DEFAULT 'specialist-proposed',
+      status TEXT NOT NULL DEFAULT 'candidate',
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS review_issues (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      rank INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      evidence_version_id TEXT REFERENCES artifact_versions(id),
+      status TEXT NOT NULL DEFAULT 'open',
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_review_issues_draft ON review_issues(draft_id, rank);
+
+    CREATE TABLE IF NOT EXISTS review_cycles (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      status TEXT NOT NULL DEFAULT 'open',
+      revision_count INTEGER NOT NULL DEFAULT 0,
+      disposition TEXT,
+      disposition_notes TEXT,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_review_cycles_draft ON review_cycles(draft_id);
+
+    CREATE TABLE IF NOT EXISTS supervisor_feedbacks (
+      id TEXT PRIMARY KEY,
+      cycle_id TEXT NOT NULL REFERENCES review_cycles(id),
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      supervisor_name TEXT NOT NULL,
+      supervisor_role TEXT NOT NULL,
+      authenticity TEXT NOT NULL DEFAULT 'reported' CHECK (authenticity = 'reported'),
+      feedback_text TEXT NOT NULL,
+      dissent_text TEXT,
+      artifact_version_id TEXT REFERENCES artifact_versions(id),
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_supervisor_feedbacks_cycle ON supervisor_feedbacks(cycle_id);
+
+    CREATE TABLE IF NOT EXISTS draft_tables (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      title TEXT NOT NULL,
+      headers TEXT NOT NULL,
+      rows TEXT NOT NULL,
+      notes TEXT,
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_draft_tables_draft ON draft_tables(draft_id);
+
+    CREATE TABLE IF NOT EXISTS writing_exports (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      format TEXT NOT NULL,
+      destination_path TEXT NOT NULL,
+      artifact_version_id TEXT REFERENCES artifact_versions(id),
+      format_limits TEXT NOT NULL DEFAULT '[]',
+      provenance_limits TEXT NOT NULL DEFAULT '[]',
+      omissions TEXT NOT NULL DEFAULT '[]',
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_writing_exports_draft ON writing_exports(draft_id);
+
+    CREATE TABLE IF NOT EXISTS review_packet_exports (
+      id TEXT PRIMARY KEY,
+      draft_id TEXT NOT NULL REFERENCES drafts(id),
+      cycle_id TEXT REFERENCES review_cycles(id),
+      packet_path TEXT NOT NULL,
+      artifact_version_id TEXT REFERENCES artifact_versions(id),
+      manifest TEXT NOT NULL,
+      omissions TEXT NOT NULL DEFAULT '[]',
+      command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_review_packet_exports_draft ON review_packet_exports(draft_id);
+  `);
+}
+
 function ensureE10Column(db: DatabaseSync, table: string, column: string, definition: string): void {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name?: unknown }>;
   if (!columns.some((entry) => entry.name === column)) {
@@ -1624,6 +1785,7 @@ export function migrateSchema(target: string | DatabaseSync): { fromVersion: num
       createE10Schema(db);
       createE12Schema(db);
       createE11Schema(db);
+      createE13Schema(db);
       db.prepare("UPDATE metadata SET value = ? WHERE key = ?").run(
         String(PROJECT_SCHEMA_VERSION),
         SCHEMA_METADATA_KEY

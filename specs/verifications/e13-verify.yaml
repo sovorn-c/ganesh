@@ -1,0 +1,25 @@
+epic: e13
+status: passed
+verified_at: "2026-09-17T10:45:00Z"
+branch: feat/e13-writing-review
+plan_revision: sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e
+checks:
+  build: "passed, exit 0"
+  typecheck: "passed, exit 0"
+  lint: "npm run lint passed, exit 0"
+  targeted_writing_tests: "16 planned E13 scenario tests passed across 4 test suites, 0 failed"
+  full_tests: "456 passed, 0 failed"
+  test_filter_no_match: "require-test-match exited 1 for an unmatched pattern"
+  test_filter_valid_match: "require-test-match exited 0 for valid task patterns"
+  affected_e13s04_verification: "e13s04-t01, e13s04-t02, e13s04-t03 and e13s04-t04 each exited 0"
+  preflight: "passed with execution-mode not configured warning, exit 0"
+  security_review: "E13 authority, CSV formula neutralization, cycle ownership and disclosure redaction verified"
+  traceability: "66 stories, 0 dark"
+notes:
+  - E13 schema is additive (12 tables) and PROJECT_SCHEMA_VERSION remains 1.
+  - Drafts, assertions, issues and cycles are versioned and tamper-evident; original drafts are never rewritten.
+  - Review cycles enforce draft ownership and reject cycles belonging to other drafts.
+  - Review packets evaluate policy disclosure for draft content and evidence, omitting restricted material with explicit notices.
+  - CSV exports neutralize formula-leading values (=, +, -, @, tab, cr) to prevent CWE-1236 injection.
+  - Review packets retain kind: 'review' and fail closed on E15 project/backup restore.
+  - Release, remote CI, publishing, deployment and production readiness remain unclaimed.
