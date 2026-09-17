@@ -23,5 +23,5 @@ notes:
   - Review cycles enforce draft ownership and reject cycles belonging to other drafts.
   - Review packets evaluate policy disclosure for draft content and evidence, omitting restricted material with explicit notices.
   - CSV exports neutralize formula-leading values (=, +, -, @, tab, cr) to prevent CWE-1236 injection.
-  - Review packets retain kind: 'review' and fail closed on E15 project/backup restore.
+  - "Review packets retain kind: 'review' and fail closed on E15 project/backup restore."
   - Release, remote CI, publishing, deployment and production readiness remain unclaimed.
