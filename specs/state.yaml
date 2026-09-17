@@ -2,11 +2,14 @@
 workflow_mode: solo-git
 active_flow: plan
 active_epic: none
-active_story: null
+active_story:
 handoff:
   next_skill: bp-plan
   next_command: "/bp-plan"
-  summary: "E11 isolated analysis local release complete: five stories done, capsule archived, and branch merged into local main under owner-approved plan revision sha256:b5d83b32d70d063ed63ddc83912f967fa2183cf0a85bc539036d435727cb6496. Remote CI, publishing, deployment, and production readiness remain unclaimed."
+  summary: 'E11 isolated analysis local release complete: five stories done, capsule
+    archived, and branch merged into local main under owner-approved plan revision
+    sha256:b5d83b32d70d063ed63ddc83912f967fa2183cf0a85bc539036d435727cb6496. Remote
+    CI, publishing, deployment, and production readiness remain unclaimed.'
   last_step_completed: E11 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
@@ -405,10 +408,9 @@ metrics:
       total_seconds: 952.0
       avg_seconds: 79.33333333333333
     release-branch:
-      calls: 10
-      total_seconds: 15187.0
-      avg_seconds: 1518.7
-      _start: '2026-09-17T00:07:46Z'
+      calls: 11
+      total_seconds: 18614.0
+      avg_seconds: 1692.1818181818182
     plan-tests:
       calls: 3
       total_seconds: 440.0
