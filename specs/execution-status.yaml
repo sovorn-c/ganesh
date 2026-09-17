@@ -21,7 +21,7 @@ development_status:
 planning_level: e11_complete
 active_epic: none
 active_story: none
-note: E11 corrective review blockers E11-R1, E11-R2 and E11-R3 are fixed and locally verified on feat/e11-isolated-analysis under the unchanged owner-approved plan revision; the E11-R2 residual is fixed by verifying artifact availability and integrity before reproduction comparison. Remote CI, publishing, deployment and production readiness remain unclaimed.
+note: E11 corrective review blockers E11-R1, E11-R2 and E11-R3 are fixed and locally released on main under the unchanged owner-approved plan revision; the E11-R2 residual is fixed by verifying artifact availability and integrity before reproduction comparison. Five stories and 20 task checks passed. Remote CI, publishing, deployment and production readiness remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -719,7 +719,7 @@ epics:
         verification_evidence: specs/verifications/e11s05-verify.yaml
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-17T00:50:00Z"
-  rationale: "Traceability gate PASS: all 59 stories are traceable with 0 dark stories; E11 stories e11s01-e11s05 are done and each has per-story verification evidence. Link oracle heuristic ratio is 0.253219 (59 heuristic links of 233 total), below the downgrade threshold. Blind spots contain 0 HIGH, 4 MEDIUM warnings (three E11 test-file filename heuristic gaps and one pre-existing double-tag), and 59 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the unset active_story field. Adversarial refute attempt found and closed the missing E11 per-story verification bundles; E11 task matchers and scenario tests are present and passing."
-  heuristic_ratio: 0.253219
+  generated_at: "2026-09-17T01:03:19Z"
+  rationale: "Traceability gate PASS: all 62 stories are traceable with 0 dark stories; E11 stories e11s01-e11s05 are done and each has per-story verification evidence. Link oracle heuristic ratio is 0.259414 (62 heuristic links of 239 total), below the downgrade threshold. Blind spots contain 0 HIGH, 4 MEDIUM warnings (three E11 test-file filename heuristic gaps and one pre-existing double-tag), and 62 LOW stale-tag warnings from completed stories; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the unset active_story field. Adversarial refute attempt found and closed the missing E11 per-story verification bundles; E11 task matchers and scenario tests are present and passing."
+  heuristic_ratio: 0.259414
   downgrade_applied: false
