@@ -15,13 +15,13 @@ development_status:
   e10: done
   e12: done
   e11: done
-  e13: backlog
+  e13: planned
   e17: backlog
   e18: backlog
-planning_level: e11_complete
-active_epic: none
-active_story: none
-note: E11 corrective review blockers E11-R1, E11-R2 and E11-R3 are fixed and locally released on main under the unchanged owner-approved plan revision; the E11-R2 residual is fixed by verifying artifact availability and integrity before reproduction comparison. Five stories and 20 task checks passed. Remote CI, publishing, deployment and production readiness remain unclaimed.
+planning_level: e13_stories_ready
+active_epic: e13
+active_story: e13s02
+note: E13 interpretation writing and supervisor exchange is planned as four vertical stories totalling 21 BCP. Implementation starts only after owner approval of the exact plan revision and /bp-build from e13s01. Remote CI, publishing, deployment and production readiness remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -717,6 +717,46 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e11s05-verify.yaml
+  e13:
+    title: Interpretation writing and supervisor exchange
+    status: planned
+    stories:
+      e13s01:
+        title: Traceable Drafts, Evidence Links and Honest Negative Findings
+        status: done
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+      e13s02:
+        title: Ranked Version-Linked Review Issues Without Rewriting Originals
+        status: planned
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
+      e13s03:
+        title: Supervisor Request/Response Cycles, Dissent and Decision History
+        status: planned
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
+      e13s04:
+        title: Permitted Markdown, DOCX, Bibliography, CSV and Review-Packet Export
+        status: planned
+        planning_status: ready
+        bcps: 4
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-17T01:03:19Z"
