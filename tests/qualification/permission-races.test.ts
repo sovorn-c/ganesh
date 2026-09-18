@@ -2,6 +2,7 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { rmSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import {
   exportProject,
   restoreProject,
@@ -128,35 +129,52 @@ describe("e17s02 permission-race behavioral tests", () => {
       payloadHash: packetPayloadHash({ dest: backupDir })
     });
 
-    // Execute concurrent overlapping operations: revoke permission concurrently while restore is scheduled
-    const concurrentRevoke = async () => {
-      withdrawDataUse(fix.handle, grant.id, "revoked-prior-to-restore", fix.ownerId);
-    };
+    let restoreBarrierTriggered = false;
+    let revokeExecutedDuringRestore = false;
 
-    const concurrentRestore = async () => {
-      await new Promise((resolve) => setImmediate(resolve));
-      return restoreProject(fix.ownerCap, {
+    // Real overlap barrier: when replaceRestore opens the live database to read terminal grants,
+    // intercept the prepare call and execute withdrawDataUse mid-flight before live grants are returned
+    const origPrepareRestore = DatabaseSync.prototype.prepare;
+    try {
+      DatabaseSync.prototype.prepare = function (sql: string) {
+        if (
+          !restoreBarrierTriggered &&
+          typeof sql === "string" &&
+          sql.includes("SELECT id, input_version_id, destination, purpose, status FROM policy_permissions")
+        ) {
+          restoreBarrierTriggered = true;
+          // Concurrent revoke races mid-flight while restore is actively executing
+          withdrawDataUse(fix.handle, grant.id, "revoked-during-restore-barrier", fix.ownerId);
+          revokeExecutedDuringRestore = true;
+        }
+        return origPrepareRestore.call(this, sql);
+      };
+
+      const replaceResult = restoreProject(fix.ownerCap, {
         commandId: `replace-restore-cmd-${fix.handle.project.id}`,
         sourcePath: backupDir,
         destinationPath: fix.root,
         mode: "replace",
         payloadHash: packetPayloadHash({ dest: fix.root })
       });
-    };
 
-    const [, replaceResult] = await Promise.all([concurrentRevoke(), concurrentRestore()]);
-    assert.equal(replaceResult.valid, true);
+      assert.equal(replaceResult.valid, true);
+      assert.equal(restoreBarrierTriggered, true, "restore barrier must be triggered during active restore");
+      assert.equal(revokeExecutedDuringRestore, true, "revoke must execute concurrently during active restore");
 
-    // Surviving live state MUST keep the grant withdrawn (monotonic grant retention)
-    const reopened = openProject(fix.root);
-    try {
-      const restoredPerm = reopened.db
-        .prepare("SELECT status FROM policy_permissions WHERE id = ?")
-        .get(grant.id) as { status: string } | undefined;
-      assert.ok(restoredPerm);
-      assert.equal(restoredPerm.status, "withdrawn");
+      // Surviving live state MUST keep the grant withdrawn (monotonic grant retention)
+      const reopened = openProject(fix.root);
+      try {
+        const restoredPerm = reopened.db
+          .prepare("SELECT status FROM policy_permissions WHERE id = ?")
+          .get(grant.id) as { status: string } | undefined;
+        assert.ok(restoredPerm);
+        assert.equal(restoredPerm.status, "withdrawn");
+      } finally {
+        reopened.close();
+      }
     } finally {
-      reopened.close();
+      DatabaseSync.prototype.prepare = origPrepareRestore;
     }
   });
 
@@ -167,33 +185,50 @@ describe("e17s02 permission-race behavioral tests", () => {
 
     const exportDir = newTempDir();
 
-    // Execute concurrent overlapping operations: classify art2 as restricted while export is being prepared
-    const concurrentClassify = async () => {
-      classifyInput(fix.handle, art2.id, {
-        sensitivity: "restricted",
-        basis: "participant-confidentiality"
-      });
-    };
+    let exportBarrierTriggered = false;
+    let classifyExecutedDuringExport = false;
 
-    const concurrentExport = async () => {
-      await new Promise((resolve) => setImmediate(resolve));
-      return exportProject(fix.handle, fix.ownerCap, {
+    // Real overlap barrier: when exportProject prepares to query artifact_versions to evaluate disclosure,
+    // intercept the prepare call and execute classifyInput mid-flight before rows are returned
+    const origPrepareExport = DatabaseSync.prototype.prepare;
+    try {
+      DatabaseSync.prototype.prepare = function (sql: string) {
+        if (
+          !exportBarrierTriggered &&
+          typeof sql === "string" &&
+          sql.includes("FROM artifact_versions ORDER BY logical_id")
+        ) {
+          exportBarrierTriggered = true;
+          // Concurrent classification races mid-flight while export is actively executing
+          classifyInput(fix.handle, art2.id, {
+            sensitivity: "restricted",
+            basis: "participant-confidentiality"
+          });
+          classifyExecutedDuringExport = true;
+        }
+        return origPrepareExport.call(this, sql);
+      };
+
+      const result = exportProject(fix.handle, fix.ownerCap, {
         commandId: `export-classify-race-${fix.handle.project.id}`,
         destinationPath: exportDir,
         destination: "external-cloud",
         purpose: "remote-review",
         payloadHash: packetPayloadHash({ dest: exportDir })
       });
-    };
 
-    const [, result] = await Promise.all([concurrentClassify(), concurrentExport()]);
+      assert.equal(exportBarrierTriggered, true, "export barrier must be triggered during active export");
+      assert.equal(classifyExecutedDuringExport, true, "classification must execute concurrently during active export");
 
-    // Export completed with manifest and omitted the restricted material
-    assert.ok(result.manifest);
-    assert.ok(result.manifest.files.length > 0);
-    const omittedIds = (result.manifest.omissions ?? []).map((o) => o.artifactVersionId);
-    assert.ok(omittedIds.includes(art2.id), "restricted artifact must be omitted from external export");
-    const exportedPaths = result.manifest.files.map((f) => f.relativePath);
-    assert.ok(!exportedPaths.some((p) => p.includes("doc-secret")), "restricted content bytes must not be exported");
+      // Export completed with manifest and omitted the restricted material
+      assert.ok(result.manifest);
+      assert.ok(result.manifest.files.length > 0);
+      const omittedIds = (result.manifest.omissions ?? []).map((o) => o.artifactVersionId);
+      assert.ok(omittedIds.includes(art2.id), "restricted artifact must be omitted from external export");
+      const exportedPaths = result.manifest.files.map((f) => f.relativePath);
+      assert.ok(!exportedPaths.some((p) => p.includes("doc-secret")), "restricted content bytes must not be exported");
+    } finally {
+      DatabaseSync.prototype.prepare = origPrepareExport;
+    }
   });
 });

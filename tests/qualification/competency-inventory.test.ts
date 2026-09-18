@@ -84,6 +84,22 @@ describe("e17s03 competency metadata, worked failures, licenses and provenance",
     }
   });
 
+  it("e17s03 fails closed on missing adaptationRecord in competency item (E17-003)", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      const inventory = createValidCompetencyInventory();
+      const comp = inventory.competencies as Array<Record<string, unknown>>;
+      delete comp[0].adaptationRecord;
+      writeTempProjectCatalog(dir, inventory, "competency-inventory.json");
+
+      const report = validateCompetencyInventory(dir);
+      assert.equal(report.status, "failed");
+      assert.ok(report.reasons && report.reasons.some((r) => /missing required field: adaptationRecord/i.test(r)));
+    } finally {
+      cleanup();
+    }
+  });
+
   it("e17s03 fails closed on missing catalog file or invalid JSON (SC-e17s03-P0-02)", () => {
     const { dir, cleanup } = createTempDir();
     try {

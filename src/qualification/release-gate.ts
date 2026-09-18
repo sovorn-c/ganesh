@@ -15,6 +15,27 @@ import type {
   SafetyDefectLedger
 } from "./qualification-types.js";
 
+const DEFAULT_OUTCOME_METADATA: Readonly<Record<string, { readonly epicId: string; readonly title: string }>> = Object.freeze({
+  R01: { epicId: "e01", title: "Verified development and runtime baseline" },
+  R02: { epicId: "e02", title: "Durable versioned research projects" },
+  R03: { epicId: "e03", title: "Enforced data-use and capability controls" },
+  R04: { epicId: "e04", title: "Transparent lifecycle and decision governance" },
+  R05: { epicId: "e05", title: "Bounded autonomous research execution" },
+  R06: { epicId: "e06", title: "Safe research source and material intake" },
+  R07: { epicId: "e07", title: "Located research evidence and claims" },
+  R08: { epicId: "e08", title: "Literature discovery and contribution grounding" },
+  R09: { epicId: "e09", title: "Method-sensitive research design guidance" },
+  R10: { epicId: "e10", title: "Research ethics, data governance, and authorization" },
+  R11: { epicId: "e11", title: "Isolated, reproducible research analysis" },
+  R12: { epicId: "e12", title: "Study progress, deviations, and human oversight" },
+  R13: { epicId: "e13", title: "Traceable research writing and review cycles" },
+  R14: { epicId: "e14", title: "Terminal workspace integration and accessible live state" },
+  R15: { epicId: "e15", title: "Research state recovery, portability, and clean deletion" },
+  R16: { epicId: "e16", title: "Operational reliability, budgets, and redacted diagnostics" },
+  R17: { epicId: "e17", title: "Scholarly and adversarial release qualification" },
+  R18: { epicId: "e18", title: "Installable maintained local release" }
+});
+
 export function loadSafetyDefects(
   projectRoot: string,
   fileName?: string
@@ -121,37 +142,51 @@ export function runReleaseQualification(
 
   // 6. Outcome evidence (R01 through R18)
   const rawOutcomes = loadOutcomeEvidence(projectRoot, options?.outcomeEvidenceFile);
-  // Guarantee R18 is never invented as passed
-  const outcomes: OutcomeEvidenceItem[] = rawOutcomes.map((item) => {
-    if (item.id === "R18") {
-      return {
-        ...item,
-        status: "blocked",
-        verificationPointer: item.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
-      };
-    }
-    return item;
-  });
+  const rawOutcomeMap = new Map<string, OutcomeEvidenceItem>();
+  for (const item of rawOutcomes) {
+    rawOutcomeMap.set(item.id, item);
+  }
 
-  // Verify all R01-R18 outcomes are present
   const allOutcomeIds = Array.from({ length: 18 }, (_, i) => `R${String(i + 1).padStart(2, "0")}`);
-  const outcomeMap = new Map<string, OutcomeEvidenceItem>();
-  for (const o of outcomes) {
-    outcomeMap.set(o.id, o);
-  }
+  const outcomes: OutcomeEvidenceItem[] = [];
+
   for (const id of allOutcomeIds) {
-    const outcome = outcomeMap.get(id);
-    if (!outcome) {
+    const existing = rawOutcomeMap.get(id);
+    const meta = DEFAULT_OUTCOME_METADATA[id] ?? { epicId: `e${id.slice(1).toLowerCase()}`, title: `Scope outcome ${id}` };
+    if (id === "R18") {
+      // Guarantee R18 is never invented as passed; keep R18 blocked as expected
+      outcomes.push({
+        id: "R18",
+        epicId: existing?.epicId ?? meta.epicId,
+        title: existing?.title ?? meta.title,
+        status: "blocked",
+        verificationPointer: existing?.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
+      });
+      if (!existing) {
+        reasons.push("Missing scope outcome in catalog: R18");
+      }
+    } else if (existing) {
+      outcomes.push(existing);
+      if (existing.status !== "passed") {
+        reasons.push(`Required local scope outcome ${id} is not passed: ${existing.status}`);
+      }
+    } else {
+      // Emit non-passing placeholder for missing outcome
+      outcomes.push({
+        id,
+        epicId: meta.epicId,
+        title: meta.title,
+        status: "unimplemented",
+        verificationPointer: "missing from outcome evidence catalog"
+      });
       reasons.push(`Missing scope outcome in catalog: ${id}`);
-    } else if (id !== "R18" && outcome.status !== "passed") {
-      reasons.push(`Required local scope outcome ${id} is not passed: ${outcome.status}`);
     }
   }
 
-  const allRequiredOutcomesPresent = allOutcomeIds.every((id) => outcomeMap.has(id));
+  const allRequiredOutcomesPresent = allOutcomeIds.every((id) => rawOutcomeMap.has(id));
   const localScopeOutcomesPassed = allOutcomeIds
     .filter((id) => id !== "R18")
-    .every((id) => outcomeMap.get(id)?.status === "passed");
+    .every((id) => rawOutcomeMap.get(id)?.status === "passed");
 
   const localQualificationPassed =
     acceptance.status === "pass" &&

@@ -210,6 +210,14 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       const report = runReleaseQualification(dir);
       assert.equal(report.localQualification, "failed");
       assert.ok(report.reasons && report.reasons.some((r) => r.includes("Missing scope outcome in catalog")));
+      // E17-004: All 18 outcome rows must be emitted even when missing from catalog
+      assert.equal(report.outcomes.length, 18);
+      const r02 = report.outcomes.find((o) => o.id === "R02");
+      assert.ok(r02);
+      assert.equal(r02.status, "unimplemented");
+      const r18 = report.outcomes.find((o) => o.id === "R18");
+      assert.ok(r18);
+      assert.equal(r18.status, "blocked");
     } finally {
       cleanup();
     }
@@ -235,9 +243,9 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       const report = runReleaseQualification(dir);
       assert.equal(report.localQualification, "failed");
       assert.ok(report.reasons && report.reasons.some((r) => r.includes("Required local scope outcome R03 is not passed")));
+      assert.equal(report.outcomes.length, 18);
     } finally {
       cleanup();
     }
   });
 });
-

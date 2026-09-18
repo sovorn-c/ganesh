@@ -185,6 +185,9 @@ export function validateCompetencyInventory(
     if (!isNonEmptyString(item.license)) {
       itemFailures.push("Missing required field: license");
     }
+    if (!isNonEmptyString(item.adaptationRecord)) {
+      itemFailures.push("Missing required field: adaptationRecord");
+    }
 
     // Worked examples (Success & Failure)
     if (!hasWorkedExample(item.workedSuccess)) {
