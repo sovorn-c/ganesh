@@ -1,13 +1,14 @@
 epic: e17
 status: passed
-verified_at: "2026-09-18T15:57:00Z"
+verified_at: "2026-09-18T21:49:13Z"
 branch: feat/e17-release-qualification
 plan_revision: sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929
 checks:
   build: "passed, exit 0"
   typecheck: "passed, exit 0"
   lint: "npm run lint passed, exit 0"
-  full_tests: "508 passed, 0 failed"
+  full_tests: "515 passed, 0 failed"
+  qualification_function_coverage: "97.73%, required 95%, passed"
   preflight: "passed with execution-mode not configured warning, exit 0"
   qualify: "npm run qualify passed, localQualification: PASS, shipment: BLOCKED"
   stories_verified:

@@ -190,3 +190,13 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Credential, network, and sink checks:** E11-specific changed source, tests, and tooling contain no credential-shaped literals. No E11 path imports a network client, unsafe deserializer, dynamic code execution, disclosure sink, or unrestricted shell execution. The repository-wide scan's matching strings are existing synthetic redaction/security fixtures outside the E11 change set.
 - **Process limitations:** `scripts/land-branch.sh`, `scripts/verify-cwe-fixture-sync.sh`, and remote CI helpers are absent. This is a local-only security gate and does not claim remote CI, production readiness, institutional authorization, or scholarly validity.
 - **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8). This is local security evidence only and does not satisfy the separate production `release-check` gate.
+
+## e17 security review — local release gate (2026-09-18)
+
+- **Scope:** E17 local qualification source, CLI, catalogs, evidence fixtures, tests, and the coverage-regression tests added on `feat/e17-release-qualification`.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev` reported `found 0 vulnerabilities`. No dependency changes were introduced by the coverage fix.
+- **Input and execution boundaries:** Qualification inputs are project-local JSON parsed with `JSON.parse` and validated before use. The default verification runner uses `spawnSync` with an argument vector and no shell; test patterns and verification paths are not interpolated into shell commands. No network client, dynamic code execution, or unrestricted filesystem write path was introduced.
+- **Credential and sink checks:** No credential-shaped literals were found in the changed qualification source or CLI. The only child-process import is the bounded test-runner invocation described above; no unresolved shell-injection, path-traversal, unsafe-deserialization, or secret-exposure finding was identified.
+- **Verification evidence:** Full compiled tests passed 515/515, qualification function coverage passed at 97.73% against the 95% gate, and build, typecheck, lint, preflight, blueprint, traceability, blind-spot, and completeness checks passed. Blind spots reported 0 HIGH findings; completeness critic reported `BLOCKER=0`.
+- **Process limitations:** `scripts/land-branch.sh` and remote CI helpers are absent. This is a local-only security gate; it does not claim shipment readiness, hosted CI, production readiness, scholarly validity, publishing, or deployment.
+- **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8).
