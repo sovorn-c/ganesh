@@ -3,6 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import type {
   AcceptanceCatalog,
+  AdversarialCatalog,
   QualificationRunnerPort,
   QualificationRunResult
 } from "../../src/qualification/qualification-types.js";
@@ -65,5 +66,50 @@ export function createFakeRunner(
       }
       return defaultResult;
     }
+  };
+}
+
+export function createValidAdversarialCatalog(): AdversarialCatalog {
+  return {
+    version: "1.0.0",
+    catalog: "adversarial-safety-classes",
+    classes: [
+      {
+        classId: "approval-forgery",
+        title: "Human approval cannot be forged",
+        testPattern: "e17s02.*approval-forgery",
+        verificationPointer: "tests/decisions/decision-packets.test.ts"
+      },
+      {
+        classId: "stale-state",
+        title: "Stale decision packets are rejected",
+        testPattern: "e17s02.*stale",
+        verificationPointer: "tests/decisions/decision-packets.test.ts"
+      },
+      {
+        classId: "malicious-import",
+        title: "Adversarial imports fail closed",
+        testPattern: "e17s02.*malicious",
+        verificationPointer: "tests/policy/declassification-boundaries.test.ts"
+      },
+      {
+        classId: "permission-race",
+        title: "Permission races follow current policy",
+        testPattern: "e17s02.*permission-race",
+        verificationPointer: "tests/qualification/permission-races.test.ts"
+      },
+      {
+        classId: "cancellation",
+        title: "Cancellation fences and quarantines late outputs",
+        testPattern: "e17s02.*cancel",
+        verificationPointer: "tests/work/provider-cancellation.test.ts"
+      },
+      {
+        classId: "recovery",
+        title: "Interrupted execution and crash recovery preserves complete state",
+        testPattern: "e17s02.*recover",
+        verificationPointer: "tests/portability/crash-concurrency.test.ts"
+      }
+    ]
   };
 }

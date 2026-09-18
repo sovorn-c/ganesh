@@ -56,3 +56,53 @@ export interface AcceptanceEvidenceOptions {
   readonly mode?: "catalog" | "execute";
   readonly catalogFile?: string;
 }
+
+export type AdversarialClassId =
+  | "approval-forgery"
+  | "stale-state"
+  | "malicious-import"
+  | "permission-race"
+  | "cancellation"
+  | "recovery";
+
+export interface AdversarialClassMapping {
+  readonly classId: AdversarialClassId | string;
+  readonly title?: string;
+  readonly testPattern: string;
+  readonly verificationPointer: string;
+  readonly expectedBehavior?: string;
+}
+
+export interface AdversarialCatalog {
+  readonly version?: string;
+  readonly catalog?: string;
+  readonly classes: readonly AdversarialClassMapping[];
+  readonly certified?: never;
+  readonly securityCertification?: never;
+}
+
+export interface AdversarialEvidenceRow {
+  readonly classId: AdversarialClassId | string;
+  readonly title?: string;
+  readonly testPattern: string;
+  readonly verificationPointer: string;
+  readonly status: "pass" | "failed";
+  readonly matchedCount?: number;
+  readonly reason?: string;
+}
+
+export interface AdversarialQualificationReport {
+  readonly status: "pass" | "failed";
+  readonly classesTotal: number;
+  readonly classesPassing: number;
+  readonly classesFailing: number;
+  readonly rows: readonly AdversarialEvidenceRow[];
+  readonly securityCertification: "not-inferred";
+  readonly reasons?: readonly string[];
+}
+
+export interface AdversarialQualificationOptions {
+  readonly runner?: QualificationRunnerPort | QualificationRunner;
+  readonly mode?: "catalog" | "execute";
+  readonly catalogFile?: string;
+}
