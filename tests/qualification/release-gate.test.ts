@@ -189,7 +189,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
   });
 
   // E17-004: Incomplete scope outcomes fail local qualification
-  it("e17s05 fails local qualification when required scope outcomes R01-R18 are missing or incomplete (E17-004)", () => {
+  it("e17s05 fails local qualification when required scope outcomes R01-R17 are missing or incomplete (E17-004)", () => {
     const { dir, cleanup } = createTempDir();
     try {
       writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
@@ -218,6 +218,41 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       const r18 = report.outcomes.find((o) => o.id === "R18");
       assert.ok(r18);
       assert.equal(r18.status, "blocked");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("e17s05 passes local qualification when R18 is absent from catalog but emits blocked placeholder and blocks shipment (E17-004)", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
+      writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
+      writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempCasePacks(dir, createValidCasePacks());
+      writeTempEvaluations(dir, createValidHumanEvaluations());
+
+      // Valid outcomes catalog containing only R01-R17 (R18 absent)
+      const outcomesWithoutR18 = {
+        version: "0.1.0",
+        outcomes: Array.from({ length: 17 }, (_, i) => ({
+          id: `R${String(i + 1).padStart(2, "0")}`,
+          epicId: `e${String(i + 1).padStart(2, "0")}`,
+          title: `Outcome R${String(i + 1).padStart(2, "0")}`,
+          status: "passed"
+        }))
+      };
+      writeTempProjectCatalog(dir, outcomesWithoutR18, "outcome-evidence.json");
+
+      const report = runReleaseQualification(dir);
+      assert.equal(report.localQualification, "pass");
+      assert.equal(report.shipment, "blocked");
+      assert.equal(report.outcomes.length, 18);
+      const r18 = report.outcomes.find((o) => o.id === "R18");
+      assert.ok(r18);
+      assert.equal(r18.status, "blocked");
+      assert.ok(r18.verificationPointer?.includes("E18 release packaging"));
+      assert.ok(!report.reasons || !report.reasons.some((r) => r.includes("R18")));
     } finally {
       cleanup();
     }

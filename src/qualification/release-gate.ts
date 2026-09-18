@@ -162,9 +162,6 @@ export function runReleaseQualification(
         status: "blocked",
         verificationPointer: existing?.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
       });
-      if (!existing) {
-        reasons.push("Missing scope outcome in catalog: R18");
-      }
     } else if (existing) {
       outcomes.push(existing);
       if (existing.status !== "passed") {
@@ -183,10 +180,9 @@ export function runReleaseQualification(
     }
   }
 
-  const allRequiredOutcomesPresent = allOutcomeIds.every((id) => rawOutcomeMap.has(id));
-  const localScopeOutcomesPassed = allOutcomeIds
-    .filter((id) => id !== "R18")
-    .every((id) => rawOutcomeMap.get(id)?.status === "passed");
+  const localOutcomeIds = allOutcomeIds.filter((id) => id !== "R18");
+  const allRequiredLocalOutcomesPresent = localOutcomeIds.every((id) => rawOutcomeMap.has(id));
+  const localScopeOutcomesPassed = localOutcomeIds.every((id) => rawOutcomeMap.get(id)?.status === "passed");
 
   const localQualificationPassed =
     acceptance.status === "pass" &&
@@ -194,7 +190,7 @@ export function runReleaseQualification(
     competency.status === "pass" &&
     humanEvaluation.status === "pass" &&
     criticalDefects.length === 0 &&
-    allRequiredOutcomesPresent &&
+    allRequiredLocalOutcomesPresent &&
     localScopeOutcomesPassed &&
     reasons.length === 0;
 
