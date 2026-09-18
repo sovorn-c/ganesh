@@ -1,17 +1,26 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
-active_epic: none
-active_story: null
+active_flow: build_epic
+active_epic: e17
+active_story: e17s05
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: "E13 interpretation writing and supervisor exchange local release complete: four stories done, capsule archived, and branch merged into local main under owner-approved plan revision sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e. Remote CI, publishing, deployment, and production readiness remain unclaimed."
-  last_step_completed: E13 release-branch local integration complete
+  next_skill: bp-review
+  next_command: "/bp-review"
+  summary: E17 scholarly and adversarial release qualification is fully built and
+    verified across all five stories (e17s01-e17s05). Acceptance catalog, adversarial
+    suite, competency inventory, case packs, and local qualify gate pass. Ready for
+    review pass.
+  last_step_completed: E17 build complete across all five stories; 508 tests pass,
+    preflight passes, qualify gate passes.
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
   - specs/tech-architecture/tech-stack.md
+  - specs/epics/e17-release-qualification/epic.yaml
+  - specs/tech-architecture/e17-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/PLAN-AUDIT_LATEST.md
+  - specs/verifications/PLAN-AUDIT-e17-implementation.yaml
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -63,6 +72,8 @@ discovery:
   e13_build: complete
   e13_review: complete_local_release
   e13_release: complete_local_release
+  e17_plan: approved_exact_revision
+  e17_build: complete
   environment:
     status: verified_node24_target
     runtime:
@@ -213,9 +224,30 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e13
+  first_eligible_epic: e17
   first_tracer_bullet_epic: e05
-  selected_epic: e13
+  selected_epic: e17
+  e17_plan: approved_exact_revision
+  e17_plan_revision: sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929
+  e17_plan_approved_at: '2026-09-18T03:15:25Z'
+  e17_plan_approval_source: explicit_owner_message
+  e17_plan_audit: READY_implementation_mode
+  e17_plan_audit_artifact: specs/PLAN-AUDIT_LATEST.md
+  e17_plan_artifacts:
+  - specs/epics/e17-release-qualification/epic.yaml
+  - specs/epics/e17-release-qualification/e17s01-acceptance-scenario-behavioral-evidence.md
+  - specs/epics/e17-release-qualification/e17s01-tasks.yaml
+  - specs/epics/e17-release-qualification/e17s02-adversarial-integration-named-safety-classes.md
+  - specs/epics/e17-release-qualification/e17s02-tasks.yaml
+  - specs/epics/e17-release-qualification/e17s03-competency-metadata-failures-licenses-provenance.md
+  - specs/epics/e17-release-qualification/e17s03-tasks.yaml
+  - specs/epics/e17-release-qualification/e17s04-qualified-human-evaluation-protocol.md
+  - specs/epics/e17-release-qualification/e17s04-tasks.yaml
+  - specs/epics/e17-release-qualification/e17s05-local-release-qualification-gate.md
+  - specs/epics/e17-release-qualification/e17s05-tasks.yaml
+  - specs/tech-architecture/e17-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e17/THREAT_MODEL.md
   e13_plan: approved_exact_revision
   e13_plan_revision: sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e
   e13_plan_approved_at: '2026-09-17T08:37:21Z'
@@ -312,7 +344,7 @@ blueprint:
   implementation_start: authorized_owner_plan_approval
   implementation_ready: true
   production_ready: false
-  story_planning: e01_e10_e11_e12_e13_e14_e15_e16_complete
+  story_planning: e01_through_e13_e14_e15_e16_complete;_e17_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -438,18 +470,18 @@ metrics:
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 6
-      total_seconds: 5408.0
-      avg_seconds: 901.3333333333334
+      calls: 7
+      total_seconds: 6433.0
+      avg_seconds: 919.0
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
     slice-tasks:
-      calls: 5
-      total_seconds: 4457.0
-      avg_seconds: 891.4
+      calls: 6
+      total_seconds: 5481.0
+      avg_seconds: 913.5
     develop-tdd:
-      calls: 1
-      total_seconds: 2308.0
-      avg_seconds: 2308.0
+      calls: 2
+      total_seconds: 5062.0
+      avg_seconds: 2531.0

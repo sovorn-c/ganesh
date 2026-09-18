@@ -1,0 +1,46 @@
+story_id: e17s02
+spec: e17s02-adversarial-integration-named-safety-classes.md
+title: Adversarial Integration for Named Safety Classes
+status: passing
+bcps: 8
+tasks:
+  - id: e17s02-t01
+    description: Add the six-class adversarial harness and fail on omitted or non-matching class mappings.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s02.*(class|harness|omit|non-match|approval-forgery|stale|malicious|race|cancel|recover)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s02-P0-01, SC-e17s02-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [qualification, adversarial, catalog]
+  - id: e17s02-t02
+    description: Add permission-race tests for withdraw-during-dispatch, revoke-during-restore and classify-during-export, and prove no new security findings in those paths.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s02.*(permission-race|withdraw|revoke|classify|dispatch|restore|export)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s02-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [permission-race, Security Review]
+  - id: e17s02-t03
+    description: Map approval-forgery, stale-state, malicious-import, cancellation and recovery to matching fail-closed tests.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s02.*(forg|stale|malicious|cancel|recover)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s02-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [adversarial, AC-06, AC-09, AC-17]
+  - id: e17s02-t04
+    description: Keep released E01-E16 and E13 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e17s02-P0-01]
+    status: passing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

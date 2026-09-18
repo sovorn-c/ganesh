@@ -1,0 +1,754 @@
+{
+  "version": "0.1.0",
+  "catalog": "ganesh-competency-inventory",
+  "competencies": [
+    {
+      "id": "comp-01",
+      "name": "Research orientation and problem framing",
+      "version": "0.1.0",
+      "purpose": "Distinguish practical problem from researchable knowledge problem",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science", "evidence-synthesis"],
+      "unsupportedContexts": ["unauthorized external network access", "unbounded research without scope"],
+      "requiredInputs": ["topic-description", "context-constraints"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["conflation of practical operational defect with scholarly knowledge gap"],
+      "workedSuccess": {
+        "summary": "Framed causal mechanism study on researcher tool fatigue",
+        "context": "Empirical software engineering study",
+        "outcome": "Separated practitioner workplace issue from answerable research question"
+      },
+      "workedFailure": {
+        "summary": "Rejected consultation seeking commercial business plan advice",
+        "context": "Non-research consultation intake",
+        "outcome": "Escalated to human supervisor; refused non-scholarly problem framing"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh research supervision contracts",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-02",
+      "name": "Research landscape mapping",
+      "version": "0.1.0",
+      "purpose": "Map concepts, strands, terminology, and landmark work with stated evidence bases",
+      "owningRole": "Discovery",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "evidence-synthesis"],
+      "unsupportedContexts": ["unsupported remote web queries without authorized provider"],
+      "requiredInputs": ["topic-seeds", "query-boundaries"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["asserting landscape consensus without locator-linked evidence"],
+      "workedSuccess": {
+        "summary": "Mapped 14 landmark articles across two competing theoretical traditions",
+        "context": "Literature survey initial phase",
+        "outcome": "Generated traceable concept clusters with explicit unknown areas"
+      },
+      "workedFailure": {
+        "summary": "Refused claim of 'no prior work exists' after limited 1-database query",
+        "context": "Over-claiming counter-search",
+        "outcome": "Flagged incomplete search perimeter and refused unverified novelty claim"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh discovery engine",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-03",
+      "name": "Review protocol and query design",
+      "version": "0.1.0",
+      "purpose": "Design explicit database syntax and review protocol amendments",
+      "owningRole": "Discovery",
+      "applicableProfiles": ["evidence-synthesis", "quantitative", "qualitative"],
+      "unsupportedContexts": ["opaque heuristic filtering without reproducible query logs"],
+      "requiredInputs": ["purpose-statement", "research-questions"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["undocumented exclusion criteria or search query mutation"],
+      "workedSuccess": {
+        "summary": "Produced PRISMA-P compatible protocol with reproducible Boolean queries",
+        "context": "Systematic literature review planning",
+        "outcome": "Structured query strings validated for syntax per provider"
+      },
+      "workedFailure": {
+        "summary": "Flagged query syntax containing dialect-incompatible wildcards",
+        "context": "Provider query translation",
+        "outcome": "Aborted search execution and required operator query correction"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh literature protocol store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-04",
+      "name": "Literature discovery and citation exploration",
+      "version": "0.1.0",
+      "purpose": "Retain retrieval limits, failures, and exploration paths during search",
+      "owningRole": "Discovery",
+      "applicableProfiles": ["evidence-synthesis", "quantitative", "qualitative"],
+      "unsupportedContexts": ["unauthorized rate-limit bypass or scraper evasion"],
+      "requiredInputs": ["search-plan", "seed-citations"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["silent omission of failed provider responses"],
+      "workedSuccess": {
+        "summary": "Retained backward/forward citation graph over 45 validated records",
+        "context": "Snowballing citation exploration",
+        "outcome": "Recorded provider metadata, retrieval timestamp, and query hashes"
+      },
+      "workedFailure": {
+        "summary": "Provider timeout during secondary search phase",
+        "context": "Degraded remote provider",
+        "outcome": "Recorded partial search failure and prevented false coverage claim"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh retrieval adapter",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-05",
+      "name": "Corpus screening and coverage assessment",
+      "version": "0.1.0",
+      "purpose": "Screen records without silent exclusion and without universal count thresholds",
+      "owningRole": "Discovery",
+      "applicableProfiles": ["evidence-synthesis"],
+      "unsupportedContexts": ["arbitrary deletion of screening records"],
+      "requiredInputs": ["candidate-records", "inclusion-criteria", "exclusion-criteria"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["unattributed screening exclusion"],
+      "workedSuccess": {
+        "summary": "Dual screening of 120 titles/abstracts with uncertainty routing",
+        "context": "Title/abstract screening stage",
+        "outcome": "Sent 8 borderline records to human uncertainty queue with explicit rationale"
+      },
+      "workedFailure": {
+        "summary": "Excluded record lacking abstract without full-text verification",
+        "context": "Screening heuristic check",
+        "outcome": "Caught by integrity rule; reverted exclusion and requested full-text"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh screening store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-06",
+      "name": "Structured paper reading",
+      "version": "0.1.0",
+      "purpose": "Extract problem, methods, findings and limitations with source locators",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "evidence-synthesis"],
+      "unsupportedContexts": ["extrapolating unstated statistical parameters"],
+      "requiredInputs": ["source-text", "locator-bounds"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["unreported study details fabricated as verified facts"],
+      "workedSuccess": {
+        "summary": "Extracted sample size, methodology, and effect sizes with page locators",
+        "context": "Full-text empirical article extraction",
+        "outcome": "Marked missing confidence intervals explicitly as unreported by author"
+      },
+      "workedFailure": {
+        "summary": "Model hallucination of p-value omitted from paper text",
+        "context": "Adversarial extraction audit",
+        "outcome": "Detected by locator verifier; rejected candidate extraction"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh document parser",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-07",
+      "name": "Claim and evidence extraction",
+      "version": "0.1.0",
+      "purpose": "Distinguish author claims, measured results, and agent inferences",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "evidence-synthesis"],
+      "unsupportedContexts": ["conflating author discussion speculation with empirical findings"],
+      "requiredInputs": ["extracted-sections", "provenance-pointer"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["stating agent inference as primary author claim"],
+      "workedSuccess": {
+        "summary": "Isolated empirical table findings from introductory literature claims",
+        "context": "Mixed claim extraction",
+        "outcome": "Produced 3 distinct claim tiers with paragraph-exact locators"
+      },
+      "workedFailure": {
+        "summary": "Author speculation in discussion quoted as verified empirical fact",
+        "context": "Extraction quality review",
+        "outcome": "Downgraded statement category to author-interpretation"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh claim store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-08",
+      "name": "Critical appraisal",
+      "version": "0.1.0",
+      "purpose": "Assess dimension-specific study quality using method-appropriate criteria",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "evidence-synthesis"],
+      "unsupportedContexts": ["applying quantitative validity rubrics to reflexive qualitative studies"],
+      "requiredInputs": ["study-record", "method-profile"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["evaluating relevance as a substitute for methodology quality"],
+      "workedSuccess": {
+        "summary": "Applied ROBIS tool to systematic review and CASP to qualitative study",
+        "context": "Heterogeneous study appraisal",
+        "outcome": "Delivered dimensioned quality scores without inappropriate cross-paradigm penalties"
+      },
+      "workedFailure": {
+        "summary": "Penalized qualitative study for lack of statistical power calculation",
+        "context": "Appraisal rubric check",
+        "outcome": "Flagged paradigm mismatch; replaced with reflexivity and auditability criteria"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh appraisal engine",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-09",
+      "name": "Claim and citation verification",
+      "version": "0.1.0",
+      "purpose": "Verify citation support status, qualifications, and counterevidence",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "evidence-synthesis"],
+      "unsupportedContexts": ["equating DOI resolution with substantive verification"],
+      "requiredInputs": ["claim-statement", "cited-sources"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["marking citation verified without examining cited proposition"],
+      "workedSuccess": {
+        "summary": "Verified 8 citations against full-text quotes, finding 2 misattributions",
+        "context": "Citation audit pass",
+        "outcome": "Documented precise discrepancies and suggested correct references"
+      },
+      "workedFailure": {
+        "summary": "Cited paper cited a third paper without containing the claimed finding",
+        "context": "Secondary citation chain check",
+        "outcome": "Marked citation as unverified secondary citation requiring primary lookup"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh claim verification store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-10",
+      "name": "Evidence matrix and synthesis",
+      "version": "0.1.0",
+      "purpose": "Synthesize comparison matrix with contributing and challenging evidence links",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["evidence-synthesis", "quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["unjustified narrative consensus without highlighting dissent"],
+      "requiredInputs": ["appraised-corpus", "synthesis-framework"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["omission of contradictory findings from synthesis table"],
+      "workedSuccess": {
+        "summary": "Synthesized 20 studies across intervention efficacy with 4 contrary cases",
+        "context": "Cross-study synthesis",
+        "outcome": "Highlighted moderating factors explaining contradictory results"
+      },
+      "workedFailure": {
+        "summary": "Attempt to synthesize incommensurable outcome scales without conversion",
+        "context": "Quantitative evidence matrix",
+        "outcome": "Rejected pooled estimate; required separate subgroup reporting"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh claim matrix store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-11",
+      "name": "Gap and contribution challenge",
+      "version": "0.1.0",
+      "purpose": "Attempt to defeat candidate gaps through counter-search without novelty guarantee",
+      "owningRole": "Evidence",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science"],
+      "unsupportedContexts": ["promising absolute originality or patent novelty"],
+      "requiredInputs": ["proposed-gap", "evidence-corpus"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["declaring gap valid without executing counter-search query"],
+      "workedSuccess": {
+        "summary": "Identified prior 2021 study refuting alleged gap in compiler telemetry",
+        "context": "Adversarial gap verification",
+        "outcome": "Prevented redundant research proposal by providing prior art citation"
+      },
+      "workedFailure": {
+        "summary": "Counter-search retrieved adjacent domain paper with different operationalization",
+        "context": "Borderline gap challenge",
+        "outcome": "Scoped proposed contribution precisely to the unaddressed operationalization"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh gap store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-12",
+      "name": "Research-question and framework design",
+      "version": "0.1.0",
+      "purpose": "Formulate answerable, scoped RQs and map theoretical relationships",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science"],
+      "unsupportedContexts": ["ill-posed non-empirical philosophical claims"],
+      "requiredInputs": ["problem-framing", "theoretical-constructs"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["unfalsifiable research question design"],
+      "workedSuccess": {
+        "summary": "Structured primary and secondary RQs with observable construct operationalizations",
+        "context": "Dissertation research design",
+        "outcome": "Established clear mapping from constructs to measurement instruments"
+      },
+      "workedFailure": {
+        "summary": "Detected tautological research question assuming its own conclusion",
+        "context": "RQ formulation critique",
+        "outcome": "Restructured RQ into comparative hypothesis"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh framing store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-13",
+      "name": "Philosophy and positionality alignment",
+      "version": "0.1.0",
+      "purpose": "Elicit human positionality without inventing identity or researcher beliefs",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["qualitative", "mixed-methods"],
+      "unsupportedContexts": ["automated generation of personal researcher beliefs"],
+      "requiredInputs": ["study-aims", "researcher-statement"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["synthetic fabrication of researcher cultural background or ontology"],
+      "workedSuccess": {
+        "summary": "Elicited ontological assumptions through structured interview prompts",
+        "context": "Qualitative paradigm alignment",
+        "outcome": "Documented epistemological stance matching interpretivist research design"
+      },
+      "workedFailure": {
+        "summary": "Automated suggestion attempted to populate author demographic background",
+        "context": "Positionality drafting safety check",
+        "outcome": "Halted generation; required direct researcher authoring"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh grounding store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-14",
+      "name": "Methodology comparison and study design",
+      "version": "0.1.0",
+      "purpose": "Compare alternative designs and explain trade-offs without aggregate scoring tricks",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science"],
+      "unsupportedContexts": ["uncalibrated composite scoring of incomparable methodologies"],
+      "requiredInputs": ["research-questions", "resource-constraints"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["recommending design without documenting internal validity threats"],
+      "workedSuccess": {
+        "summary": "Compared randomized trial vs interrupted time series under budget constraints",
+        "context": "Quasi-experimental study design",
+        "outcome": "Documented threats to validity and mitigation steps for chosen design"
+      },
+      "workedFailure": {
+        "summary": "Proposed study design required inaccessible historical patient registries",
+        "context": "Feasibility verification",
+        "outcome": "Flagged feasibility block and prompted alternative observational design"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh design store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-15",
+      "name": "Sampling and recruitment planning",
+      "version": "0.1.0",
+      "purpose": "Distinguish target and access populations, planning versus recruitment",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["direct contact with study participants"],
+      "requiredInputs": ["target-population", "sampling-strategy"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["conflating convenience sample with probability sample"],
+      "workedSuccess": {
+        "summary": "Defined stratified sampling plan with power calculation and attrition buffer",
+        "context": "Survey research planning",
+        "outcome": "Produced clear inclusion quotas and non-response adjustment strategy"
+      },
+      "workedFailure": {
+        "summary": "Agent script attempted to generate email list of potential human subjects",
+        "context": "Participant boundary check",
+        "outcome": "Blocked execution; enforced human-researcher recruitment isolation"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh methodology store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-16",
+      "name": "Measurement and instrument design",
+      "version": "0.1.0",
+      "purpose": "Design valid instruments without claiming validation from synthetic generation",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["claiming psychometric validation from model inspection alone"],
+      "requiredInputs": ["construct-definitions", "instrument-modality"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["claiming validated survey scale based solely on agent generation"],
+      "workedSuccess": {
+        "summary": "Adapted validated Likert inventory with copyright check and pilot protocol",
+        "context": "Questionnaire design",
+        "outcome": "Recorded instrument licensing rights and pre-test cognitive interview plan"
+      },
+      "workedFailure": {
+        "summary": "Claim that newly drafted questionnaire was 'empirically validated'",
+        "context": "Instrument metadata review",
+        "outcome": "Refused validation claim; labeled instrument as unpiloted candidate"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh methodology store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-17",
+      "name": "Analysis planning and execution guidance",
+      "version": "0.1.0",
+      "purpose": "Separate confirmatory from exploratory work and preserve executable provenance",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["unauthorized arbitrary code execution outside sandbox"],
+      "requiredInputs": ["analysis-questions", "data-spec"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["reclassifying post-hoc exploratory findings as pre-registered tests"],
+      "workedSuccess": {
+        "summary": "Pre-specified regression model with diagnostic plots and multiple-testing correction",
+        "context": "Confirmatory statistical analysis plan",
+        "outcome": "Bound script hash and dataset version to analysis plan record"
+      },
+      "workedFailure": {
+        "summary": "Detected p-hacking risk from repeated exploratory model fitting",
+        "context": "Analysis protocol monitor",
+        "outcome": "Flagged deviations as exploratory; required explicit sensitivity disclosure"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh isolated analysis",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-18",
+      "name": "Methodology alignment audit",
+      "version": "0.1.0",
+      "purpose": "Perform relationship-level audits from problem framing to intended claims",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science"],
+      "unsupportedContexts": ["silent dismissal of methodology misalignments"],
+      "requiredInputs": ["study-protocol", "alignment-matrix"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["unresolved critical misalignment between RQ and data collection"],
+      "workedSuccess": {
+        "summary": "Audited chain of reasoning across 5 protocol stages, identifying sampling gap",
+        "context": "Pre-registration audit",
+        "outcome": "Resolved mismatch before data collection commenced"
+      },
+      "workedFailure": {
+        "summary": "Study claimed causal conclusion from purely cross-sectional correlational data",
+        "context": "Causal claim audit",
+        "outcome": "Blocked protocol progression until claim language was qualified"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh alignment store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-19",
+      "name": "Ethics, cultural responsibility and data planning",
+      "version": "0.1.0",
+      "purpose": "Maintain risk register, data retention plans, and external consultation requirements",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["substituting agent review for IRB or community ethics approval"],
+      "requiredInputs": ["study-protocol", "data-sensitivity-level"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["declaring ethical approval without verified institutional certificate"],
+      "workedSuccess": {
+        "summary": "Cataloged data sensitivity, participant anonymity controls, and 7-year storage plan",
+        "context": "Human research ethics application",
+        "outcome": "Identified mandatory Te Ara Tika consultation requirement for NZ dataset"
+      },
+      "workedFailure": {
+        "summary": "Attempt to mark ethics status as 'approved' via automated checklist",
+        "context": "External authority gate check",
+        "outcome": "Blocked status change; required external IRB approval record pointer"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh ethics authorization",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-20",
+      "name": "Study progress and amendment assessment",
+      "version": "0.1.0",
+      "purpose": "Track protocol progress, deviations, and label retrospective changes explicitly",
+      "owningRole": "Methodology",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods"],
+      "unsupportedContexts": ["silent backdating of protocol amendments"],
+      "requiredInputs": ["protocol-history", "deviation-report"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["failing to flag unplanned secondary outcome analysis as retrospective"],
+      "workedSuccess": {
+        "summary": "Recorded protocol amendment following mid-study recruitment bottleneck",
+        "context": "Study progress audit",
+        "outcome": "Preserved dual versioning and recorded impact on statistical power"
+      },
+      "workedFailure": {
+        "summary": "Researcher requested removing an unsupportive hypothesis after seeing data",
+        "context": "HARKing prevention check",
+        "outcome": "Refused silent deletion; archived hypothesis with explicit non-support note"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh study progress store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-21",
+      "name": "Interpretation and research writing",
+      "version": "0.1.0",
+      "purpose": "Draft qualified interpretations with traceable claims and retained human authorship",
+      "owningRole": "Supervisor",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science", "evidence-synthesis"],
+      "unsupportedContexts": ["claiming AI as scholarly author or omitting AI assistance disclosure"],
+      "requiredInputs": ["reviewed-evidence", "claim-map"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["generating unhedged causal claims unsupported by underlying evidence matrix"],
+      "workedSuccess": {
+        "summary": "Drafted discussion section with sentence-level links to evidence matrix",
+        "context": "Manuscript drafting stage",
+        "outcome": "Included explicit AI contribution statement and highlighted 2 unhedged claims"
+      },
+      "workedFailure": {
+        "summary": "Generated text asserting universal intervention effectiveness",
+        "context": "Draft honesty check",
+        "outcome": "Flagged lack of supporting evidence; replaced with qualified observational summary"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh traceable drafts store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    },
+    {
+      "id": "comp-22",
+      "name": "Research review and feedback resolution",
+      "version": "0.1.0",
+      "purpose": "Critique underlying evidence and preserve unresolved methodological dissent",
+      "owningRole": "Reviewer",
+      "applicableProfiles": ["quantitative", "qualitative", "mixed-methods", "design-science", "evidence-synthesis"],
+      "unsupportedContexts": ["automatic forced consensus erasing reviewer disagreements"],
+      "requiredInputs": ["versioned-packet", "review-lenses"],
+      "outputSchema": {
+        "separatesObservationsFromInferences": true,
+        "includesContraryOrLimitations": true,
+        "format": "json"
+      },
+      "failureConditions": ["suppressing dissenting peer review critique from decision packet"],
+      "workedSuccess": {
+        "summary": "Independent review identified severe selection bias in observational cohort",
+        "context": "Pre-submission review pass",
+        "outcome": "Preserved critical review finding alongside author rebuttal for supervisor decision"
+      },
+      "workedFailure": {
+        "summary": "Supervisor attempted to resolve review issue by deleting reviewer objection",
+        "context": "Review cycle audit",
+        "outcome": "Blocked deletion; recorded unresolved dissent in persistent packet history"
+      },
+      "source": "docs/03-agents-and-skills.md §4",
+      "license": "MIT (Ganesh repository license)",
+      "adaptationRecord": "Adapted from Ganesh review issues store",
+      "outputProvenance": {
+        "requiresLocators": true,
+        "separatesObservationInferenceRecommendation": true,
+        "includesContraryEvidence": true
+      }
+    }
+  ]
+}

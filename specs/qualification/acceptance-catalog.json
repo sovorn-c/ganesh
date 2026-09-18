@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "catalog": "acceptance-scenarios",
+  "scenarios": [
+    {
+      "scenarioId": "AC-01",
+      "title": "Start with incomplete context",
+      "testPattern": "e09s01.*(schema|orientation|framing|research question|candidate)",
+      "verificationPointer": "tests/methodology/orientation-framing.test.ts"
+    },
+    {
+      "scenarioId": "AC-02",
+      "title": "Enter an existing project late",
+      "testPattern": "e12s03.*(consultation|methodology draft|reported|limits)",
+      "verificationPointer": "tests/progress/late-entry-consultation.test.ts"
+    },
+    {
+      "scenarioId": "AC-03",
+      "title": "Review is not rewriting",
+      "testPattern": "e13s02.*(ranked review issues|rewrite original draft|candidate)",
+      "verificationPointer": "tests/writing/review-issues.test.ts"
+    },
+    {
+      "scenarioId": "AC-04",
+      "title": "A candidate gap meets contrary evidence",
+      "testPattern": "e08s04.*(gap assessment|counter-search|contrary|revises the gap)",
+      "verificationPointer": "tests/literature/gap-contribution-counter-search.test.ts"
+    },
+    {
+      "scenarioId": "AC-05",
+      "title": "Inaccessible evidence and misleading citation",
+      "testPattern": "e06s04 AC-05 doi.v1 and content duplicate proposals keep distinct versions",
+      "verificationPointer": "tests/sources/source-matching.test.ts"
+    },
+    {
+      "scenarioId": "AC-06",
+      "title": "Human approval cannot be forged",
+      "testPattern": "publishes exact packets, blocks forged authority, and redacts regression data",
+      "verificationPointer": "tests/decisions/decision-packets.test.ts"
+    },
+    {
+      "scenarioId": "AC-07",
+      "title": "Stale decision packets",
+      "testPattern": "rejects stale and duplicate owner actions without partial transaction state",
+      "verificationPointer": "tests/decisions/decision-packets.test.ts"
+    },
+    {
+      "scenarioId": "AC-08",
+      "title": "Revision and branch isolation",
+      "testPattern": "branch snapshot history and isolation",
+      "verificationPointer": "tests/branches/isolation.test.ts"
+    },
+    {
+      "scenarioId": "AC-09",
+      "title": "Prompt injection and project isolation",
+      "testPattern": "adversarial forged credential cross.project script side.effect fixtures fail at actual boundaries",
+      "verificationPointer": "tests/policy/declassification-boundaries.test.ts"
+    },
+    {
+      "scenarioId": "AC-10",
+      "title": "Sensitive-data disclosure",
+      "testPattern": "e06s04 AC-10 inspect metadata.only and verified located content without inventing quotations",
+      "verificationPointer": "tests/sources/source-matching.test.ts"
+    },
+    {
+      "scenarioId": "AC-11",
+      "title": "Method-appropriate appraisal",
+      "testPattern": "e09s04.*reflexive TA does not fail for missing inter-coder",
+      "verificationPointer": "tests/methodology/method-profiles.test.ts"
+    },
+    {
+      "scenarioId": "AC-12",
+      "title": "Causal claims and design assumptions",
+      "testPattern": "e09s05.*causal claim on associational design flags mismatch",
+      "verificationPointer": "tests/methodology/alignment-analysis.test.ts"
+    },
+    {
+      "scenarioId": "AC-13",
+      "title": "Mixed-methods/design-science fit",
+      "testPattern": "e09s04.*mixed-methods needs integration, and artifact-evaluation without evaluation",
+      "verificationPointer": "tests/methodology/method-profiles.test.ts"
+    },
+    {
+      "scenarioId": "AC-14",
+      "title": "Reviewer disagreement and finite revision",
+      "testPattern": "e05s02 role snapshots omit conversation and unassigned material while disagreements preserve both source bases",
+      "verificationPointer": "tests/work/specialist-coordination.test.ts"
+    },
+    {
+      "scenarioId": "AC-15",
+      "title": "Ethics and changed conditions",
+      "testPattern": "e10s04.*withdraw fence queueRun branch isolation needs-review",
+      "verificationPointer": "tests/ethics/external-authorization.test.ts"
+    },
+    {
+      "scenarioId": "AC-16",
+      "title": "Search reproducibility and honest coverage",
+      "testPattern": "e08s02 provider cap failed page inaccessible revised query search event snapshot replay",
+      "verificationPointer": "tests/literature/retrieval-citation.test.ts"
+    },
+    {
+      "scenarioId": "AC-17",
+      "title": "Interrupted execution and recovery",
+      "testPattern": "e15s03 crash interrupted write before finalize leaves previous complete state",
+      "verificationPointer": "tests/portability/crash-concurrency.test.ts"
+    },
+    {
+      "scenarioId": "AC-18",
+      "title": "User-controlled local analysis",
+      "testPattern": "e11s01 SC-e11s01-P0-01 persists policy across reopen and refuses unconfigured spawn",
+      "verificationPointer": "tests/analysis/execution-policy.test.ts"
+    },
+    {
+      "scenarioId": "AC-19",
+      "title": "Traceable writing and honest negative results",
+      "testPattern": "e13s01 SC-e13s01-P0-02 unsupported citations negative inconclusive limitation ai-contribution and insufficient evidence prove no commitment grant spawn submit",
+      "verificationPointer": "tests/writing/traceable-drafts.test.ts"
+    },
+    {
+      "scenarioId": "AC-20",
+      "title": "Export, deletion and restore",
+      "testPattern": "e06s04 AC-20 viewer handoff checks capability disclosure and integrity with no fallback",
+      "verificationPointer": "tests/sources/source-matching.test.ts"
+    }
+  ]
+}

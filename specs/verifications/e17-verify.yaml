@@ -1,0 +1,26 @@
+epic: e17
+status: passed
+verified_at: "2026-09-18T21:49:13Z"
+branch: feat/e17-release-qualification
+plan_revision: sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929
+checks:
+  build: "passed, exit 0"
+  typecheck: "passed, exit 0"
+  lint: "npm run lint passed, exit 0"
+  full_tests: "515 passed, 0 failed"
+  qualification_function_coverage: "97.73%, required 95%, passed"
+  preflight: "passed with execution-mode not configured warning, exit 0"
+  qualify: "npm run qualify passed, localQualification: PASS, shipment: BLOCKED"
+  stories_verified:
+    e17s01: "passed, specs/verifications/e17s01-verify.yaml"
+    e17s02: "passed, specs/verifications/e17s02-verify.yaml"
+    e17s03: "passed, specs/verifications/e17s03-verify.yaml"
+    e17s04: "passed, specs/verifications/e17s04-verify.yaml"
+    e17s05: "passed, specs/verifications/e17s05-verify.yaml"
+notes:
+  - Acceptance-scenario behavioral evidence catalog maps AC-01 through AC-20.
+  - Named adversarial safety classes cover all six required classes with fail-closed domain checking and permission races.
+  - Competency inventory validates 22 research competencies conforming to docs/03 with worked failures, licenses, and provenance.
+  - Case packs cover four method profiles and five supported contexts with explicit rubrics, dissent retention, and out-of-competence escalation.
+  - Local qualify CLI and release gate compose all qualification inputs without setting hosted-ci, production-ready, or certified flags.
+  - B06 qualified human evidence and R18 packaging remain shipment blockers; production readiness is not claimed.

@@ -1,0 +1,149 @@
+{
+  "version": "0.1.0",
+  "records": [
+    {
+      "caseId": "CP-01",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 4,
+        "sourceLocatorAccuracy": 5,
+        "contradictionRetention": 4,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 4,
+        "researcherCorrectionEffort": 4,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Verified randomized trial cluster adjustment and attrition bounds."
+    },
+    {
+      "caseId": "CP-02",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 5,
+        "sourceLocatorAccuracy": 4,
+        "contradictionRetention": 5,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 4,
+        "researcherCorrectionEffort": 4,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Positionality statement appropriately framed; no pseudo-statistical agreement imposed."
+    },
+    {
+      "caseId": "CP-03",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 4,
+        "sourceLocatorAccuracy": 4,
+        "contradictionRetention": 5,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 4,
+        "researcherCorrectionEffort": 4,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Divergent server logs and interview responses preserved in joint display."
+    },
+    {
+      "caseId": "CP-04",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 5,
+        "sourceLocatorAccuracy": 5,
+        "contradictionRetention": 4,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 4,
+        "researcherCorrectionEffort": 5,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Controlled hardware benchmark baselines validated; no data leakage detected."
+    },
+    {
+      "caseId": "CP-05",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 4,
+        "sourceLocatorAccuracy": 4,
+        "contradictionRetention": 4,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 5,
+        "researcherCorrectionEffort": 4,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Survey weighting and non-response sensitivity models thoroughly documented."
+    },
+    {
+      "caseId": "CP-06",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "accept",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 4,
+        "sourceLocatorAccuracy": 5,
+        "contradictionRetention": 4,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 4,
+        "researcherCorrectionEffort": 4,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "notes": "Triangulated case findings across 3 independent institutions."
+    },
+    {
+      "caseId": "CP-07",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "revise",
+      "rubricScores": {
+        "unsupportedClaimSeverity": 4,
+        "sourceLocatorAccuracy": 5,
+        "contradictionRetention": 5,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 5,
+        "researcherCorrectionEffort": 3,
+        "timeToInspectDecision": 4,
+        "escalation": 5
+      },
+      "dissentPreserved": true,
+      "retainedPositions": [
+        "Quantitative telemetry indicates 95% task completion rate",
+        "Qualitative interviews reveal users bypassed the tool due to navigation hurdles"
+      ],
+      "modelGroundTruthOnly": false,
+      "notes": "Both telemetry and interview positions retained without model-forced synthesis."
+    },
+    {
+      "caseId": "CP-08",
+      "evaluatorKind": "synthetic",
+      "evaluatorRole": "research-methods-qualified-human",
+      "disposition": "escalated",
+      "escalationRequired": true,
+      "escalated": true,
+      "rubricScores": {
+        "unsupportedClaimSeverity": 5,
+        "sourceLocatorAccuracy": 5,
+        "contradictionRetention": 5,
+        "methodologicalAppropriateness": 5,
+        "uncertaintyHandling": 5,
+        "researcherCorrectionEffort": 5,
+        "timeToInspectDecision": 5,
+        "escalation": 5
+      },
+      "notes": "Clinical trial scope detected; immediately escalated to institutional oversight."
+    }
+  ]
+}

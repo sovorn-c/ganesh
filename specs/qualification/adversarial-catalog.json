@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "catalog": "adversarial-safety-classes",
+  "classes": [
+    {
+      "classId": "approval-forgery",
+      "title": "Human approval cannot be forged",
+      "testPattern": "publishes exact packets, blocks forged authority, and redacts regression data",
+      "verificationPointer": "tests/decisions/decision-packets.test.ts"
+    },
+    {
+      "classId": "stale-state",
+      "title": "Stale decision packets are rejected",
+      "testPattern": "rejects stale and duplicate owner actions without partial transaction state",
+      "verificationPointer": "tests/decisions/decision-packets.test.ts"
+    },
+    {
+      "classId": "malicious-import",
+      "title": "Adversarial imports and prompt injection boundaries fail closed",
+      "testPattern": "adversarial forged credential cross.project script side.effect fixtures fail at actual boundaries",
+      "verificationPointer": "tests/policy/declassification-boundaries.test.ts"
+    },
+    {
+      "classId": "permission-race",
+      "title": "Permission races follow current policy",
+      "testPattern": "e17s02 permission-race.*(withdraw|revoke|classify)",
+      "verificationPointer": "tests/qualification/permission-races.test.ts"
+    },
+    {
+      "classId": "cancellation",
+      "title": "Cancellation fences and quarantines late outputs",
+      "testPattern": "cancel between retry attempts stops further starts and fences run",
+      "verificationPointer": "tests/work/provider-cancellation.test.ts"
+    },
+    {
+      "classId": "recovery",
+      "title": "Interrupted execution and crash recovery preserves complete state",
+      "testPattern": "e15s03 crash interrupted write before finalize leaves previous complete state",
+      "verificationPointer": "tests/portability/crash-concurrency.test.ts"
+    }
+  ]
+}
