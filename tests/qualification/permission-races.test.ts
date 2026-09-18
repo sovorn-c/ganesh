@@ -9,7 +9,8 @@ import {
   queueRun,
   dispatchRun,
   classifyInput,
-  type ProjectHandle
+  type ProjectHandle,
+  type SpecialistSessionPort
 } from "../../src/index.js";
 import {
   withdrawDataUse
@@ -66,8 +67,34 @@ describe("e17s02 permission-race behavioral tests", () => {
       inputVersionIds: [art.id]
     });
 
-    // Withdraw the grant before dispatch completes
-    withdrawDataUse(fix.handle, grant.id, "permission-withdrawn-during-race", fix.ownerId);
+    let releaseSession!: () => void;
+    const sessionInFlight = new Promise<void>((resolve) => {
+      releaseSession = resolve;
+    });
+    let sessionStarted = false;
+
+    const sessionPort: SpecialistSessionPort = {
+      start: async () => {
+        sessionStarted = true;
+        await sessionInFlight;
+        return { status: "ok" };
+      }
+    };
+
+    // Begin in-flight dispatch
+    const dispatchPromise = dispatchRun(fix.handle, fix.ownerCap, queued.id, sessionPort);
+
+    // Overlapping concurrent operation: wait until dispatch is active, then withdraw permission concurrently
+    const withdrawPromise = (async () => {
+      while (!sessionStarted) {
+        await new Promise((resolve) => setImmediate(resolve));
+      }
+      // Concurrently withdraw data use while dispatch is in flight
+      withdrawDataUse(fix.handle, grant.id, "permission-withdrawn-during-race", fix.ownerId);
+      releaseSession();
+    })();
+
+    await Promise.all([dispatchPromise, withdrawPromise]);
 
     // Verify surviving state matches policy: grant is withdrawn
     const livePerm = fix.handle.db
@@ -87,7 +114,7 @@ describe("e17s02 permission-race behavioral tests", () => {
   });
 
   // SC-e17s02-P0-02: revoke-during-restore
-  it("e17s02 permission-race revoke-during-restore prevents revoked grants from reviving (SC-e17s02-P0-02)", () => {
+  it("e17s02 permission-race revoke-during-restore prevents revoked grants from reviving (SC-e17s02-P0-02)", async () => {
     const art = registerPublicArtifact(fix.handle, "doc-restore-race", "v1", "backup data");
     const grant = classifyAndGrant(fix.handle, art.id, "external-cloud", "ai-training");
 
@@ -101,17 +128,23 @@ describe("e17s02 permission-race behavioral tests", () => {
       payloadHash: packetPayloadHash({ dest: backupDir })
     });
 
-    // On the live project, withdraw the grant (revoke)
-    withdrawDataUse(fix.handle, grant.id, "revoked-prior-to-restore", fix.ownerId);
+    // Execute concurrent overlapping operations: revoke permission concurrently while restore is scheduled
+    const concurrentRevoke = async () => {
+      withdrawDataUse(fix.handle, grant.id, "revoked-prior-to-restore", fix.ownerId);
+    };
 
-    // Execute replace restore with the stale backup
-    const replaceResult = restoreProject(fix.ownerCap, {
-      commandId: `replace-restore-cmd-${fix.handle.project.id}`,
-      sourcePath: backupDir,
-      destinationPath: fix.root,
-      mode: "replace",
-      payloadHash: packetPayloadHash({ dest: fix.root })
-    });
+    const concurrentRestore = async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+      return restoreProject(fix.ownerCap, {
+        commandId: `replace-restore-cmd-${fix.handle.project.id}`,
+        sourcePath: backupDir,
+        destinationPath: fix.root,
+        mode: "replace",
+        payloadHash: packetPayloadHash({ dest: fix.root })
+      });
+    };
+
+    const [, replaceResult] = await Promise.all([concurrentRevoke(), concurrentRestore()]);
     assert.equal(replaceResult.valid, true);
 
     // Surviving live state MUST keep the grant withdrawn (monotonic grant retention)
@@ -128,28 +161,39 @@ describe("e17s02 permission-race behavioral tests", () => {
   });
 
   // SC-e17s02-P0-02: classify-during-export
-  it("e17s02 permission-race classify-during-export ensures restricted material is omitted (SC-e17s02-P0-02)", () => {
+  it("e17s02 permission-race classify-during-export ensures restricted material is omitted (SC-e17s02-P0-02)", async () => {
     const art1 = registerPublicArtifact(fix.handle, "doc-pub", "v1", "public summary");
     const art2 = registerPublicArtifact(fix.handle, "doc-secret", "v1", "confidential participant notes");
 
-    // Classify art2 as restricted
-    classifyInput(fix.handle, art2.id, {
-      sensitivity: "restricted",
-      basis: "participant-confidentiality"
-    });
-
-    // Attempt export of project packet
     const exportDir = newTempDir();
-    const result = exportProject(fix.handle, fix.ownerCap, {
-      commandId: `export-classify-race-${fix.handle.project.id}`,
-      destinationPath: exportDir,
-      destination: "local",
-      purpose: "backup",
-      payloadHash: packetPayloadHash({ dest: exportDir })
-    });
 
-    // Export completed with manifest
+    // Execute concurrent overlapping operations: classify art2 as restricted while export is being prepared
+    const concurrentClassify = async () => {
+      classifyInput(fix.handle, art2.id, {
+        sensitivity: "restricted",
+        basis: "participant-confidentiality"
+      });
+    };
+
+    const concurrentExport = async () => {
+      await new Promise((resolve) => setImmediate(resolve));
+      return exportProject(fix.handle, fix.ownerCap, {
+        commandId: `export-classify-race-${fix.handle.project.id}`,
+        destinationPath: exportDir,
+        destination: "external-cloud",
+        purpose: "remote-review",
+        payloadHash: packetPayloadHash({ dest: exportDir })
+      });
+    };
+
+    const [, result] = await Promise.all([concurrentClassify(), concurrentExport()]);
+
+    // Export completed with manifest and omitted the restricted material
     assert.ok(result.manifest);
     assert.ok(result.manifest.files.length > 0);
+    const omittedIds = (result.manifest.omissions ?? []).map((o) => o.artifactVersionId);
+    assert.ok(omittedIds.includes(art2.id), "restricted artifact must be omitted from external export");
+    const exportedPaths = result.manifest.files.map((f) => f.relativePath);
+    assert.ok(!exportedPaths.some((p) => p.includes("doc-secret")), "restricted content bytes must not be exported");
   });
 });

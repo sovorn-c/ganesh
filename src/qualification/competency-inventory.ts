@@ -206,11 +206,13 @@ export function validateCompetencyInventory(
       }
     }
 
-    if (item.outputProvenance) {
-      if (item.outputProvenance.separatesObservationInferenceRecommendation === false) {
+    if (typeof item.outputProvenance !== "object" || item.outputProvenance === null) {
+      itemFailures.push("Missing required field: outputProvenance");
+    } else {
+      if (item.outputProvenance.separatesObservationInferenceRecommendation !== true) {
         itemFailures.push("Output provenance must separate observation, inference, and recommendation");
       }
-      if (item.outputProvenance.includesContraryEvidence === false) {
+      if (item.outputProvenance.includesContraryEvidence !== true) {
         itemFailures.push("Output provenance must include contrary evidence");
       }
     }

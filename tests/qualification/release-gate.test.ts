@@ -14,6 +14,7 @@ import {
   createValidCompetencyInventory,
   createValidCasePacks,
   createValidHumanEvaluations,
+  createValidOutcomeEvidence,
   writeTempProjectCatalog,
   writeTempCasePacks,
   writeTempEvaluations
@@ -27,6 +28,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
       writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
       writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempProjectCatalog(dir, createValidOutcomeEvidence(), "outcome-evidence.json");
       writeTempCasePacks(dir, createValidCasePacks());
       writeTempEvaluations(dir, createValidHumanEvaluations());
 
@@ -68,6 +70,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
       writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
       writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempProjectCatalog(dir, createValidOutcomeEvidence(), "outcome-evidence.json");
       writeTempCasePacks(dir, createValidCasePacks());
       writeTempEvaluations(dir, createValidHumanEvaluations());
 
@@ -118,6 +121,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
       writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
       writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempProjectCatalog(dir, createValidOutcomeEvidence(), "outcome-evidence.json");
       writeTempCasePacks(dir, createValidCasePacks());
       // createValidHumanEvaluations has evaluatorKind: "synthetic"
       writeTempEvaluations(dir, createValidHumanEvaluations());
@@ -138,6 +142,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
       writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
       writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempProjectCatalog(dir, createValidOutcomeEvidence(), "outcome-evidence.json");
       writeTempCasePacks(dir, createValidCasePacks());
       writeTempEvaluations(dir, createValidHumanEvaluations());
 
@@ -182,4 +187,57 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
     assert.ok(stdout.includes("Local Qualification: PASS"));
     assert.ok(stdout.includes("Shipment:            BLOCKED"));
   });
+
+  // E17-004: Incomplete scope outcomes fail local qualification
+  it("e17s05 fails local qualification when required scope outcomes R01-R18 are missing or incomplete (E17-004)", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
+      writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
+      writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempCasePacks(dir, createValidCasePacks());
+      writeTempEvaluations(dir, createValidHumanEvaluations());
+
+      // Write incomplete outcome catalog missing R18 and R10
+      const incomplete = {
+        version: "0.1.0",
+        outcomes: [
+          { id: "R01", epicId: "e01", title: "Outcome R01", status: "passed" }
+        ]
+      };
+      writeTempProjectCatalog(dir, incomplete, "outcome-evidence.json");
+
+      const report = runReleaseQualification(dir);
+      assert.equal(report.localQualification, "failed");
+      assert.ok(report.reasons && report.reasons.some((r) => r.includes("Missing scope outcome in catalog")));
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("e17s05 fails local qualification when a local scope outcome is not passed (E17-004)", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      writeTempProjectCatalog(dir, createValidAcceptanceCatalog(), "acceptance-catalog.json");
+      writeTempProjectCatalog(dir, createValidAdversarialCatalog(), "adversarial-catalog.json");
+      writeTempProjectCatalog(dir, createValidCompetencyInventory(), "competency-inventory.json");
+      writeTempCasePacks(dir, createValidCasePacks());
+      writeTempEvaluations(dir, createValidHumanEvaluations());
+
+      // Valid R01-R18 outcomes, but R03 is blocked
+      const validOutcomes = createValidOutcomeEvidence();
+      const r03 = validOutcomes.outcomes.find((o) => o.id === "R03");
+      if (r03) {
+        r03.status = "blocked";
+      }
+      writeTempProjectCatalog(dir, validOutcomes, "outcome-evidence.json");
+
+      const report = runReleaseQualification(dir);
+      assert.equal(report.localQualification, "failed");
+      assert.ok(report.reasons && report.reasons.some((r) => r.includes("Required local scope outcome R03 is not passed")));
+    } finally {
+      cleanup();
+    }
+  });
 });
+

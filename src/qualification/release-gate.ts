@@ -140,27 +140,28 @@ export function runReleaseQualification(
     outcomeMap.set(o.id, o);
   }
   for (const id of allOutcomeIds) {
-    if (!outcomeMap.has(id)) {
-      if (id === "R18") {
-        outcomes.push({
-          id: "R18",
-          epicId: "e18",
-          title: "Installable maintained local release",
-          status: "blocked",
-          verificationPointer: "unimplemented; assigned to E18 release packaging"
-        });
-      } else {
-        reasons.push(`Missing scope outcome in catalog: ${id}`);
-      }
+    const outcome = outcomeMap.get(id);
+    if (!outcome) {
+      reasons.push(`Missing scope outcome in catalog: ${id}`);
+    } else if (id !== "R18" && outcome.status !== "passed") {
+      reasons.push(`Required local scope outcome ${id} is not passed: ${outcome.status}`);
     }
   }
+
+  const allRequiredOutcomesPresent = allOutcomeIds.every((id) => outcomeMap.has(id));
+  const localScopeOutcomesPassed = allOutcomeIds
+    .filter((id) => id !== "R18")
+    .every((id) => outcomeMap.get(id)?.status === "passed");
 
   const localQualificationPassed =
     acceptance.status === "pass" &&
     adversarial.status === "pass" &&
     competency.status === "pass" &&
     humanEvaluation.status === "pass" &&
-    criticalDefects.length === 0;
+    criticalDefects.length === 0 &&
+    allRequiredOutcomesPresent &&
+    localScopeOutcomesPassed &&
+    reasons.length === 0;
 
   // Shipment requires:
   // - localQualification === "pass"

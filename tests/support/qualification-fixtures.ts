@@ -286,3 +286,22 @@ export function writeTempEvaluations(
   fs.writeFileSync(filePath, JSON.stringify(evals, null, 2), "utf8");
   return filePath;
 }
+
+export function createValidOutcomeEvidence(): {
+  version: string;
+  outcomes: Array<{ id: string; epicId: string; title: string; status: string }>;
+} {
+  const outcomes = Array.from({ length: 17 }, (_, i) => ({
+    id: `R${String(i + 1).padStart(2, "0")}`,
+    epicId: `e${String(i + 1).padStart(2, "0")}`,
+    title: `Outcome R${String(i + 1).padStart(2, "0")}`,
+    status: "passed"
+  }));
+  outcomes.push({
+    id: "R18",
+    epicId: "e18",
+    title: "Installable maintained local release",
+    status: "blocked"
+  });
+  return { version: "0.1.0", outcomes };
+}

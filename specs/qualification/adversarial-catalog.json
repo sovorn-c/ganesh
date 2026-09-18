@@ -29,7 +29,7 @@
     {
       "classId": "cancellation",
       "title": "Cancellation fences and quarantines late outputs",
-      "testPattern": "e16s03 SC-e16s03-P0-02 cancel between retry attempts stops further starts and fences run",
+      "testPattern": "cancel between retry attempts stops further starts and fences run",
       "verificationPointer": "tests/work/provider-cancellation.test.ts"
     },
     {

@@ -169,6 +169,22 @@ describe("e17s03 competency metadata, worked failures, licenses and provenance",
     }
   });
 
+  it("e17s03 fails closed when outputProvenance is missing or invalid (SC-e17s03-P1-04)", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      const inventory = createValidCompetencyInventory();
+      const comp = inventory.competencies as Array<Record<string, unknown>>;
+      delete comp[0].outputProvenance;
+      writeTempProjectCatalog(dir, inventory, "competency-inventory.json");
+
+      const report = validateCompetencyInventory(dir);
+      assert.equal(report.status, "failed");
+      assert.ok(report.reasons && report.reasons.some((r) => /outputProvenance/i.test(r)));
+    } finally {
+      cleanup();
+    }
+  });
+
   // Task e17s03-t03: Direct package license cross-check
   it("e17s03 cross-checks direct-package license evidence against docs/dependencies.md (SC-e17s03-P0-02)", () => {
     const repoRoot = path.resolve(".");
