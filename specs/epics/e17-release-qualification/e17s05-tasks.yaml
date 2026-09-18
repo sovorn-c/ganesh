@@ -1,0 +1,46 @@
+story_id: e17s05
+spec: e17s05-local-release-qualification-gate.md
+title: Local Automation-Ready Release-Qualification Gate
+status: passing
+bcps: 5
+tasks:
+  - id: e17s05-t01
+    description: Compose s01-s04 into runReleaseQualification and a qualify CLI with JSON and human render.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s05.*(qualify|compose|json|human|localQualification)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e17s05-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [qualification, gate, cli]
+  - id: e17s05-t02
+    description: Block on critical safety defects, list R01-R18 without inventing R18 pass, and block shipment when required qualified-human records are missing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s05.*(safety-defect|R18|shipment|blocked|human)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s05-P0-02, SC-e17s05-P0-03]
+    status: passing
+    allure:
+      severity: critical
+      categories: [shipment, safety, B06]
+  - id: e17s05-t03
+    description: Prove hosted-ci, production-ready and scholarly-certified flags cannot be set, with no new security findings in the CLI path.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s05.*(hosted|production-ready|certified|flag)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s05-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [honesty, Security Review]
+  - id: e17s05-t04
+    description: Keep released E01-E16 and E13 behavior passing and run typecheck, lint, build, test and preflight under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && npm run preflight"
+    risk: P1
+    security: medium
+    scenarios: [SC-e17s05-P0-01]
+    status: passing
+    allure:
+      severity: high
+      categories: [compatibility, regression, preflight]

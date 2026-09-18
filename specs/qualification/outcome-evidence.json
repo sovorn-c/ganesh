@@ -1,0 +1,131 @@
+{
+  "version": "0.1.0",
+  "outcomes": [
+    {
+      "id": "R01",
+      "epicId": "e01",
+      "title": "Verified development and runtime baseline",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e01-verify.yaml"
+    },
+    {
+      "id": "R02",
+      "epicId": "e02",
+      "title": "Durable versioned research projects",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e02-verify.yaml"
+    },
+    {
+      "id": "R03",
+      "epicId": "e03",
+      "title": "Enforced data-use and capability controls",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e03-verify.yaml"
+    },
+    {
+      "id": "R04",
+      "epicId": "e04",
+      "title": "Transparent lifecycle and decision governance",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e04-verify.yaml"
+    },
+    {
+      "id": "R05",
+      "epicId": "e05",
+      "title": "Bounded autonomous research execution",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e05-verify.yaml"
+    },
+    {
+      "id": "R06",
+      "epicId": "e06",
+      "title": "Safe research source and material intake",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e06-verify.yaml"
+    },
+    {
+      "id": "R07",
+      "epicId": "e07",
+      "title": "Located research evidence and claims",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e07-verify.yaml"
+    },
+    {
+      "id": "R08",
+      "epicId": "e08",
+      "title": "Literature discovery and contribution grounding",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e08-verify.yaml"
+    },
+    {
+      "id": "R09",
+      "epicId": "e09",
+      "title": "Method-sensitive research design guidance",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e09-verify.yaml"
+    },
+    {
+      "id": "R10",
+      "epicId": "e10",
+      "title": "Research ethics, data governance, and authorization",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e10-verify.yaml"
+    },
+    {
+      "id": "R11",
+      "epicId": "e11",
+      "title": "Isolated, reproducible research analysis",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e11-verify.yaml"
+    },
+    {
+      "id": "R12",
+      "epicId": "e12",
+      "title": "Study progress, deviations, and human oversight",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e12-verify.yaml"
+    },
+    {
+      "id": "R13",
+      "epicId": "e13",
+      "title": "Traceable research writing and review cycles",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e13-verify.yaml"
+    },
+    {
+      "id": "R14",
+      "epicId": "e14",
+      "title": "Terminal workspace integration and accessible live state",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e14-verify.yaml"
+    },
+    {
+      "id": "R15",
+      "epicId": "e15",
+      "title": "Research state recovery, portability, and clean deletion",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e15-verify.yaml"
+    },
+    {
+      "id": "R16",
+      "epicId": "e16",
+      "title": "Operational reliability, budgets, and redacted diagnostics",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e16-verify.yaml"
+    },
+    {
+      "id": "R17",
+      "epicId": "e17",
+      "title": "Scholarly and adversarial release qualification",
+      "status": "passed",
+      "verificationPointer": "specs/verifications/e17s01-verify.yaml"
+    },
+    {
+      "id": "R18",
+      "epicId": "e18",
+      "title": "Installable maintained local release",
+      "status": "blocked",
+      "verificationPointer": "unimplemented; assigned to E18 release packaging"
+    }
+  ]
+}

@@ -4,13 +4,14 @@ active_flow: build_epic
 active_epic: e17
 active_story: e17s05
 handoff:
-  next_skill: bp-build
-  next_command: "/bp-build"
-  summary: E17 scholarly and adversarial release qualification plan is owner-approved
-    for exact revision sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929.
-    Implementation is authorized. /bp-build was not started. B06 named evaluators,
-    R18, remote CI, publishing, deployment, and production readiness remain unclaimed.
-  last_step_completed: E17 plan owner-approved exact revision; /bp-build not started
+  next_skill: bp-review
+  next_command: "/bp-review"
+  summary: E17 scholarly and adversarial release qualification is fully built and
+    verified across all five stories (e17s01-e17s05). Acceptance catalog, adversarial
+    suite, competency inventory, case packs, and local qualify gate pass. Ready for
+    review pass.
+  last_step_completed: E17 build complete across all five stories; 508 tests pass,
+    preflight passes, qualify gate passes.
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
@@ -72,6 +73,7 @@ discovery:
   e13_review: complete_local_release
   e13_release: complete_local_release
   e17_plan: approved_exact_revision
+  e17_build: complete
   environment:
     status: verified_node24_target
     runtime:
@@ -480,7 +482,6 @@ metrics:
       total_seconds: 5481.0
       avg_seconds: 913.5
     develop-tdd:
-      calls: 1
-      total_seconds: 2308.0
-      avg_seconds: 2308.0
-      _start: '2026-09-18T15:12:09Z'
+      calls: 2
+      total_seconds: 5062.0
+      avg_seconds: 2531.0

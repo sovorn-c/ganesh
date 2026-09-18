@@ -177,3 +177,4 @@ export * from "./qualification/acceptance-evidence.js";
 export * from "./qualification/adversarial-suite.js";
 export * from "./qualification/competency-inventory.js";
 export * from "./qualification/human-evaluation.js";
+export * from "./qualification/release-gate.js";

@@ -16,12 +16,12 @@ development_status:
   e12: done
   e11: done
   e13: done
-  e17: planned
+  e17: done
   e18: backlog
-planning_level: e17_planning
+planning_level: e17_completed
 active_epic: e17
 active_story: e17s05
-note: E17 scholarly and adversarial release qualification plan is owner-approved for exact revision sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929. Implementation is authorized; /bp-build was not started. Five stories and 20 failing task checks remain. Remote CI, publishing, deployment, B06 named evaluators, R18 packaging and production readiness remain unclaimed.
+note: E17 scholarly and adversarial release qualification is implemented and verified across all 5 stories (e17s01-e17s05) with 20 passing task checks. Local qualification gate passes. B06 qualified-human evidence and R18 packaging remain shipment blockers; production readiness is not claimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -764,7 +764,8 @@ epics:
         verification_evidence: specs/verifications/e13s04-verify.yaml
   e17:
     title: Scholarly and adversarial release qualification
-    status: planned
+    status: complete
+    verification_evidence: specs/verifications/e17-verify.yaml
     stories:
       e17s01:
         title: Acceptance-Scenario Behavioral Evidence Catalog
@@ -816,13 +817,16 @@ epics:
         verification_evidence: specs/verifications/e17s04-verify.yaml
       e17s05:
         title: Local Automation-Ready Release-Qualification Gate
-        status: planned
+        status: done
+        started_at: "2026-09-18T15:51:00Z"
+        completed_at: "2026-09-18T15:57:00Z"
         planning_status: ready
         bcps: 5
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e17s05-verify.yaml
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-17T10:53:13Z"

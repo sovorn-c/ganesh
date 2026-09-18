@@ -266,3 +266,58 @@ export interface HumanEvaluationProtocolOptions {
   readonly casePacksFile?: string;
   readonly evaluationsFile?: string;
 }
+
+// story: e17s05
+
+export interface SafetyDefectItem {
+  readonly id: string;
+  readonly severity: "low" | "medium" | "high" | "critical" | string;
+  readonly title: string;
+  readonly status: "open" | "resolved" | "mitigated" | string;
+  readonly description?: string;
+}
+
+export interface SafetyDefectLedger {
+  readonly version?: string;
+  readonly defects: readonly SafetyDefectItem[];
+}
+
+export interface OutcomeEvidenceItem {
+  readonly id: string;
+  readonly epicId: string;
+  readonly title: string;
+  readonly status: "passed" | "blocked" | "unimplemented" | string;
+  readonly verificationPointer?: string;
+}
+
+export interface OutcomeEvidenceCatalog {
+  readonly version?: string;
+  readonly outcomes: readonly OutcomeEvidenceItem[];
+}
+
+export interface ReleaseQualificationReport {
+  readonly localQualification: "pass" | "failed";
+  readonly shipment: "authorized" | "blocked";
+  readonly acceptance: AcceptanceEvidenceReport;
+  readonly adversarial: AdversarialQualificationReport;
+  readonly competency: CompetencyInventoryReport;
+  readonly humanEvaluation: HumanEvaluationProtocolReport;
+  readonly outcomes: readonly OutcomeEvidenceItem[];
+  readonly safetyDefects: readonly SafetyDefectItem[];
+  readonly hostedCi: false;
+  readonly productionReady: false;
+  readonly scholarlyCertification: "not-inferred";
+  readonly reasons?: readonly string[];
+}
+
+export interface ReleaseQualificationOptions {
+  readonly runner?: QualificationRunnerPort | QualificationRunner;
+  readonly mode?: "catalog" | "execute";
+  readonly acceptanceCatalogFile?: string;
+  readonly adversarialCatalogFile?: string;
+  readonly competencyInventoryFile?: string;
+  readonly casePacksFile?: string;
+  readonly evaluationsFile?: string;
+  readonly safetyDefectsFile?: string;
+  readonly outcomeEvidenceFile?: string;
+}
