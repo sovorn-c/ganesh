@@ -156,3 +156,133 @@ export function createValidCompetencyInventory(): Record<string, unknown> {
     ]
   };
 }
+
+export function createValidCasePacks(): Record<string, unknown> {
+  return {
+    version: "0.1.0",
+    cases: [
+      {
+        id: "CP-TEST-01",
+        title: "Test Quant Education Case",
+        methodProfile: "quantitative",
+        disciplinaryContext: "education",
+        rubric: {
+          id: "rubric-1",
+          name: "Rubric 1",
+          dimensions: ["unsupportedClaimSeverity", "sourceLocatorAccuracy", "escalation"]
+        }
+      },
+      {
+        id: "CP-TEST-02",
+        title: "Test Qual HCI Case",
+        methodProfile: "qualitative",
+        disciplinaryContext: "hci",
+        rubric: {
+          id: "rubric-2",
+          name: "Rubric 2",
+          dimensions: ["unsupportedClaimSeverity", "sourceLocatorAccuracy", "escalation"]
+        }
+      },
+      {
+        id: "CP-TEST-03",
+        title: "Test Mixed IS Case",
+        methodProfile: "mixed-methods",
+        disciplinaryContext: "information-systems",
+        rubric: {
+          id: "rubric-3",
+          name: "Rubric 3",
+          dimensions: ["unsupportedClaimSeverity", "contradictionRetention", "escalation"]
+        }
+      },
+      {
+        id: "CP-TEST-04",
+        title: "Test Artifact Computing Case",
+        methodProfile: "artifact-evaluation",
+        disciplinaryContext: "computing",
+        rubric: {
+          id: "rubric-4",
+          name: "Rubric 4",
+          dimensions: ["unsupportedClaimSeverity", "sourceLocatorAccuracy", "escalation"]
+        }
+      },
+      {
+        id: "CP-TEST-05",
+        title: "Test Quant Social Science Case",
+        methodProfile: "quantitative",
+        disciplinaryContext: "empirical-social-science",
+        rubric: {
+          id: "rubric-5",
+          name: "Rubric 5",
+          dimensions: ["unsupportedClaimSeverity", "sourceLocatorAccuracy", "escalation"]
+        }
+      }
+    ]
+  };
+}
+
+export function createValidHumanEvaluations(): Record<string, unknown> {
+  return {
+    version: "0.1.0",
+    records: [
+      {
+        caseId: "CP-TEST-01",
+        evaluatorKind: "synthetic",
+        evaluatorRole: "research-methods-qualified-human",
+        disposition: "accept",
+        rubricScores: { unsupportedClaimSeverity: 5, sourceLocatorAccuracy: 5, escalation: 5 }
+      },
+      {
+        caseId: "CP-TEST-02",
+        evaluatorKind: "synthetic",
+        evaluatorRole: "research-methods-qualified-human",
+        disposition: "accept",
+        rubricScores: { unsupportedClaimSeverity: 5, sourceLocatorAccuracy: 5, escalation: 5 }
+      },
+      {
+        caseId: "CP-TEST-03",
+        evaluatorKind: "synthetic",
+        evaluatorRole: "research-methods-qualified-human",
+        disposition: "accept",
+        rubricScores: { unsupportedClaimSeverity: 5, contradictionRetention: 5, escalation: 5 }
+      },
+      {
+        caseId: "CP-TEST-04",
+        evaluatorKind: "synthetic",
+        evaluatorRole: "research-methods-qualified-human",
+        disposition: "accept",
+        rubricScores: { unsupportedClaimSeverity: 5, sourceLocatorAccuracy: 5, escalation: 5 }
+      },
+      {
+        caseId: "CP-TEST-05",
+        evaluatorKind: "synthetic",
+        evaluatorRole: "research-methods-qualified-human",
+        disposition: "accept",
+        rubricScores: { unsupportedClaimSeverity: 5, sourceLocatorAccuracy: 5, escalation: 5 }
+      }
+    ]
+  };
+}
+
+export function writeTempCasePacks(
+  projectRoot: string,
+  packs: unknown,
+  fileName = "case-packs.json"
+): string {
+  const dir = path.join(projectRoot, "specs", "qualification", "case-packs");
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, fileName);
+  fs.writeFileSync(filePath, JSON.stringify(packs, null, 2), "utf8");
+  return filePath;
+}
+
+export function writeTempEvaluations(
+  projectRoot: string,
+  evals: unknown,
+  fileName = "evaluations.json"
+): string {
+  const dir = path.join(projectRoot, "specs", "qualification", "human-evaluations");
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, fileName);
+  fs.writeFileSync(filePath, JSON.stringify(evals, null, 2), "utf8");
+  return filePath;
+}

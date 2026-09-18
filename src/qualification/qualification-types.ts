@@ -180,3 +180,89 @@ export interface CompetencyInventoryOptions {
   readonly inventoryFile?: string;
   readonly dependenciesDocPath?: string;
 }
+
+// story: e17s04
+
+export type QualificationMethodProfileId =
+  | "quantitative"
+  | "qualitative"
+  | "mixed-methods"
+  | "artifact-evaluation"
+  | "artifact-evaluation-design-science";
+
+export type DisciplinaryContextId =
+  | "empirical-social-science"
+  | "information-systems"
+  | "hci"
+  | "education"
+  | "computing";
+
+export interface CasePackRubric {
+  readonly id: string;
+  readonly name: string;
+  readonly dimensions: readonly string[];
+  readonly criteria?: Record<string, string>;
+}
+
+export interface CasePack {
+  readonly id: string;
+  readonly title: string;
+  readonly methodProfile: QualificationMethodProfileId | string;
+  readonly disciplinaryContext: DisciplinaryContextId | string;
+  readonly rubric: CasePackRubric;
+  readonly isDisagreementCase?: boolean;
+  readonly outOfCompetence?: boolean;
+  readonly excerpt?: string;
+  readonly purpose?: string;
+}
+
+export interface CasePackCatalog {
+  readonly version?: string;
+  readonly cases: readonly CasePack[];
+}
+
+export type EvaluatorKind = "synthetic" | "qualified-human";
+
+export interface HumanEvaluationRecord {
+  readonly caseId: string;
+  readonly evaluatorKind: EvaluatorKind;
+  readonly evaluatorRole: string;
+  readonly disposition: "accept" | "revise" | "reject" | "escalated";
+  readonly rubricScores?: Record<string, number | string>;
+  readonly notes?: string;
+  readonly modelGroundTruthOnly?: boolean;
+  readonly oracleKind?: string;
+  readonly retainedPositions?: readonly string[];
+  readonly dissentPreserved?: boolean;
+  readonly escalationRequired?: boolean;
+  readonly escalated?: boolean;
+}
+
+export interface HumanEvaluationRow {
+  readonly caseId: string;
+  readonly methodProfile: string;
+  readonly disciplinaryContext: string;
+  readonly status: "pass" | "failed";
+  readonly evaluatorKind?: EvaluatorKind;
+  readonly reason?: string;
+}
+
+export interface HumanEvaluationProtocolReport {
+  readonly status: "pass" | "failed";
+  readonly casesTotal: number;
+  readonly casesEvaluated: number;
+  readonly profilesCovered: readonly string[];
+  readonly contextsCovered: readonly string[];
+  readonly evaluatorKindsPresent: readonly EvaluatorKind[];
+  readonly hasQualifiedHumanCoverage: boolean;
+  readonly rows: readonly HumanEvaluationRow[];
+  readonly scholarlyCertification: "not-inferred";
+  readonly reasons?: readonly string[];
+}
+
+export interface HumanEvaluationProtocolOptions {
+  readonly casePacksDir?: string;
+  readonly evaluationsDir?: string;
+  readonly casePacksFile?: string;
+  readonly evaluationsFile?: string;
+}

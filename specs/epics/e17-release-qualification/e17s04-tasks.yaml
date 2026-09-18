@@ -1,0 +1,46 @@
+story_id: e17s04
+spec: e17s04-qualified-human-evaluation-protocol.md
+title: Qualified-Human Evaluation Protocol Across Method Profiles and Contexts
+status: passing
+bcps: 8
+tasks:
+  - id: e17s04-t01
+    description: Add case packs covering four method profiles and supported disciplinary contexts with explicit rubrics.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s04.*(case-pack|profile|context|rubric|coverage)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e17s04-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [qualification, human-evaluation, method-profile]
+  - id: e17s04-t02
+    description: Fail closed when a required case pack has no human-evaluation record.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s04.*(missing|record|fail-closed|required)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s04-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [fail-closed, B06]
+  - id: e17s04-t03
+    description: Retain disagreement, reject model-only ground truth, and require escalation for out-of-competence cases.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s04.*(disagreement|model|ground-truth|escalation|competence)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s04-P0-03, SC-e17s04-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [honesty, escalation, Security Review]
+  - id: e17s04-t04
+    description: Keep released E01-E16 and E13 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: low
+    scenarios: [SC-e17s04-P0-01]
+    status: passing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

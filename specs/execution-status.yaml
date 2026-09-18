@@ -20,7 +20,7 @@ development_status:
   e18: backlog
 planning_level: e17_planning
 active_epic: e17
-active_story: e17s04
+active_story: e17s05
 note: E17 scholarly and adversarial release qualification plan is owner-approved for exact revision sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929. Implementation is authorized; /bp-build was not started. Five stories and 20 failing task checks remain. Remote CI, publishing, deployment, B06 named evaluators, R18 packaging and production readiness remain unclaimed.
 epics:
   e01:
@@ -804,13 +804,16 @@ epics:
         verification_evidence: specs/verifications/e17s03-verify.yaml
       e17s04:
         title: Qualified-Human Evaluation Protocol Across Method Profiles and Contexts
-        status: planned
+        status: done
+        started_at: "2026-09-18T15:42:00Z"
+        completed_at: "2026-09-18T15:50:00Z"
         planning_status: ready
         bcps: 8
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e17s04-verify.yaml
       e17s05:
         title: Local Automation-Ready Release-Qualification Gate
         status: planned

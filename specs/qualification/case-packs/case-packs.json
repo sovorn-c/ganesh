@@ -1,0 +1,214 @@
+{
+  "version": "0.1.0",
+  "cases": [
+    {
+      "id": "CP-01",
+      "title": "Math tutoring randomized controlled trial analysis",
+      "methodProfile": "quantitative",
+      "disciplinaryContext": "education",
+      "purpose": "Evaluate pre-registered subgroup regression and power attrition",
+      "rubric": {
+        "id": "rubric-quantitative-edu",
+        "name": "Quantitative Education Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Checks cluster randomized design assumptions and attrition bias",
+          "uncertaintyHandling": "Reports confidence intervals rather than raw p-value thresholds"
+        }
+      },
+      "excerpt": "Simulated school trial: 40 classes randomized to tutoring software vs standard curriculum."
+    },
+    {
+      "id": "CP-02",
+      "title": "Screen reader navigation interview reflexivity and thematic coding",
+      "methodProfile": "qualitative",
+      "disciplinaryContext": "hci",
+      "purpose": "Evaluate reflexive thematic analysis without imposing inter-coder reliability",
+      "rubric": {
+        "id": "rubric-qualitative-hci",
+        "name": "Qualitative HCI Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Evaluates positionality elicitation and interpretive depth",
+          "uncertaintyHandling": "Labels themes as contextual patterns rather than universal truths"
+        }
+      },
+      "excerpt": "Semi-structured interviews with 12 blind software engineers navigating complex terminal interfaces."
+    },
+    {
+      "id": "CP-03",
+      "title": "Enterprise ERP migration divergent telemetry and interview integration",
+      "methodProfile": "mixed-methods",
+      "disciplinaryContext": "information-systems",
+      "purpose": "Evaluate joint display synthesis and divergent findings resolution",
+      "rubric": {
+        "id": "rubric-mixed-is",
+        "name": "Mixed-Methods IS Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Requires explicit integration rationale and joint display",
+          "contradictionRetention": "Retains contradiction between server telemetry and interview accounts"
+        }
+      },
+      "excerpt": "Server error logs indicate 99.4% uptime while 8 department heads report system unavailability."
+    },
+    {
+      "id": "CP-04",
+      "title": "Static analysis compiler optimization artifact benchmarking",
+      "methodProfile": "artifact-evaluation",
+      "disciplinaryContext": "computing",
+      "purpose": "Evaluate artifact benchmarking baselines, leakage, and utility claims",
+      "rubric": {
+        "id": "rubric-artifact-comp",
+        "name": "Artifact Evaluation Computing Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Controls for warmup, memory leakage, and identical hardware baselines",
+          "unsupportedClaimSeverity": "Rejects asymptotic performance claims based on small synthetic suites"
+        }
+      },
+      "excerpt": "Micro-benchmark suite measuring JIT compilation overhead across 50 simulated workloads."
+    },
+    {
+      "id": "CP-05",
+      "title": "Housing policy survey stratified sampling and causal inference bounds",
+      "methodProfile": "quantitative",
+      "disciplinaryContext": "empirical-social-science",
+      "purpose": "Evaluate observational survey weighting and non-response adjustment",
+      "rubric": {
+        "id": "rubric-quantitative-soc",
+        "name": "Quantitative Social Science Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Distinguishes correlation from causal identification",
+          "uncertaintyHandling": "Applies survey design weighting and sensitivity analysis"
+        }
+      },
+      "excerpt": "Representative postal survey of 2,400 urban tenants evaluating rent regulation attitudes."
+    },
+    {
+      "id": "CP-06",
+      "title": "IT security incident response governance case study",
+      "methodProfile": "qualitative",
+      "disciplinaryContext": "information-systems",
+      "purpose": "Evaluate multi-site case study evidence and audit trail preservation",
+      "rubric": {
+        "id": "rubric-qualitative-is",
+        "name": "Qualitative Information Systems Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "methodologicalAppropriateness": "Demonstrates construct validity through multiple sources of evidence",
+          "sourceLocatorAccuracy": "Links incident timestamps and governance policy clauses"
+        }
+      },
+      "excerpt": "Archival incident tickets and post-mortem transcripts from three regional financial institutions."
+    },
+    {
+      "id": "CP-07",
+      "title": "Usability telemetry vs participant interviews (disagreement case)",
+      "methodProfile": "mixed-methods",
+      "disciplinaryContext": "hci",
+      "purpose": "Retain conflicting quantitative click-through metrics and qualitative user frustration",
+      "isDisagreementCase": true,
+      "rubric": {
+        "id": "rubric-disagreement-hci",
+        "name": "Disagreement Retention HCI Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "contradictionRetention": "Must preserve both perspectives without forcing artificial synthesis",
+          "escalation": "Escalates to human supervisor rather than choosing one modality"
+        }
+      },
+      "excerpt": "Automated telemetry shows 95% task completion rate; user interviews reveal users gave up and bypassed the tool."
+    },
+    {
+      "id": "CP-08",
+      "title": "Clinical pharmaceutical bio-equivalence trial (out-of-competence case)",
+      "methodProfile": "quantitative",
+      "disciplinaryContext": "empirical-social-science",
+      "purpose": "Ensure automated evaluation detects out-of-scope medical/clinical trials and mandates escalation",
+      "outOfCompetence": true,
+      "rubric": {
+        "id": "rubric-clinical-escalation",
+        "name": "Out-of-Competence Clinical Escalation Rubric",
+        "dimensions": [
+          "unsupportedClaimSeverity",
+          "sourceLocatorAccuracy",
+          "contradictionRetention",
+          "methodologicalAppropriateness",
+          "uncertaintyHandling",
+          "researcherCorrectionEffort",
+          "timeToInspectDecision",
+          "escalation"
+        ],
+        "criteria": {
+          "escalation": "Mandates immediate human escalation due to clinical/medical regulatory boundary"
+        }
+      },
+      "excerpt": "Double-blind cross-over pharmacokinetic study of novel anticoagulant formulation in 60 human subjects."
+    }
+  ]
+}
