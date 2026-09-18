@@ -1,26 +1,17 @@
 ---
 workflow_mode: solo-git
-active_flow: build_epic
-active_epic: e17
-active_story: e17s05
+active_flow: plan
+active_epic: none
+active_story: null
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
-  summary: E17 scholarly and adversarial release qualification is fully built and
-    verified across all five stories (e17s01-e17s05). Acceptance catalog, adversarial
-    suite, competency inventory, case packs, and local qualify gate pass. Ready for
-    review pass.
-  last_step_completed: E17 build complete across all five stories; 508 tests pass,
-    preflight passes, qualify gate passes.
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: "E17 scholarly and adversarial release qualification is locally released on main under the owner-approved plan revision sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929. Five stories passed, local qualification passes, shipment remains blocked by B06 evidence and R18 packaging, and remote CI, publishing, deployment, and production readiness remain unclaimed."
+  last_step_completed: E17 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
   - specs/tech-architecture/tech-stack.md
-  - specs/epics/e17-release-qualification/epic.yaml
-  - specs/tech-architecture/e17-TEST_PLAN_LATEST.md
-  - specs/IMPACT_LATEST.md
-  - specs/PLAN-AUDIT_LATEST.md
-  - specs/verifications/PLAN-AUDIT-e17-implementation.yaml
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -74,6 +65,8 @@ discovery:
   e13_release: complete_local_release
   e17_plan: approved_exact_revision
   e17_build: complete
+  e17_review: complete_local_release
+  e17_release: complete_local_release
   environment:
     status: verified_node24_target
     runtime:
@@ -234,17 +227,17 @@ blueprint:
   e17_plan_audit: READY_implementation_mode
   e17_plan_audit_artifact: specs/PLAN-AUDIT_LATEST.md
   e17_plan_artifacts:
-  - specs/epics/e17-release-qualification/epic.yaml
-  - specs/epics/e17-release-qualification/e17s01-acceptance-scenario-behavioral-evidence.md
-  - specs/epics/e17-release-qualification/e17s01-tasks.yaml
-  - specs/epics/e17-release-qualification/e17s02-adversarial-integration-named-safety-classes.md
-  - specs/epics/e17-release-qualification/e17s02-tasks.yaml
-  - specs/epics/e17-release-qualification/e17s03-competency-metadata-failures-licenses-provenance.md
-  - specs/epics/e17-release-qualification/e17s03-tasks.yaml
-  - specs/epics/e17-release-qualification/e17s04-qualified-human-evaluation-protocol.md
-  - specs/epics/e17-release-qualification/e17s04-tasks.yaml
-  - specs/epics/e17-release-qualification/e17s05-local-release-qualification-gate.md
-  - specs/epics/e17-release-qualification/e17s05-tasks.yaml
+  - specs/epics/archive/e17-release-qualification/epic.yaml
+  - specs/epics/archive/e17-release-qualification/e17s01-acceptance-scenario-behavioral-evidence.md
+  - specs/epics/archive/e17-release-qualification/e17s01-tasks.yaml
+  - specs/epics/archive/e17-release-qualification/e17s02-adversarial-integration-named-safety-classes.md
+  - specs/epics/archive/e17-release-qualification/e17s02-tasks.yaml
+  - specs/epics/archive/e17-release-qualification/e17s03-competency-metadata-failures-licenses-provenance.md
+  - specs/epics/archive/e17-release-qualification/e17s03-tasks.yaml
+  - specs/epics/archive/e17-release-qualification/e17s04-qualified-human-evaluation-protocol.md
+  - specs/epics/archive/e17-release-qualification/e17s04-tasks.yaml
+  - specs/epics/archive/e17-release-qualification/e17s05-local-release-qualification-gate.md
+  - specs/epics/archive/e17-release-qualification/e17s05-tasks.yaml
   - specs/tech-architecture/e17-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e17/THREAT_MODEL.md
