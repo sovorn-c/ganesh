@@ -1,6 +1,7 @@
 // story: e17s04
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import {
   evaluateHumanProtocol,
@@ -69,6 +70,36 @@ describe("e17s04 qualified-human evaluation protocol across method profiles and 
     assert.equal(report.scholarlyCertification, "not-inferred");
     assert.equal(report.hasQualifiedHumanCoverage, false); // synthetic fixtures
     assert.ok(report.evaluatorKindsPresent.includes("synthetic"));
+  });
+
+  it("e17s04 loads individual case-pack and evaluation JSON files when aggregate files are absent", () => {
+    const { dir, cleanup } = createTempDir();
+    try {
+      const casePacksDir = path.join(dir, "case-packs");
+      fs.mkdirSync(casePacksDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(casePacksDir, "case.json"),
+        JSON.stringify({ id: "CP-FALLBACK", methodProfile: "quantitative" }),
+        "utf8"
+      );
+
+      const evaluationsDir = path.join(dir, "human-evaluations");
+      fs.mkdirSync(evaluationsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(evaluationsDir, "evaluation.json"),
+        JSON.stringify({ caseId: "CP-FALLBACK", evaluatorKind: "synthetic" }),
+        "utf8"
+      );
+
+      const packs = loadCasePacks(dir, { casePacksDir });
+      const evaluations = loadHumanEvaluationRecords(dir, { evaluationsDir });
+      assert.equal(packs.length, 1);
+      assert.equal(packs[0]?.id, "CP-FALLBACK");
+      assert.equal(evaluations.length, 1);
+      assert.equal(evaluations[0]?.caseId, "CP-FALLBACK");
+    } finally {
+      cleanup();
+    }
   });
 
   it("e17s04 case-pack fails closed on missing method profile or context coverage (SC-e17s04-P0-01)", () => {

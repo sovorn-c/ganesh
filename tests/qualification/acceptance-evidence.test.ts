@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import {
+  defaultQualificationRunner,
   loadAcceptanceCatalog,
   runAcceptanceEvidence
 } from "../../src/index.js";
@@ -62,6 +63,26 @@ describe("e17s01 acceptance-scenario behavioral evidence catalog", () => {
       }
     } finally {
       cleanup();
+    }
+  });
+
+  it("e17s01 default runner executes a mapped verification test", () => {
+    const previousTestContext = process.env.NODE_TEST_CONTEXT;
+    delete process.env.NODE_TEST_CONTEXT;
+    try {
+      const result = defaultQualificationRunner(
+        "e17s02.*class",
+        "tests/qualification/adversarial-suite.test.ts"
+      );
+
+      assert.equal(result.passed, true, result.error);
+      assert.ok(result.matchedCount > 0);
+    } finally {
+      if (previousTestContext === undefined) {
+        delete process.env.NODE_TEST_CONTEXT;
+      } else {
+        process.env.NODE_TEST_CONTEXT = previousTestContext;
+      }
     }
   });
 
