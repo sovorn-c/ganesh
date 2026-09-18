@@ -175,3 +175,4 @@ export * from "./writing/export-store.js";
 export * from "./qualification/qualification-types.js";
 export * from "./qualification/acceptance-evidence.js";
 export * from "./qualification/adversarial-suite.js";
+export * from "./qualification/competency-inventory.js";

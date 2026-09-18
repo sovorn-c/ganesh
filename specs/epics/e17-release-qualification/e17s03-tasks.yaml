@@ -1,0 +1,46 @@
+story_id: e17s03
+spec: e17s03-competency-metadata-failures-licenses-provenance.md
+title: Competency Metadata, Worked Failures, Licenses and Provenance
+status: passing
+bcps: 6
+tasks:
+  - id: e17s03-t01
+    description: Add competency inventory validation for required docs/03 fields including worked failure examples.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s03.*(inventory|worked-failure|metadata|valid)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e17s03-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [qualification, competency]
+  - id: e17s03-t02
+    description: Fail on missing license, source, worked-failure or provenance fields and on scholarly-certified or statistically-validated claims.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s03.*(license|source|certified|statistically|provenance|missing)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e17s03-P0-02, SC-e17s03-P0-03, SC-e17s03-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [honesty, provenance, Security Review]
+  - id: e17s03-t03
+    description: Cross-check direct package license evidence against docs/dependencies.md without adding packages.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e17s03.*(dependencies|license|direct-package)' dist/tests/*/*.test.js"
+    risk: P1
+    security: medium
+    scenarios: [SC-e17s03-P0-02]
+    status: passing
+    allure:
+      severity: high
+      categories: [license, supply-chain]
+  - id: e17s03-t04
+    description: Keep released E01-E16 and E13 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: low
+    scenarios: [SC-e17s03-P0-01]
+    status: passing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

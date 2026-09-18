@@ -106,3 +106,77 @@ export interface AdversarialQualificationOptions {
   readonly mode?: "catalog" | "execute";
   readonly catalogFile?: string;
 }
+
+// story: e17s03
+
+export interface CompetencyWorkedExample {
+  readonly summary: string;
+  readonly context: string;
+  readonly outcome: string;
+}
+
+export interface CompetencyOutputSchema {
+  readonly separatesObservationsFromInferences: boolean;
+  readonly includesContraryOrLimitations: boolean;
+  readonly format?: string;
+  readonly fields?: readonly string[];
+}
+
+export interface CompetencyProvenanceRequirement {
+  readonly requiresLocators?: boolean;
+  readonly separatesObservationInferenceRecommendation?: boolean;
+  readonly includesContraryEvidence?: boolean;
+}
+
+export interface CompetencyItem {
+  readonly id: string;
+  readonly name: string;
+  readonly version: string;
+  readonly purpose: string;
+  readonly owningRole: "Supervisor" | "Discovery" | "Evidence" | "Methodology" | "Reviewer" | string;
+  readonly applicableProfiles: readonly string[];
+  readonly unsupportedContexts: readonly string[];
+  readonly requiredInputs: readonly string[];
+  readonly outputSchema: CompetencyOutputSchema;
+  readonly failureConditions: readonly string[] | string;
+  readonly workedSuccess: CompetencyWorkedExample | string;
+  readonly workedFailure: CompetencyWorkedExample | string;
+  readonly source: string;
+  readonly license: string;
+  readonly adaptationRecord?: string;
+  readonly directDependencies?: readonly string[];
+  readonly outputProvenance?: CompetencyProvenanceRequirement;
+  readonly scholarlyCertified?: never;
+  readonly statisticallyValidated?: never;
+}
+
+export interface CompetencyInventory {
+  readonly version?: string;
+  readonly catalog?: string;
+  readonly competencies: readonly CompetencyItem[];
+  readonly scholarlyCertified?: never;
+  readonly statisticallyValidated?: never;
+  readonly certified?: never;
+}
+
+export interface CompetencyInventoryRow {
+  readonly id: string;
+  readonly name: string;
+  readonly status: "pass" | "failed";
+  readonly reason?: string;
+}
+
+export interface CompetencyInventoryReport {
+  readonly status: "pass" | "failed";
+  readonly competenciesTotal: number;
+  readonly competenciesPassing: number;
+  readonly competenciesFailing: number;
+  readonly rows: readonly CompetencyInventoryRow[];
+  readonly scholarlyCertification: "not-inferred";
+  readonly reasons?: readonly string[];
+}
+
+export interface CompetencyInventoryOptions {
+  readonly inventoryFile?: string;
+  readonly dependenciesDocPath?: string;
+}

@@ -113,3 +113,46 @@ export function createValidAdversarialCatalog(): AdversarialCatalog {
     ]
   };
 }
+
+export function createValidCompetencyInventory(): Record<string, unknown> {
+  return {
+    version: "0.1.0",
+    catalog: "competency-inventory",
+    competencies: [
+      {
+        id: "comp-test-01",
+        name: "Test research framing competency",
+        version: "0.1.0",
+        purpose: "Test purpose",
+        owningRole: "Methodology",
+        applicableProfiles: ["quantitative", "qualitative"],
+        unsupportedContexts: ["unauthorized network"],
+        requiredInputs: ["topic"],
+        outputSchema: {
+          separatesObservationsFromInferences: true,
+          includesContraryOrLimitations: true
+        },
+        failureConditions: ["conflation of terms"],
+        workedSuccess: {
+          summary: "Success example summary",
+          context: "Test context",
+          outcome: "Expected test outcome"
+        },
+        workedFailure: {
+          summary: "Failure example summary",
+          context: "Failure test context",
+          outcome: "Handled failure outcome"
+        },
+        source: "docs/03-agents-and-skills.md §4",
+        license: "MIT",
+        adaptationRecord: "Test adaptation",
+        directDependencies: ["typescript", "eslint"],
+        outputProvenance: {
+          requiresLocators: true,
+          separatesObservationInferenceRecommendation: true,
+          includesContraryEvidence: true
+        }
+      }
+    ]
+  };
+}

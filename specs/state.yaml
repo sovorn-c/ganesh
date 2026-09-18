@@ -2,7 +2,7 @@
 workflow_mode: solo-git
 active_flow: build_epic
 active_epic: e17
-active_story: e17s03
+active_story: e17s04
 handoff:
   next_skill: bp-build
   next_command: "/bp-build"
