@@ -1,7 +1,7 @@
 story_id: e18s03
 spec: e18s03-upgrade-rollback-uninstall-preserve-research-data.md
 title: Upgrade, Rollback and Uninstall Preserve Research Data
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: e18s03-t01
@@ -10,7 +10,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s03-P0-01]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, upgrade, Security Review]
@@ -20,7 +20,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s03-P0-02]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, uninstall, Security Review]
@@ -30,7 +30,7 @@ tasks:
     risk: P0
     security: medium
     scenarios: [SC-e18s03-P0-03, SC-e18s03-P1-04]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, rollback]
@@ -40,7 +40,7 @@ tasks:
     risk: P1
     security: medium
     scenarios: [SC-e18s03-P0-02]
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [compatibility, regression]

@@ -50,3 +50,9 @@ Project opens report one of these schema/capability states:
 - **unknown-future:** a newer schema is inspectable only by this binary; mutations are blocked until a compatible release is used.
 
 Old snapshots are inspection cursors, not rollback commands. Branch promotion and reference changes remain explicit, append-only, and guarded by the destination's expected revision. Full migration, backup/restore, deletion propagation, and portability remain owned by e15; E02 does not claim those capabilities.
+
+## Upgrade, rollback, and product uninstall
+
+- **Upgrade preserves research data:** installing a newer Ganesh package into an isolated prefix or environment preserves `<project>/.ganesh/project.sqlite` and all artifact files under `.ganesh/artifacts/`. When reopening the project, schema status is verified as supported (schema marker 1) and all artifact hashes are verified intact.
+- **Rollback procedure uses E15:** create an E15 backup (`backupProject`) before version upgrades. To roll back, reinstall the previous version or tarball in the prefix and run the standard E15 restore procedure (`restoreProject`). Ganesh refuses any second restore engine. Databases with an unknown-future schema version report `unknown-future` and block all mutations.
+- **Product uninstall leaves research data:** uninstalling Ganesh from a prefix (`npm uninstall ganesh --prefix <dir>`) removes the CLI executable and package files while leaving the user's research repository untouched. Product uninstall does not delete `.ganesh/project.sqlite` or artifacts, does not add owner operations, and does not record E15 deletion tombstones.

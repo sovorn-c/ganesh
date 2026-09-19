@@ -184,3 +184,4 @@ export * from "./distribution/smoke.js";
 export * from "./distribution/package-artifact.js";
 export * from "./distribution/license-inventory.js";
 export * from "./distribution/signing-applicability.js";
+export * from "./distribution/lifecycle.js";

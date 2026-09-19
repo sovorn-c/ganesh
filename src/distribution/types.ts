@@ -118,3 +118,34 @@ export interface SigningApplicabilityReport {
   appleCodesign: string;
   reasons?: string[];
 }
+
+// story: e18s03
+
+export type LifecycleAction = "upgrade" | "uninstall" | "rollback-check";
+
+export interface ProductLifecycleOptions {
+  action: LifecycleAction;
+  prefix: string;
+  projectFolder: string;
+  tarballPath?: string;
+  previousTarballPath?: string;
+  backupPath?: string;
+  ownerCapability?: unknown;
+  commandId?: string;
+}
+
+export interface ProductLifecycleReport {
+  status: "pass" | "fail";
+  action: LifecycleAction;
+  prefix: string;
+  projectFolder: string;
+  schemaStatus?: string;
+  artifactHashMatches?: boolean;
+  artifactsPreserved?: boolean;
+  projectPreserved?: boolean;
+  uninstalledFromPrefix?: boolean;
+  e15DeletionRecorded?: boolean;
+  rollbackEngine?: string;
+  reopened?: boolean;
+  reasons?: string[];
+}
