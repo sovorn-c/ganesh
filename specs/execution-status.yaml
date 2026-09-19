@@ -17,11 +17,11 @@ development_status:
   e11: done
   e13: done
   e17: done
-  e18: in_progress
+  e18: done
 planning_level: e18_plan_approved
 active_epic: e18
-active_story: e18s05
-note: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf is owner-approved. Five stories totaling 21 BCP remain planned with failing task ledgers. /bp-build was not started. B06 qualified-human evidence remains a shipment blocker even after R18 packaging evidence exists; remote CI, publishing, deployment, and production readiness remain unclaimed.
+active_story: null
+note: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf built and verified across all 5 stories (e18s01–e18s05). B06 qualified-human evidence remains a shipment blocker even after R18 packaging evidence exists; remote CI, publishing, deployment, and production readiness remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -829,7 +829,7 @@ epics:
         verification_evidence: specs/verifications/e17s05-verify.yaml
   e18:
     title: Installable maintained local release
-    status: in_progress
+    status: complete
     stories:
       e18s01:
         title: Support Matrix and Packaged CLI Smoke
@@ -881,13 +881,16 @@ epics:
         verification_evidence: specs/verifications/e18s04-verify.yaml
       e18s05:
         title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
-        status: planned
+        status: done
+        started_at: "2026-09-19T11:55:00Z"
+        completed_at: "2026-09-19T12:07:00Z"
         planning_status: ready
         bcps: 3
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e18s05-verify.yaml
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-18T21:49:13Z"

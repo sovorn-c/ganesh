@@ -6,6 +6,7 @@ import { runAcceptanceEvidence } from "./acceptance-evidence.js";
 import { runAdversarialQualification } from "./adversarial-suite.js";
 import { validateCompetencyInventory } from "./competency-inventory.js";
 import { evaluateHumanProtocol } from "./human-evaluation.js";
+import { validatePackagingEvidence } from "../distribution/packaging-evidence.js";
 import type {
   OutcomeEvidenceItem,
   OutcomeEvidenceCatalog,
@@ -154,14 +155,40 @@ export function runReleaseQualification(
     const existing = rawOutcomeMap.get(id);
     const meta = DEFAULT_OUTCOME_METADATA[id] ?? { epicId: `e${id.slice(1).toLowerCase()}`, title: `Scope outcome ${id}` };
     if (id === "R18") {
-      // Guarantee R18 is never invented as passed; keep R18 blocked as expected
-      outcomes.push({
-        id: "R18",
-        epicId: existing?.epicId ?? meta.epicId,
-        title: existing?.title ?? meta.title,
-        status: "blocked",
-        verificationPointer: existing?.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
-      });
+      const packagingEvidence = validatePackagingEvidence(projectRoot);
+      const catalogClaimsPassed = existing?.status === "passed";
+
+      if (catalogClaimsPassed) {
+        if (packagingEvidence.status === "pass") {
+          outcomes.push({
+            id: "R18",
+            epicId: existing?.epicId ?? meta.epicId,
+            title: existing?.title ?? meta.title,
+            status: "passed",
+            verificationPointer: existing?.verificationPointer ?? "specs/verifications/e18-verify.yaml"
+          });
+        } else {
+          // Reject invented evidence: catalog claims passed but packaging evidence is missing or invalid
+          outcomes.push({
+            id: "R18",
+            epicId: existing?.epicId ?? meta.epicId,
+            title: existing?.title ?? meta.title,
+            status: "blocked",
+            verificationPointer: existing?.verificationPointer ?? "invented evidence: packaging evidence missing or invalid"
+          });
+          reasons.push(
+            `Invented evidence: R18 is marked passed in catalog but packaging evidence is invalid: ${packagingEvidence.reasons?.join("; ") ?? "missing packaging artifacts"}`
+          );
+        }
+      } else {
+        outcomes.push({
+          id: "R18",
+          epicId: existing?.epicId ?? meta.epicId,
+          title: existing?.title ?? meta.title,
+          status: existing?.status ?? "blocked",
+          verificationPointer: existing?.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
+        });
+      }
     } else if (existing) {
       outcomes.push(existing);
       if (existing.status !== "passed") {

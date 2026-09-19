@@ -186,3 +186,4 @@ export * from "./distribution/license-inventory.js";
 export * from "./distribution/signing-applicability.js";
 export * from "./distribution/lifecycle.js";
 export * from "./distribution/guide-inventory.js";
+export * from "./distribution/release-procedure.js";

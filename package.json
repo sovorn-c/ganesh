@@ -20,7 +20,8 @@
     "preflight": "npm run build && node dist/src/preflight-cli.js",
     "diagnostics": "npm run build && node dist/src/diagnostics-cli.js",
     "qualify": "npm run build && node dist/src/qualify-cli.js",
-    "pack": "npm run build && node -e \"import('./dist/src/distribution/package-artifact.js').then(m => m.buildPackageArtifact(process.cwd()))\""
+    "pack": "npm run build && node -e \"import('./dist/src/distribution/package-artifact.js').then(m => m.buildPackageArtifact(process.cwd()))\"",
+    "release-procedure": "npm run build && node dist/src/release-cli.js"
   },
   "files": [
     "dist/src/**",

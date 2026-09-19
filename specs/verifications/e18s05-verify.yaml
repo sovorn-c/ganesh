@@ -1,0 +1,34 @@
+story_id: e18s05
+verified_at: "2026-09-19T12:07:00Z"
+verifier: bp-build
+branch: feat/e18-macos-distribution
+working_tree: active
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+phases:
+  task_verifications:
+    passed: true
+    evidence: "e18s05-t01 through e18s05-t04 passed; local release procedure composes qualify and packaging evidence with publication not-authorized by default; explicit authorization flag sets authorized-local without publishing, pushing, tagging, or claiming hosted-ci or production-ready; R18 passes only with valid packaging evidence and rejects invented catalog-passed rows; B06 qualified human coverage remains a hard shipment blocker; qualify, preflight, and Node.js 24 checks pass cleanly."
+  tests:
+    passed: true
+    command: npm test
+    evidence: "release-procedure.test.ts pass; total 543 tests passing across 52 test suites."
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+  qualify:
+    passed: true
+    command: npm run qualify
+    evidence: "Local Qualification: PASS; Shipment: BLOCKED (B06 unaddressed, shipment blocker preserved)."
+gaps:
+  closed: true

@@ -1,7 +1,7 @@
 story_id: e18s05
 spec: e18s05-explicit-authorization-semver-and-r18-gate.md
 title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: e18s05-t01
@@ -10,7 +10,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s05-P0-01]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, release-procedure, Security Review]
@@ -20,7 +20,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s05-P0-02]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, authorization, Security Review]
@@ -30,7 +30,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s05-P0-03, SC-e18s05-P1-04]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [qualification, honesty, Security Review]
@@ -40,7 +40,7 @@ tasks:
     risk: P1
     security: medium
     scenarios: [SC-e18s05-P0-01]
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [compatibility, regression]

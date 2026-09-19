@@ -2,13 +2,12 @@
 workflow_mode: solo-git
 active_flow: build_epic
 active_epic: e18
-active_story: e18s05
+active_story: null
 handoff:
-  next_skill: bp-build
-  next_command: "/bp-build"
-  summary: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
-    is owner-approved. e18s01, e18s02, e18s03, and e18s04 built and verified. Advancing develop-tdd on e18s05.
-  last_step_completed: e18s04 built and verified
+  next_skill: bp-review
+  next_command: "/bp-review"
+  summary: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf built and verified across all 5 stories (e18s01–e18s05). Ready for epic review.
+  last_step_completed: e18s05 built and verified; all E18 stories complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
@@ -73,6 +72,7 @@ discovery:
   e17_review: complete_local_release
   e17_release: complete_local_release
   e18_plan: approved_exact_revision
+  e18_build: complete
   environment:
     status: verified_node24_target
     runtime:

@@ -1,4 +1,5 @@
 // story: e18s01
+import type { ReleaseQualificationOptions, ReleaseQualificationReport } from "../qualification/qualification-types.js";
 
 export type PlatformOS = "darwin" | "linux" | "win32" | string;
 export type PlatformArch = "x64" | "arm64" | "ia32" | string;
@@ -175,5 +176,44 @@ export interface GuideInventoryReport {
   runbookIds: string[];
   limitationsValid: boolean;
   secretsOmitted: boolean;
+  reasons?: string[];
+}
+
+// story: e18s05
+
+export interface PackagingEvidenceReport {
+  status: "pass" | "fail";
+  supportMatrixValid: boolean;
+  packageManifestValid: boolean;
+  licenseInventoryValid: boolean;
+  signingApplicabilityValid: boolean;
+  guideInventoryValid: boolean;
+  lifecyclePreserved: boolean;
+  reasons?: string[];
+}
+
+export interface SemVerProposal {
+  currentVersion: string;
+  proposedVersion: string;
+  bumpType: "major" | "minor" | "patch" | "none";
+  commitsAnalyzed: number;
+  breakingCount: number;
+  featCount: number;
+  fixCount: number;
+}
+
+export interface ReleaseProcedureOptions {
+  authorizePublication?: boolean;
+  qualifyOptions?: ReleaseQualificationOptions;
+}
+
+export interface ReleaseProcedureReport {
+  status: "pass" | "fail";
+  publication: "not-authorized" | "authorized-local";
+  qualify: ReleaseQualificationReport;
+  packagingEvidence: PackagingEvidenceReport;
+  semverProposal: SemVerProposal;
+  hostedCi: false;
+  productionReady: false;
   reasons?: string[];
 }
