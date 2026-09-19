@@ -149,3 +149,31 @@ export interface ProductLifecycleReport {
   reopened?: boolean;
   reasons?: string[];
 }
+
+// story: e18s04
+
+export interface GuideItem {
+  id: string;
+  path: string;
+  title: string;
+}
+
+export interface GuideInventory {
+  version: string;
+  guides: GuideItem[];
+}
+
+export interface GuideInventoryOptions {
+  packedFiles?: string[];
+  inventoryPath?: string;
+}
+
+export interface GuideInventoryReport {
+  status: "pass" | "fail";
+  guidesChecked: number;
+  missingGuides: string[];
+  runbookIds: string[];
+  limitationsValid: boolean;
+  secretsOmitted: boolean;
+  reasons?: string[];
+}

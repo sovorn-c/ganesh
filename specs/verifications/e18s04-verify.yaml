@@ -1,0 +1,27 @@
+story_id: e18s04
+verified_at: "2026-09-19T11:54:00Z"
+verifier: bp-build
+branch: feat/e18-macos-distribution
+working_tree: active
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+phases:
+  task_verifications:
+    passed: true
+    evidence: "e18s04-t01 through e18s04-t04 passed; guide inventory requires user, developer, accessibility, privacy, local-execution, examples, limitations, release-notes and support, fails closed on missing packed guides, lists all 7 E16 runbooks without rewriting them, verifies limitations refuse production-ready and sandbox claims, and confirms all shipped guides omit secrets and participant PII."
+  tests:
+    passed: true
+    command: npm test
+    evidence: "guide-inventory.test.ts pass; total 539 tests passing."
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+gaps:
+  closed: true

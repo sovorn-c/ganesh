@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "guides": [
+    {
+      "id": "user",
+      "path": "docs/guides/user.md",
+      "title": "User Guide"
+    },
+    {
+      "id": "developer",
+      "path": "docs/guides/developer.md",
+      "title": "Developer Guide"
+    },
+    {
+      "id": "accessibility",
+      "path": "docs/guides/accessibility.md",
+      "title": "Accessibility Guide"
+    },
+    {
+      "id": "privacy",
+      "path": "docs/guides/privacy.md",
+      "title": "Privacy and Data Governance Guide"
+    },
+    {
+      "id": "local-execution",
+      "path": "docs/guides/local-execution.md",
+      "title": "Local Execution Guide"
+    },
+    {
+      "id": "examples",
+      "path": "docs/guides/examples.md",
+      "title": "Examples and Walkthroughs"
+    },
+    {
+      "id": "limitations",
+      "path": "docs/guides/limitations.md",
+      "title": "System Limitations and Disclosures"
+    },
+    {
+      "id": "release-notes",
+      "path": "docs/RELEASE_NOTES.md",
+      "title": "Release Notes"
+    },
+    {
+      "id": "support",
+      "path": "docs/guides/support.md",
+      "title": "Support Procedures and Operational Runbooks"
+    }
+  ]
+}

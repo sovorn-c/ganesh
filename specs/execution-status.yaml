@@ -20,7 +20,7 @@ development_status:
   e18: in_progress
 planning_level: e18_plan_approved
 active_epic: e18
-active_story: e18s04
+active_story: e18s05
 note: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf is owner-approved. Five stories totaling 21 BCP remain planned with failing task ledgers. /bp-build was not started. B06 qualified-human evidence remains a shipment blocker even after R18 packaging evidence exists; remote CI, publishing, deployment, and production readiness remain unclaimed.
 epics:
   e01:
@@ -869,13 +869,16 @@ epics:
         verification_evidence: specs/verifications/e18s03-verify.yaml
       e18s04:
         title: Shipped Guides, Examples, Limitations, Release Notes and Support
-        status: planned
+        status: done
+        started_at: "2026-09-19T11:47:30Z"
+        completed_at: "2026-09-19T11:54:00Z"
         planning_status: ready
         bcps: 3
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e18s04-verify.yaml
       e18s05:
         title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
         status: planned
