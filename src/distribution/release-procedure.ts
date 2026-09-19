@@ -34,7 +34,7 @@ export function proposeSemverBump(root: string = process.cwd()): SemVerProposal 
 
     const gitArgs = lastTag
       ? ["log", `${lastTag}..HEAD`, "--pretty=format:%B%x00"]
-      : ["log", "-n", "100", "--pretty=format:%B%x00"];
+      : ["log", "--pretty=format:%B%x00"];
 
     const logRes = spawnSync("git", gitArgs, { cwd: projectRoot, encoding: "utf8" });
     if (logRes.status === 0) {

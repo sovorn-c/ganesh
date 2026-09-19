@@ -57,3 +57,43 @@ test("e18s02 SC-e18s02-P1-04 validateSigningApplicability fails closed on missin
     temp.cleanup();
   }
 });
+
+test("e18s02 SC-e18s02-P0-03 validateSigningApplicability fails closed on non-npm channel or invalid npmProvenance", () => {
+  const temp = createTempPrefix("signing-channel-");
+  try {
+    const fakeSigning = {
+      channel: "not-npm", // Arbitrary channel!
+      artifactDigest: "sha256",
+      lockfileIntegrity: true,
+      appleCodesign: "not-applicable",
+      npmProvenance: "not-applicable-until-authorized-registry-publication"
+    };
+    const signingPath = path.join(temp.dir, "signing.json");
+    fs.writeFileSync(signingPath, JSON.stringify(fakeSigning, null, 2), "utf8");
+
+    const report = validateSigningApplicability(temp.dir, { filePath: signingPath });
+    assert.equal(report.status, "fail");
+    assert.ok(
+      report.reasons && report.reasons.some((r: string) => r.includes("Channel must be \"npm-pack-tarball\"")),
+      "must reject arbitrary channel"
+    );
+
+    // Also test invalid npmProvenance
+    const fakeSigning2 = {
+      channel: "npm-pack-tarball",
+      artifactDigest: "sha256",
+      lockfileIntegrity: true,
+      appleCodesign: "not-applicable",
+      npmProvenance: "published-active" // Invalid claim!
+    };
+    fs.writeFileSync(signingPath, JSON.stringify(fakeSigning2, null, 2), "utf8");
+    const report2 = validateSigningApplicability(temp.dir, { filePath: signingPath });
+    assert.equal(report2.status, "fail");
+    assert.ok(
+      report2.reasons && report2.reasons.some((r: string) => r.includes("npmProvenance")),
+      "must reject published-active npmProvenance"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});

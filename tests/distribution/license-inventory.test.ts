@@ -80,3 +80,89 @@ test("e18s02 SC-e18s02-P0-02 validateLicenseInventory fails closed when direct d
     temp.cleanup();
   }
 });
+
+test("e18s02 SC-e18s02-P0-02 validateLicenseInventory fails closed on missing version, license, or notice", () => {
+  const temp = createTempPrefix("license-fields-");
+  try {
+    const fakePkg = {
+      name: "ganesh",
+      version: "0.1.0",
+      license: "UNLICENSED",
+      dependencies: {
+        "csv-parse": "7.0.2"
+      }
+    };
+    const fakeInventory = {
+      version: "0.1.0",
+      productLicense: "UNLICENSED",
+      dependencies: [
+        {
+          name: "csv-parse",
+          version: "", // Missing version!
+          license: "MIT",
+          noticePointer: "NOTICE"
+        }
+      ]
+    };
+    const pkgPath = path.join(temp.dir, "package.json");
+    const invPath = path.join(temp.dir, "inventory.json");
+    fs.writeFileSync(pkgPath, JSON.stringify(fakePkg, null, 2), "utf8");
+    fs.writeFileSync(invPath, JSON.stringify(fakeInventory, null, 2), "utf8");
+    fs.writeFileSync(path.join(temp.dir, "NOTICE"), "notice content", "utf8");
+
+    const report = validateLicenseInventory(temp.dir, {
+      packageJsonPath: pkgPath,
+      inventoryPath: invPath
+    });
+    assert.equal(report.status, "fail");
+    assert.ok(
+      report.reasons && report.reasons.some((r: string) => r.includes("version")),
+      "must fail closed when version is empty"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});
+
+test("e18s02 SC-e18s02-P0-02 validateLicenseInventory fails closed when productLicense mismatches package.json", () => {
+  const temp = createTempPrefix("license-mismatch-");
+  try {
+    const fakePkg = {
+      name: "ganesh",
+      version: "0.1.0",
+      license: "UNLICENSED",
+      dependencies: {
+        "csv-parse": "7.0.2"
+      }
+    };
+    const fakeInventory = {
+      version: "0.1.0",
+      productLicense: "Proprietary", // Mismatches UNLICENSED
+      dependencies: [
+        {
+          name: "csv-parse",
+          version: "7.0.2",
+          license: "MIT",
+          noticePointer: "NOTICE"
+        }
+      ]
+    };
+    const pkgPath = path.join(temp.dir, "package.json");
+    const invPath = path.join(temp.dir, "inventory.json");
+    fs.writeFileSync(pkgPath, JSON.stringify(fakePkg, null, 2), "utf8");
+    fs.writeFileSync(invPath, JSON.stringify(fakeInventory, null, 2), "utf8");
+    fs.writeFileSync(path.join(temp.dir, "NOTICE"), "notice content", "utf8");
+
+    const report = validateLicenseInventory(temp.dir, {
+      packageJsonPath: pkgPath,
+      inventoryPath: invPath
+    });
+    assert.equal(report.status, "fail");
+    assert.ok(
+      report.reasons && report.reasons.some((r: string) => r.includes("mismatch") || r.includes("Proprietary")),
+      "must fail closed when productLicense mismatches"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});

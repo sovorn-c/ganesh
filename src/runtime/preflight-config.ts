@@ -60,10 +60,33 @@ function asOptionalString(value: unknown): string | undefined {
 
 export function readPackageJson(projectRoot: string): Record<string, unknown> | null {
   try {
-    const value: unknown = JSON.parse(readFileSync(join(projectRoot, "package.json"), "utf8"));
-    return value !== null && typeof value === "object" && !Array.isArray(value)
-      ? value as Record<string, unknown>
-      : null;
+    const pkgPath = join(projectRoot, "package.json");
+    if (existsSync(pkgPath)) {
+      const value: unknown = JSON.parse(readFileSync(pkgPath, "utf8"));
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        const record = value as Record<string, unknown>;
+        if (!record.packageManager) {
+          const installedPkg = join(projectRoot, "node_modules", "ganesh", "package.json");
+          if (existsSync(installedPkg)) {
+            try {
+              const installed = JSON.parse(readFileSync(installedPkg, "utf8")) as Record<string, unknown>;
+              if (installed?.packageManager) {
+                record.packageManager = installed.packageManager;
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+        return record;
+      }
+    }
+    const installedPkg = join(projectRoot, "node_modules", "ganesh", "package.json");
+    if (existsSync(installedPkg)) {
+      const installed = JSON.parse(readFileSync(installedPkg, "utf8")) as Record<string, unknown>;
+      return installed;
+    }
+    return null;
   } catch {
     return null;
   }

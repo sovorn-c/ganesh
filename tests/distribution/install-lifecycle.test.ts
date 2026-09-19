@@ -257,3 +257,93 @@ test("e18s03 rejects unsafe lifecycle prefix", async () => {
     /isolated prefix/i
   );
 });
+
+test("e18s03 rejects lifecycle prefix symlinked to /usr (CWE-59)", async () => {
+  const tempPrefix = createTempPrefix("lifecycle-symlink-");
+  try {
+    const symlinkPath = path.join(tempPrefix.dir, "symlink-usr");
+    try {
+      fs.symlinkSync("/usr", symlinkPath);
+    } catch {
+      return;
+    }
+    await assert.rejects(
+      async () => {
+        await runProductLifecycle({
+          action: "upgrade",
+          prefix: symlinkPath,
+          projectFolder: "/tmp"
+        });
+      },
+      /isolated prefix|rejected (unsafe|system) prefix/i
+    );
+  } finally {
+    tempPrefix.cleanup();
+  }
+});
+
+test("e18s03 upgrade fails when tarballPath is missing or nonexistent", async () => {
+  const tempPrefix = createTempPrefix("lifecycle-missing-tarball-");
+  const fix = portabilityFixture("owner-upgrade-fail-test");
+  try {
+    fix.handle.close();
+    const report = await runProductLifecycle({
+      action: "upgrade",
+      prefix: tempPrefix.dir,
+      projectFolder: fix.root
+      // No tarballPath supplied!
+    });
+    assert.equal(report.status, "fail");
+    assert.ok(
+      report.reasons?.some((r) => r.includes("tarballPath")),
+      "must record missing tarballPath failure"
+    );
+  } finally {
+    tempPrefix.cleanup();
+    try {
+      fs.rmSync(fix.root, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});
+
+test("e18s03 rollback fails when backupPath or ownerCapability is missing", async () => {
+  const tempPrefix = createTempPrefix("lifecycle-rollback-fail-test-");
+  const fix = portabilityFixture("owner-rollback-fail-test");
+  try {
+    fix.handle.close();
+    // Case 1: no backupPath
+    const reportNoBackup = await runProductLifecycle({
+      action: "rollback-check",
+      prefix: tempPrefix.dir,
+      projectFolder: fix.root,
+      ownerCapability: fix.ownerCap
+    });
+    assert.equal(reportNoBackup.status, "fail");
+    assert.ok(
+      reportNoBackup.reasons?.some((r) => r.includes("backupPath")),
+      "must record missing backupPath failure"
+    );
+
+    // Case 2: no ownerCapability
+    const reportNoCap = await runProductLifecycle({
+      action: "rollback-check",
+      prefix: tempPrefix.dir,
+      projectFolder: fix.root,
+      backupPath: "/tmp/nonexistent-backup.json"
+    });
+    assert.equal(reportNoCap.status, "fail");
+    assert.ok(
+      reportNoCap.reasons?.some((r) => r.includes("ownerCapability") || r.includes("backupPath")),
+      "must record missing ownerCapability failure"
+    );
+  } finally {
+    tempPrefix.cleanup();
+    try {
+      fs.rmSync(fix.root, { recursive: true, force: true });
+    } catch {
+      // ignore
+    }
+  }
+});

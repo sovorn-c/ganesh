@@ -51,12 +51,42 @@ export function validateLicenseInventory(
   }
 
   const inventory = JSON.parse(fs.readFileSync(inventoryPath, "utf8")) as LicenseInventory;
+
+  // Validate product license consistency between inventory and package.json
+  const expectedProductLicense = rawLicense && rawLicense.length > 0 ? rawLicense : "UNLICENSED";
+  if (inventory.productLicense && inventory.productLicense !== expectedProductLicense) {
+    reasons.push(
+      `Product license mismatch: inventory declares "${inventory.productLicense}", but package.json declares "${expectedProductLicense}"`
+    );
+  }
+  if (inventory.productLicense && !AUTHORIZED_PRODUCT_LICENSES.has(inventory.productLicense)) {
+    reasons.push(
+      `Invented inventory product license: "${inventory.productLicense}" is not authorized`
+    );
+  }
+
   const directDeps = Object.keys(pkg.dependencies ?? {});
   const inventoriedMap = new Map(inventory.dependencies?.map((d) => [d.name, d]) ?? []);
 
   for (const dep of directDeps) {
-    if (!inventoriedMap.has(dep)) {
+    const item = inventoriedMap.get(dep);
+    if (!item) {
       reasons.push(`Direct dependency "${dep}" is missing from license inventory`);
+      continue;
+    }
+    if (!item.version || item.version.trim().length === 0) {
+      reasons.push(`Direct dependency "${dep}" is missing version in license inventory`);
+    }
+    if (!item.license || item.license.trim().length === 0) {
+      reasons.push(`Direct dependency "${dep}" is missing license in license inventory`);
+    }
+    if (!item.noticePointer || item.noticePointer.trim().length === 0) {
+      reasons.push(`Direct dependency "${dep}" is missing notice in license inventory`);
+    } else {
+      const noticeFile = path.resolve(projectRoot, item.noticePointer);
+      if (!fs.existsSync(noticeFile)) {
+        reasons.push(`Notice pointer for "${dep}" not found: ${item.noticePointer}`);
+      }
     }
   }
 

@@ -68,3 +68,26 @@ test("e18s02 SC-e18s02-P1-04 empty or mismatched digest fails closed", () => {
     temp.cleanup();
   }
 });
+
+test("e18s02 SC-e18s02-P0-01 consecutive packs produce identical digest (package-manifest excluded from pack)", async () => {
+  const temp1 = createTempPrefix("artifact-repro-1-");
+  const temp2 = createTempPrefix("artifact-repro-2-");
+  try {
+    const report1 = await buildPackageArtifact(process.cwd(), {
+      destination: temp1.dir,
+      writeManifest: true
+    });
+    assert.equal(report1.status, "pass");
+
+    const report2 = await buildPackageArtifact(process.cwd(), {
+      destination: temp2.dir,
+      writeManifest: true
+    });
+    assert.equal(report2.status, "pass");
+
+    assert.equal(report1.digest, report2.digest, "consecutive pack digests must match");
+  } finally {
+    temp1.cleanup();
+    temp2.cleanup();
+  }
+});

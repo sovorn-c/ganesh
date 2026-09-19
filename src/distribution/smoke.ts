@@ -6,17 +6,53 @@ import { spawnSync } from "node:child_process";
 import { loadSupportMatrix } from "./support-matrix.js";
 import type { PackagedSmokeOptions, PackagedSmokeReport } from "./types.js";
 
-const BANNED_PREFIXES = new Set(["/", "/usr", "/usr/local", "/etc", "/var", os.homedir()]);
+const BANNED_PREFIXES = new Set(["/", "/usr", "/usr/local", "/etc", "/var", "/bin", "/sbin", "/opt", "/sys", "/proc", "/dev", "/root", os.homedir()]);
+const SYSTEM_PREFIX_ROOTS = ["/usr", "/etc", "/var", "/bin", "/sbin", "/opt", "/sys", "/proc", "/dev", "/root"];
+
+export function validateIsolatedPrefix(prefix: string, caller: string = "runPackagedSmoke"): string {
+  if (!prefix || prefix.trim().length === 0) {
+    throw new Error(`${caller} requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
+  }
+  const resolved = path.resolve(prefix);
+  if (BANNED_PREFIXES.has(resolved) || resolved === "/" || resolved === os.homedir()) {
+    throw new Error(`${caller} requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
+  }
+
+  let canonical = resolved;
+  try {
+    canonical = fs.realpathSync(resolved);
+  } catch {
+    let curr = resolved;
+    while (!fs.existsSync(curr) && curr !== path.dirname(curr)) {
+      curr = path.dirname(curr);
+    }
+    try {
+      const parentCanonical = fs.realpathSync(curr);
+      canonical = path.join(parentCanonical, path.relative(curr, resolved));
+    } catch {
+      canonical = resolved;
+    }
+  }
+
+  for (const check of [resolved, canonical]) {
+    if (BANNED_PREFIXES.has(check) || check === "/" || check === os.homedir()) {
+      throw new Error(`${caller} requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
+    }
+    for (const sysRoot of SYSTEM_PREFIX_ROOTS) {
+      if (check === sysRoot || check.startsWith(`${sysRoot}/`)) {
+        throw new Error(`${caller} requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
+      }
+    }
+  }
+
+  return canonical;
+}
 
 export async function runPackagedSmoke(
   options: PackagedSmokeOptions
 ): Promise<PackagedSmokeReport> {
   const root = path.resolve(options.root ?? process.cwd());
-  const prefix = path.resolve(options.prefix);
-
-  if (!prefix || prefix.trim().length === 0 || BANNED_PREFIXES.has(prefix)) {
-    throw new Error(`runPackagedSmoke requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
-  }
+  const prefix = validateIsolatedPrefix(options.prefix, "runPackagedSmoke");
 
   if (!fs.existsSync(prefix)) {
     fs.mkdirSync(prefix, { recursive: true });
@@ -32,7 +68,7 @@ export async function runPackagedSmoke(
 
   const reasons: string[] = [];
 
-  // 1. Verify support matrix catalog declares this host as verified
+  // 1. Verify support matrix catalog declares this host as verified with valid evidence
   let matrixRowVerified = false;
   try {
     const matrix = loadSupportMatrix(root);
@@ -43,7 +79,20 @@ export async function runPackagedSmoke(
         c.nodeMajor === 24
     );
     if (hostRow && hostRow.status === "verified") {
-      matrixRowVerified = true;
+      if (!hostRow.evidencePointer || hostRow.evidencePointer.trim().length === 0) {
+        reasons.push(
+          `Host combination ${process.platform}-${process.arch}-node24 is marked verified but has no evidencePointer`
+        );
+      } else {
+        const evidenceFile = path.resolve(root, hostRow.evidencePointer);
+        if (!fs.existsSync(evidenceFile)) {
+          reasons.push(
+            `Host combination ${process.platform}-${process.arch}-node24 evidence pointer not found: ${hostRow.evidencePointer}`
+          );
+        } else {
+          matrixRowVerified = true;
+        }
+      }
     } else {
       reasons.push(
         `Host combination ${process.platform}-${process.arch}-node24 is not marked verified in support matrix`
@@ -141,7 +190,7 @@ export async function runPackagedSmoke(
     "preflight-cli.js"
   );
   const preflightResult = spawnSync(process.execPath, [preflightCliPath, "--json"], {
-    cwd: root,
+    cwd: prefix,
     encoding: "utf8"
   });
 

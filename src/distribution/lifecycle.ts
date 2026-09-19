@@ -12,14 +12,10 @@ import type {
   ProductLifecycleReport
 } from "./types.js";
 
-const BANNED_PREFIXES = new Set(["/", "/usr", "/usr/local", "/etc", "/var", os.homedir()]);
+import { validateIsolatedPrefix } from "./smoke.js";
 
 export function validateLifecyclePrefix(prefix: string): string {
-  const resolved = path.resolve(prefix);
-  if (!resolved || resolved.trim().length === 0 || BANNED_PREFIXES.has(resolved)) {
-    throw new Error(`runProductLifecycle requires an isolated prefix directory; rejected unsafe prefix: ${prefix}`);
-  }
-  return resolved;
+  return validateIsolatedPrefix(prefix, "runProductLifecycle");
 }
 
 export async function runProductLifecycle(
@@ -41,21 +37,29 @@ export async function runProductLifecycle(
       };
     }
 
-    if (options.tarballPath) {
-      const installResult = spawnSync(
-        "npm",
-        ["install", options.tarballPath, "--prefix", resolvedPrefix, "--no-audit", "--no-fund"],
-        { cwd: resolvedPrefix, encoding: "utf8" }
-      );
-      if (installResult.status !== 0) {
-        return {
-          status: "fail",
-          action: "upgrade",
-          prefix: resolvedPrefix,
-          projectFolder,
-          reasons: [`npm install into prefix failed: ${installResult.stderr}`]
-        };
-      }
+    if (!options.tarballPath || !fs.existsSync(options.tarballPath)) {
+      return {
+        status: "fail",
+        action: "upgrade",
+        prefix: resolvedPrefix,
+        projectFolder,
+        reasons: [`Upgrade requires an existing tarballPath; got: ${options.tarballPath ?? "undefined"}`]
+      };
+    }
+
+    const installResult = spawnSync(
+      "npm",
+      ["install", options.tarballPath, "--prefix", resolvedPrefix, "--no-audit", "--no-fund"],
+      { cwd: resolvedPrefix, encoding: "utf8" }
+    );
+    if (installResult.status !== 0) {
+      return {
+        status: "fail",
+        action: "upgrade",
+        prefix: resolvedPrefix,
+        projectFolder,
+        reasons: [`npm install into prefix failed: ${installResult.stderr}`]
+      };
     }
 
     let artifactHashMatches = true;
@@ -183,19 +187,31 @@ export async function runProductLifecycle(
   if (options.action === "rollback-check") {
     const reasons: string[] = [];
 
+    if (!options.backupPath || !fs.existsSync(options.backupPath)) {
+      reasons.push(`Rollback requires an existing backupPath; got: ${options.backupPath ?? "undefined"}`);
+    }
+
+    if (!options.ownerCapability) {
+      reasons.push("Rollback requires ownerCapability to execute E15 restore");
+    }
+
     if (options.previousTarballPath) {
-      const installResult = spawnSync(
-        "npm",
-        ["install", options.previousTarballPath, "--prefix", resolvedPrefix, "--no-audit", "--no-fund"],
-        { cwd: resolvedPrefix, encoding: "utf8" }
-      );
-      if (installResult.status !== 0) {
-        reasons.push(`npm install previous tarball failed: ${installResult.stderr}`);
+      if (!fs.existsSync(options.previousTarballPath)) {
+        reasons.push(`previousTarballPath does not exist: ${options.previousTarballPath}`);
+      } else {
+        const installResult = spawnSync(
+          "npm",
+          ["install", options.previousTarballPath, "--prefix", resolvedPrefix, "--no-audit", "--no-fund"],
+          { cwd: resolvedPrefix, encoding: "utf8" }
+        );
+        if (installResult.status !== 0) {
+          reasons.push(`npm install previous tarball failed: ${installResult.stderr}`);
+        }
       }
     }
 
     let restored = false;
-    if (options.backupPath && options.ownerCapability) {
+    if (options.backupPath && options.ownerCapability && fs.existsSync(options.backupPath)) {
       try {
         const restoreRes = restoreProject(options.ownerCapability, {
           commandId: options.commandId ?? `rollback-restore-${Date.now()}`,
@@ -205,11 +221,12 @@ export async function runProductLifecycle(
           payloadHash: ""
         });
         restored = restoreRes.valid;
+        if (!restored) {
+          reasons.push(`E15 restore failed: ${restoreRes.detail || "restore rejected"}`);
+        }
       } catch (err) {
         reasons.push(`E15 restore failed: ${(err as Error).message}`);
       }
-    } else {
-      restored = true;
     }
 
     let reopened = false;

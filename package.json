@@ -28,7 +28,8 @@
     "docs/**",
     "README.md",
     "NOTICE",
-    "specs/distribution/**"
+    "specs/distribution/**",
+    "!specs/distribution/package-manifest.json"
   ],
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",

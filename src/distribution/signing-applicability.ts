@@ -30,10 +30,15 @@ export function validateSigningApplicability(
 
   const reasons: string[] = [];
 
-  const channel = data.channel ?? "npm-pack-tarball";
+  const channel = data.channel ?? "";
   const artifactDigest = data.artifactDigest ?? "";
   const lockfileIntegrity = data.lockfileIntegrity === true;
   const appleCodesign = data.appleCodesign ?? "";
+  const npmProvenance = data.npmProvenance ?? "";
+
+  if (channel !== "npm-pack-tarball") {
+    reasons.push(`Channel must be "npm-pack-tarball", got "${channel}"`);
+  }
 
   if (!artifactDigest || artifactDigest.toLowerCase() !== "sha256") {
     reasons.push(`Artifact digest algorithm must be sha256, got "${artifactDigest}"`);
@@ -49,6 +54,12 @@ export function validateSigningApplicability(
     );
   }
 
+  if (!npmProvenance || !npmProvenance.startsWith("not-applicable")) {
+    reasons.push(
+      `npmProvenance must indicate not-applicable before authorized registry publication, got "${npmProvenance}"`
+    );
+  }
+
   const passed = reasons.length === 0;
 
   return {
@@ -57,6 +68,7 @@ export function validateSigningApplicability(
     artifactDigest,
     lockfileIntegrity,
     appleCodesign,
+    npmProvenance,
     reasons: passed ? undefined : reasons
   };
 }

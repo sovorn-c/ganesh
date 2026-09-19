@@ -133,6 +133,7 @@ test("e18s05 SC-e18s05-P1-04 valid packaging-evidence allows R18 passed but miss
 
     // Copy valid packaging evidence into temp project
     fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
     fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
     fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
     fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
@@ -165,4 +166,88 @@ test("e18s05 SC-e18s05-P1-04 valid packaging-evidence allows R18 passed but miss
   } finally {
     cleanup();
   }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed on incomplete files whitelist or missing package-manifest.json", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Case 1: files whitelist only ["README.md"]
+    fs.writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify({ name: "ganesh", version: "0.1.0", files: ["README.md"] }, null, 2),
+      "utf8"
+    );
+    const report1 = validatePackagingEvidence(dir);
+    assert.equal(report1.status, "fail");
+    assert.equal(report1.packageManifestValid, false);
+    assert.ok(report1.reasons?.some((r) => r.includes("files whitelist missing")));
+
+    // Case 2: valid package.json but package-manifest.json deleted
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.rmSync(path.join(dir, "specs", "distribution", "package-manifest.json"));
+    const report2 = validatePackagingEvidence(dir);
+    assert.equal(report2.status, "fail");
+    assert.equal(report2.packageManifestValid, false);
+    assert.ok(report2.reasons?.some((r) => r.includes("package-manifest.json not found")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when e18s03-verify.yaml is empty or invalid", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Overwrite e18s03-verify.yaml with empty string
+    fs.writeFileSync(path.join(dir, "specs", "verifications", "e18s03-verify.yaml"), "", "utf8");
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.lifecyclePreserved, false);
+    assert.ok(report.reasons?.some((r) => r.includes("e18s03 verification evidence is empty")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when existing tarball digest mismatches manifest", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Write a corrupted tarball at the manifest's tarball path
+    fs.writeFileSync(path.join(dir, "ganesh-0.1.0.tgz"), "corrupted tarball content", "utf8");
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.packageManifestValid, false);
+    assert.ok(report.reasons?.some((r) => r.includes("Tarball digest mismatch")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-01 proposeSemverBump analyzes full history without -n 100 truncation when untagged", () => {
+  const proposal = proposeSemverBump(process.cwd());
+  assert.equal(proposal.currentVersion, "0.1.0");
+  assert.ok(proposal.commitsAnalyzed > 100, `expected full untagged commit history > 100 commits, got ${proposal.commitsAnalyzed}`);
+  assert.equal(proposal.bumpType, "minor");
+  assert.equal(proposal.proposedVersion, "0.2.0");
 });

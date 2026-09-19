@@ -117,6 +117,7 @@ export interface SigningApplicabilityReport {
   artifactDigest: string;
   lockfileIntegrity: boolean;
   appleCodesign: string;
+  npmProvenance?: string;
   reasons?: string[];
 }
 
