@@ -200,3 +200,13 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Verification evidence:** Full compiled tests passed 515/515, qualification function coverage passed at 97.73% against the 95% gate, and build, typecheck, lint, preflight, blueprint, traceability, blind-spot, and completeness checks passed. Blind spots reported 0 HIGH findings; completeness critic reported `BLOCKER=0`.
 - **Process limitations:** `scripts/land-branch.sh` and remote CI helpers are absent. This is a local-only security gate; it does not claim shipment readiness, hosted CI, production readiness, scholarly validity, publishing, or deployment.
 - **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8).
+
+## e18 security review — local release gate (2026-09-19)
+
+- **Scope:** Current `feat/e18-macos-distribution` diff at `0590a1d`, covering support-matrix and packaged-smoke evidence containment, reproducible package metadata, signing applicability, lifecycle preservation, release qualification, and verification evidence.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev --audit-level=high` reported `found 0 vulnerabilities`; no dependencies changed.
+- **Path and artifact boundaries:** Support-matrix and packaged-smoke evidence pointers use canonical `realpathSync` containment under the project root and require regular files. Package manifest tarball existence and SHA-256 digest checks pass. No changed path introduces shell execution, network access, dynamic code execution, or unsafe deserialization.
+- **Authorization and release controls:** Signing applicability requires exact approved provenance, publication remains not-authorized by default, and qualification keeps shipment blocked without B06 qualified-human evidence. Changed tests cover symlink escape, traversal, missing tarball, provenance forgery, and evidence failures.
+- **Credential and sink checks:** No credential-shaped literal was found in changed product code or shipped artifacts; the only broad scan match is documentation text naming the forbidden `token=` pattern. `npm run build`, `npm run typecheck`, `npm run lint`, `npm test` (564/564), and `git diff --check` passed.
+- **Process limitations:** This is local security evidence only. Remote CI, publishing, deployment, production readiness, and the separate `release-check` gate remain unclaimed. `scripts/verify-cwe-fixture-sync.sh` and repository-local `scripts/land-branch.sh` are absent from this checkout.
+- **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8).
