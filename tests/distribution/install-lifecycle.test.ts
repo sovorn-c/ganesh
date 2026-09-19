@@ -287,6 +287,7 @@ test("e18s03 upgrade fails when tarballPath is missing or nonexistent", async ()
   const fix = portabilityFixture("owner-upgrade-fail-test");
   try {
     fix.handle.close();
+    // Case 1: missing tarballPath
     const report = await runProductLifecycle({
       action: "upgrade",
       prefix: tempPrefix.dir,
@@ -297,6 +298,19 @@ test("e18s03 upgrade fails when tarballPath is missing or nonexistent", async ()
     assert.ok(
       report.reasons?.some((r) => r.includes("tarballPath")),
       "must record missing tarballPath failure"
+    );
+
+    // Case 2: nonexistent tarballPath
+    const reportNonexistent = await runProductLifecycle({
+      action: "upgrade",
+      prefix: tempPrefix.dir,
+      projectFolder: fix.root,
+      tarballPath: path.join(tempPrefix.dir, "nonexistent-tarball.tgz")
+    });
+    assert.equal(reportNonexistent.status, "fail");
+    assert.ok(
+      reportNonexistent.reasons?.some((r) => r.includes("tarballPath") || r.includes("nonexistent")),
+      "must record nonexistent tarballPath failure"
     );
   } finally {
     tempPrefix.cleanup();

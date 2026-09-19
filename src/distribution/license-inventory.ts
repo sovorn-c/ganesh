@@ -81,7 +81,7 @@ export function validateLicenseInventory(
       reasons.push(`Direct dependency "${dep}" is missing license in license inventory`);
     }
     if (!item.noticePointer || item.noticePointer.trim().length === 0) {
-      reasons.push(`Direct dependency "${dep}" is missing notice in license inventory`);
+      reasons.push(`Direct dependency "${dep}" is missing noticePointer in license inventory`);
     } else {
       const noticeFile = path.resolve(projectRoot, item.noticePointer);
       if (!fs.existsSync(noticeFile)) {

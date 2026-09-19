@@ -93,6 +93,22 @@ test("e18s02 SC-e18s02-P0-03 validateSigningApplicability fails closed on non-np
       report2.reasons && report2.reasons.some((r: string) => r.includes("npmProvenance")),
       "must reject published-active npmProvenance"
     );
+
+    // Test missing npmProvenance entirely
+    const fakeSigning3 = {
+      channel: "npm-pack-tarball",
+      artifactDigest: "sha256",
+      lockfileIntegrity: true,
+      appleCodesign: "not-applicable"
+      // no npmProvenance
+    };
+    fs.writeFileSync(signingPath, JSON.stringify(fakeSigning3, null, 2), "utf8");
+    const report3 = validateSigningApplicability(temp.dir, { filePath: signingPath });
+    assert.equal(report3.status, "fail");
+    assert.ok(
+      report3.reasons && report3.reasons.some((r: string) => r.includes("npmProvenance")),
+      "must reject missing npmProvenance"
+    );
   } finally {
     temp.cleanup();
   }

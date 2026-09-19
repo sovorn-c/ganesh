@@ -119,6 +119,47 @@ test("e18s02 SC-e18s02-P0-02 validateLicenseInventory fails closed on missing ve
       report.reasons && report.reasons.some((r: string) => r.includes("version")),
       "must fail closed when version is empty"
     );
+
+    // Test missing license
+    fakeInventory.dependencies[0].version = "7.0.2";
+    fakeInventory.dependencies[0].license = "";
+    fs.writeFileSync(invPath, JSON.stringify(fakeInventory, null, 2), "utf8");
+    const reportNoLic = validateLicenseInventory(temp.dir, {
+      packageJsonPath: pkgPath,
+      inventoryPath: invPath
+    });
+    assert.equal(reportNoLic.status, "fail");
+    assert.ok(
+      reportNoLic.reasons && reportNoLic.reasons.some((r: string) => r.includes("license")),
+      "must fail closed when license is empty"
+    );
+
+    // Test missing noticePointer
+    fakeInventory.dependencies[0].license = "MIT";
+    fakeInventory.dependencies[0].noticePointer = "";
+    fs.writeFileSync(invPath, JSON.stringify(fakeInventory, null, 2), "utf8");
+    const reportNoNotice = validateLicenseInventory(temp.dir, {
+      packageJsonPath: pkgPath,
+      inventoryPath: invPath
+    });
+    assert.equal(reportNoNotice.status, "fail");
+    assert.ok(
+      reportNoNotice.reasons && reportNoNotice.reasons.some((r: string) => r.includes("notice")),
+      "must fail closed when noticePointer is empty"
+    );
+
+    // Test nonexistent notice file
+    fakeInventory.dependencies[0].noticePointer = "NONEXISTENT_NOTICE";
+    fs.writeFileSync(invPath, JSON.stringify(fakeInventory, null, 2), "utf8");
+    const reportBadNotice = validateLicenseInventory(temp.dir, {
+      packageJsonPath: pkgPath,
+      inventoryPath: invPath
+    });
+    assert.equal(reportBadNotice.status, "fail");
+    assert.ok(
+      reportBadNotice.reasons && reportBadNotice.reasons.some((r: string) => r.includes("not found")),
+      "must fail closed when notice file does not exist"
+    );
   } finally {
     temp.cleanup();
   }

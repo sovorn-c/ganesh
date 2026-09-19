@@ -244,6 +244,99 @@ test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when existin
   }
 });
 
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed on reproduction case: files: [README.md] and deleted package-manifest.json", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Exact review reproduction: files: ["README.md"] and delete package-manifest.json
+    fs.writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify({ name: "ganesh", version: "0.1.0", files: ["README.md"] }, null, 2),
+      "utf8"
+    );
+    const manifestPath = path.join(dir, "specs", "distribution", "package-manifest.json");
+    if (fs.existsSync(manifestPath)) {
+      fs.rmSync(manifestPath);
+    }
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.packageManifestValid, false);
+    assert.ok(report.reasons?.some((r) => r.includes("files whitelist missing")));
+    assert.ok(report.reasons?.some((r) => r.includes("package-manifest.json not found")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when support matrix verified row evidence pointer is nonexistent", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Overwrite support matrix with verified row pointing to nonexistent evidence
+    fs.writeFileSync(
+      path.join(dir, "specs", "distribution", "support-matrix.json"),
+      JSON.stringify({
+        version: "0.1.0",
+        scholarlyCertification: false,
+        combinations: [
+          {
+            os: process.platform,
+            arch: process.arch,
+            nodeMajor: 24,
+            status: "verified",
+            evidencePointer: "specs/verifications/nonexistent-e18-evidence.yaml"
+          }
+        ]
+      }, null, 2),
+      "utf8"
+    );
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.supportMatrixValid, false);
+    assert.ok(report.reasons?.some((r) => r.includes("evidence pointer not found")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when package manifest files omit required guides", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+
+    // Overwrite package-manifest.json to omit docs
+    const manifestPath = path.join(dir, "specs", "distribution", "package-manifest.json");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    manifest.files = ["package.json", "README.md", "NOTICE"]; // no docs!
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.packageManifestValid, false);
+    assert.ok(report.reasons?.some((r) => r.includes("omit required guides")));
+  } finally {
+    cleanup();
+  }
+});
+
 test("e18s05 SC-e18s05-P0-01 proposeSemverBump analyzes full history without -n 100 truncation when untagged", () => {
   const proposal = proposeSemverBump(process.cwd());
   assert.equal(proposal.currentVersion, "0.1.0");
