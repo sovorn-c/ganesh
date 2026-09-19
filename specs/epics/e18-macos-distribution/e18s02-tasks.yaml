@@ -1,0 +1,46 @@
+story_id: e18s02
+spec: e18s02-reproducible-package-integrity-licenses-signing.md
+title: Reproducible Package Integrity, Licenses and Signing Applicability
+status: failing
+bcps: 5
+tasks:
+  - id: e18s02-t01
+    description: Add files whitelist, npm pack manifest and SHA-256 digest verification for the chosen npm-pack-tarball channel.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s02.*(pack|files|whitelist|digest|sha256|manifest)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s02-P0-01]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, integrity, Security Review]
+  - id: e18s02-t02
+    description: Verify third-party license inventory including LGPL-3.0 notices and source-link obligations for biblatex-csl-converter; refuse an invented Ganesh SPDX license.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s02.*(license|LGPL|biblatex|SPDX|undeclared|inventory)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s02-P0-02]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, licenses, Security Review]
+  - id: e18s02-t03
+    description: Record signing applicability for npm-pack-tarball (digest plus lockfile integrity; Apple codesign not-applicable) and fail closed on missing digest or claimed codesign.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s02.*(signing|codesign|not-applicable|lockfile|fail)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s02-P0-03, SC-e18s02-P1-04]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, signing, Security Review]
+  - id: e18s02-t04
+    description: Keep released behavior passing under Node.js 24 with no new production packages.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e18s02-P0-01]
+    status: failing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

@@ -1,0 +1,27 @@
+story_id: e18s01
+verified_at: "2026-09-19T11:30:40Z"
+verifier: bp-build
+branch: feat/e18-macos-distribution
+working_tree: active
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+phases:
+  task_verifications:
+    passed: true
+    evidence: "e18s01-t01 through e18s01-t04 passed; support-matrix catalog load, packaged CLI smoke via npm pack and isolated prefix install, fail-closed on unverified rows, and operator docs retargeting passed."
+  tests:
+    passed: true
+    command: npm test
+    evidence: "support-matrix.test.ts and packaged-smoke.test.ts pass; total suite passing."
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+gaps:
+  closed: true

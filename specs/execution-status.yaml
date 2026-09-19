@@ -17,11 +17,11 @@ development_status:
   e11: done
   e13: done
   e17: done
-  e18: backlog
-planning_level: e17_complete
-active_epic: none
-active_story: none
-note: E17 scholarly and adversarial release qualification is locally released on main under the owner-approved plan revision. Five stories and 20 task checks passed; local qualification passes. B06 qualified-human evidence and R18 packaging remain shipment blockers; remote CI, publishing, deployment, and production readiness remain unclaimed.
+  e18: in_progress
+planning_level: e18_plan_approved
+active_epic: e18
+active_story: e18s02
+note: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf is owner-approved. Five stories totaling 21 BCP remain planned with failing task ledgers. /bp-build was not started. B06 qualified-human evidence remains a shipment blocker even after R18 packaging evidence exists; remote CI, publishing, deployment, and production readiness remain unclaimed.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -827,6 +827,58 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e17s05-verify.yaml
+  e18:
+    title: Installable maintained local release
+    status: in_progress
+    stories:
+      e18s01:
+        title: Support Matrix and Packaged CLI Smoke
+        status: done
+        started_at: "2026-09-19T11:21:35Z"
+        completed_at: "2026-09-19T11:30:40Z"
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e18s01-verify.yaml
+      e18s02:
+        title: Reproducible Package Integrity, Licenses and Signing Applicability
+        status: planned
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
+      e18s03:
+        title: Upgrade, Rollback and Uninstall Preserve Research Data
+        status: planned
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
+      e18s04:
+        title: Shipped Guides, Examples, Limitations, Release Notes and Support
+        status: planned
+        planning_status: ready
+        bcps: 3
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
+      e18s05:
+        title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
+        status: planned
+        planning_status: ready
+        bcps: 3
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 0
+        tasks_failing: 4
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-18T21:49:13Z"

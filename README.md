@@ -30,7 +30,7 @@ Ganesh does not claim to be a sandbox, an ethics-review authority, or a substitu
 
 - Node.js 24 LTS
 - npm 11.19.0
-- macOS is the current product target; broader platform support has not been verified
+- Refer to [Support matrix](specs/distribution/support-matrix.json) for verified combinations (such as Linux x64 Node.js 24); macOS and other combinations remain unverified until verified smoke runs are recorded. macOS is not an inherent product boundary.
 
 Clone the repository, then install exactly from the lockfile:
 

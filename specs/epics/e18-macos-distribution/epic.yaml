@@ -1,0 +1,200 @@
+---
+id: e18
+title: Installable maintained local release
+scope_ids:
+- R18
+outcome: Researchers receive a verified distributable product with complete operating
+  and support documentation.
+boundaries:
+  includes:
+  - Clean supported local environments launch the packaged CLI and pass smoke checks;
+    upgrade, migration compatibility, rollback/recovery and uninstall preserve user
+    research data as documented.
+  - Reproducible packaging, artifact integrity, dependency/license inventory and applicable
+    signing requirements are verified for the chosen distribution channel.
+  - User/developer/accessibility/privacy/local-execution guides, examples, limitations,
+    release notes and support/maintenance procedures ship with the product.
+  - Local Conventional Commits/SemVer release procedures require explicit publication
+    authorization; no hosted service or mandatory remote CI is introduced; all release
+    gates are satisfied before shipment.
+  excludes:
+  - Product outcomes owned by other epics; shared integration remains required.
+  - Homebrew formula, Apple .pkg, notarization, or a signed macOS app as the primary
+    channel. Capsule directory e18-macos-distribution is a stable roadmap ID; macOS
+    is not a product boundary.
+  - Inventing verified status for an OS/arch that did not pass smoke on that combination.
+  - Declaring a Ganesh SPDX license. Product license stays undeclared / all rights
+    reserved unless the owner supplies an SPDX identifier before implementation.
+  - Hosted CI, automatic npm publish, pushing tags, or setting production-ready.
+  - Completing B06 named qualified-human reviews. Shipment stays blocked without them.
+  - Changing PROJECT_SCHEMA_VERSION, PacketKind, OWNER_OPERATIONS, E15 deletion APIs,
+    or unfreezing src/workspace/**.
+  - New production npm packages, a second database, or a separate web application.
+  - Official academic, ethics, clinical, statistical or legal certification.
+depends_on:
+- e17
+acceptance_outcomes:
+- Clean supported local environments launch the packaged CLI and pass smoke checks;
+  upgrade, migration compatibility, rollback/recovery and uninstall preserve user
+  research data as documented.
+- Reproducible packaging, artifact integrity, dependency/license inventory and applicable
+  signing requirements are verified for the chosen distribution channel.
+- User/developer/accessibility/privacy/local-execution guides, examples, limitations,
+  release notes and support/maintenance procedures ship with the product.
+- Local Conventional Commits/SemVer release procedures require explicit publication
+  authorization; no hosted service or mandatory remote CI is introduced; all release
+  gates are satisfied before shipment.
+acceptance_scenarios:
+- AC-20
+wsjf: 1.380952
+wsjf_inputs:
+  business_value: 10
+  time_criticality: 10
+  risk_reduction: 9
+  security_boost: 0
+  job_size: 21
+total_bcps: 21
+bcp_estimate:
+  range:
+  - 21
+  - 21
+  confidence: medium
+  basis: Five vertical story slices total 21 BCP after inspection of the existing
+    ganesh bin, qualify R18 hardcoded block, npm pack defaults, E15 deletion versus
+    product uninstall, docs/runbooks, undeclared product license, and LGPL-3.0
+    biblatex-csl-converter notices. Not a tool-computed BCP Plus count.
+status: planned
+planning_stage: complete
+risk: P0
+story_planning: complete
+plan_pins:
+  distribution_channel: npm-pack-tarball
+  channel_rationale: package.json already declares bin ganesh; SCOPE keeps macOS out
+    of the product boundary; hosted CI and automatic publication are out of scope.
+    Install paths are developer git-tag plus npm ci, or npm install of an authorized
+    tarball. Registry publish is a human step after explicit authorization, not a
+    default command.
+  signing_applicability: sha256-digest-plus-lockfile-integrity
+  apple_codesign: not-applicable
+  npm_provenance: not-applicable-until-authorized-registry-publication
+  product_license: undeclared-all-rights-reserved
+  support_matrix_honesty: verified-combinations-only
+requirement_deltas:
+- story_id: e18s01
+  type: ADDED
+  requirement: Support matrix and packaged CLI smoke
+  after: A support-matrix catalog records OS, arch, Node.js 24 and npm combinations
+    as verified or unverified. A packaged ganesh CLI launches with --print-launch
+    and passes smoke on each verified combination. Unverified combinations cannot
+    be reported as supported.
+- story_id: e18s01
+  type: MODIFIED
+  requirement: Platform target language in operator docs
+  before: README stated macOS is the current product target and broader platform
+    support has not been verified.
+  after: Operator docs point at the support matrix. Verified combinations are listed
+    with evidence. Unverified combinations stay unverified. macOS is not an inherent
+    product boundary.
+- story_id: e18s02
+  type: ADDED
+  requirement: Reproducible package integrity, licenses and signing applicability
+  after: npm pack produces a tarball whose files whitelist, SHA-256 digest, lockfile
+    integrity, third-party license inventory including LGPL-3.0 notices for
+    biblatex-csl-converter, and signing-applicability record can be verified.
+    Missing digest, incomplete inventory or a claimed Apple codesign for this
+    channel fails closed.
+- story_id: e18s03
+  type: ADDED
+  requirement: Upgrade, rollback and product uninstall preserve research data
+  after: Installing a newer tarball, rolling back to the previous tarball with E15
+    backup/restore, and npm uninstall of the product leave project .ganesh research
+    data in place. Product uninstall is not E15 deletion.
+- story_id: e18s04
+  type: ADDED
+  requirement: Shipped guides, examples, limitations, release notes and support
+  after: A guide inventory requires user, developer, accessibility, privacy and
+    local-execution guides plus examples, limitations, release notes and support
+    procedures inside the package. Missing required ids fail closed. E16 runbooks
+    are included, not rewritten.
+- story_id: e18s05
+  type: ADDED
+  requirement: Explicit-authorization SemVer procedure
+  after: A local release procedure consumes npm run qualify, the packaging evidence
+    record and Conventional Commits. Publication stays not-authorized unless the
+    operator passes an explicit authorization flag. The procedure does not npm
+    publish, push, tag, or set hosted-ci or production-ready.
+- story_id: e18s05
+  type: MODIFIED
+  requirement: Qualification gate R18 outcome
+  before: runReleaseQualification always emitted R18 status blocked and never read
+    packaging evidence, so shipment stayed blocked even if a catalog row claimed
+    passed.
+  after: R18 is passed only when validatePackagingEvidence accepts the matrix,
+    package manifest, license inventory, signing-applicability record, guide
+    inventory and release-procedure record. A catalog passed row without those
+    artifacts is rejected as invented evidence. Shipment stays blocked while B06
+    qualified-human coverage is absent, a critical safety defect is open, or any
+    outcome is blocked or unimplemented.
+stories:
+- id: e18s01
+  title: Support Matrix and Packaged CLI Smoke
+  status: planned
+  bcps: 5
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on: []
+  spec_file: e18s01-support-matrix-and-packaged-cli-smoke.md
+  tasks_file: e18s01-tasks.yaml
+- id: e18s02
+  title: Reproducible Package Integrity, Licenses and Signing Applicability
+  status: planned
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e18s01
+  spec_file: e18s02-reproducible-package-integrity-licenses-signing.md
+  tasks_file: e18s02-tasks.yaml
+- id: e18s03
+  title: Upgrade, Rollback and Uninstall Preserve Research Data
+  status: planned
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e18s01
+  - e18s02
+  spec_file: e18s03-upgrade-rollback-uninstall-preserve-research-data.md
+  tasks_file: e18s03-tasks.yaml
+- id: e18s04
+  title: Shipped Guides, Examples, Limitations, Release Notes and Support
+  status: planned
+  bcps: 3
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e18s02
+  spec_file: e18s04-shipped-guides-examples-limitations-release-notes.md
+  tasks_file: e18s04-tasks.yaml
+- id: e18s05
+  title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
+  status: planned
+  bcps: 3
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on:
+  - e18s01
+  - e18s02
+  - e18s03
+  - e18s04
+  spec_file: e18s05-explicit-authorization-semver-and-r18-gate.md
+  tasks_file: e18s05-tasks.yaml
+capsule_dir: epics/e18-macos-distribution
+next_skill: bp-build
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+plan_approved_at: "2026-09-19T09:09:54Z"
+plan_approval_source: explicit_owner_message
+implementation_authorized: true
+sequence: 18

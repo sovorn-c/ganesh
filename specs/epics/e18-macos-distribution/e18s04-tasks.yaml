@@ -1,0 +1,46 @@
+story_id: e18s04
+spec: e18s04-shipped-guides-examples-limitations-release-notes.md
+title: Shipped Guides, Examples, Limitations, Release Notes and Support
+status: failing
+bcps: 3
+tasks:
+  - id: e18s04-t01
+    description: Add a guide inventory that requires user, developer, accessibility, privacy and local-execution guides plus examples, limitations, release notes and support procedures.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s04.*(inventory|user|developer|accessibility|privacy|local-execution)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e18s04-P0-01]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, guides]
+  - id: e18s04-t02
+    description: Fail closed when a required guide id is missing from the packed artifact, and include E16 runbooks without rewriting them.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s04.*(missing|fail|runbook|packed|required)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e18s04-P0-02]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, fail-closed]
+  - id: e18s04-t03
+    description: Prove guides omit secrets and participant content, and that limitations refuse production-ready and sandbox claims.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s04.*(secret|participant|production-ready|sandbox|limitation)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s04-P0-03, SC-e18s04-P1-04]
+    status: failing
+    allure:
+      severity: critical
+      categories: [honesty, privacy, Security Review]
+  - id: e18s04-t04
+    description: Keep released docs/runbooks listing and Node.js 24 checks passing.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: low
+    scenarios: [SC-e18s04-P0-01]
+    status: failing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

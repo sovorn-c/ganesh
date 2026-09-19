@@ -178,3 +178,6 @@ export * from "./qualification/adversarial-suite.js";
 export * from "./qualification/competency-inventory.js";
 export * from "./qualification/human-evaluation.js";
 export * from "./qualification/release-gate.js";
+export * from "./distribution/types.js";
+export * from "./distribution/support-matrix.js";
+export * from "./distribution/smoke.js";

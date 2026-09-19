@@ -1,0 +1,46 @@
+story_id: e18s01
+spec: e18s01-support-matrix-and-packaged-cli-smoke.md
+title: Support Matrix and Packaged CLI Smoke
+status: passing
+bcps: 5
+tasks:
+  - id: e18s01-t01
+    description: Add distribution types, support-matrix catalog load, and verified-versus-unverified combination checks.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s01.*(matrix|verified|unverified|combination|catalog)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e18s01-P0-01]
+    status: passing
+    allure:
+      severity: critical
+      categories: [distribution, support-matrix]
+  - id: e18s01-t02
+    description: Pack the CLI, install into an isolated prefix, and pass --print-launch plus preflight smoke on a verified combination.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s01.*(pack|smoke|print-launch|preflight|prefix)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e18s01-P0-02]
+    status: passing
+    allure:
+      severity: critical
+      categories: [distribution, smoke]
+  - id: e18s01-t03
+    description: Fail closed when the matrix claims verified for an unverified OS/arch or Node major other than 24, and keep operator docs pointing at the matrix.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s01.*(invent|unverified|fail|macos|docs|matrix)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s01-P0-03, SC-e18s01-P1-04]
+    status: passing
+    allure:
+      severity: critical
+      categories: [honesty, Security Review]
+  - id: e18s01-t04
+    description: Keep released E01-E17 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e18s01-P0-01]
+    status: passing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

@@ -1,0 +1,46 @@
+story_id: e18s05
+spec: e18s05-explicit-authorization-semver-and-r18-gate.md
+title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
+status: failing
+bcps: 3
+tasks:
+  - id: e18s05-t01
+    description: Add a local release procedure that consumes qualify plus packaging evidence, proposes a SemVer bump from Conventional Commits, and keeps publication not-authorized by default.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s05.*(procedure|semver|conventional|not-authorized|qualify)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s05-P0-01]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, release-procedure, Security Review]
+  - id: e18s05-t02
+    description: Require an explicit authorization flag to mark publication allowed; never npm publish, push, tag, or set hosted-ci or production-ready.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s05.*(authorize|publication|publish|hosted|production-ready|flag)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s05-P0-02]
+    status: failing
+    allure:
+      severity: critical
+      categories: [distribution, authorization, Security Review]
+  - id: e18s05-t03
+    description: Pass R18 only when packaging evidence validates; reject invented catalog-passed rows; keep shipment blocked without B06 coverage.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e18s05.*(R18|packaging-evidence|invent|shipment|human|B06)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e18s05-P0-03, SC-e18s05-P1-04]
+    status: failing
+    allure:
+      severity: critical
+      categories: [qualification, honesty, Security Review]
+  - id: e18s05-t04
+    description: Keep released qualify, preflight and Node.js 24 checks passing; qualify CLI still must not launch the TUI.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test && npm run preflight && npm run qualify"
+    risk: P1
+    security: medium
+    scenarios: [SC-e18s05-P0-01]
+    status: failing
+    allure:
+      severity: high
+      categories: [compatibility, regression]

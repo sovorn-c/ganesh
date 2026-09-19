@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0",
+  "scholarlyCertification": false,
+  "combinations": [
+    {
+      "os": "linux",
+      "arch": "x64",
+      "nodeMajor": 24,
+      "status": "verified",
+      "evidencePointer": "specs/verifications/e18s01-verify.yaml",
+      "notes": "Verified via packaged CLI smoke on Linux x64 Node.js 24."
+    },
+    {
+      "os": "darwin",
+      "arch": "arm64",
+      "nodeMajor": 24,
+      "status": "unverified",
+      "evidencePointer": "",
+      "notes": "macOS Apple Silicon; unverified on this host."
+    },
+    {
+      "os": "darwin",
+      "arch": "x64",
+      "nodeMajor": 24,
+      "status": "unverified",
+      "evidencePointer": "",
+      "notes": "macOS Intel; unverified on this host."
+    },
+    {
+      "os": "win32",
+      "arch": "x64",
+      "nodeMajor": 24,
+      "status": "unverified",
+      "evidencePointer": "",
+      "notes": "Windows x64; unverified on this host."
+    }
+  ]
+}

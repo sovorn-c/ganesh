@@ -2,7 +2,7 @@
 
 ## Supported baseline target
 
-The project target is Node.js 24 LTS with npm `11.19.0`. The target is a project contract, not a claim that every operating system or CPU architecture is supported. Record a runtime/platform combination as verified only after the clean-install procedure passes on that combination.
+The project target is Node.js 24 LTS with npm `11.19.0`. The target is a project contract, not a claim that every operating system or CPU architecture is supported. Refer to `specs/distribution/support-matrix.json` for verified platform combinations. Record a runtime/platform combination as verified only after smoke checks pass on that combination. macOS is not an inherent product boundary; unverified environments remain unverified.
 
 The development host used during this baseline check reports Node.js 26.7.0. Preflight correctly marks that host unsupported. A Node.js 24.20.0 runtime was used for the positive readiness check.
 

@@ -1,17 +1,22 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
-active_epic: none
-active_story: null
+active_flow: build_epic
+active_epic: e18
+active_story: e18s02
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: "E17 scholarly and adversarial release qualification is locally released on main under the owner-approved plan revision sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929. Five stories passed, local qualification passes, shipment remains blocked by B06 evidence and R18 packaging, and remote CI, publishing, deployment, and production readiness remain unclaimed."
-  last_step_completed: E17 release-branch local integration complete
+  next_skill: bp-build
+  next_command: "/bp-build"
+  summary: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+    is owner-approved. e18s01 built and verified. Advancing develop-tdd on e18s02.
+  last_step_completed: e18s01 built and verified
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
   - specs/tech-architecture/tech-stack.md
+  - specs/epics/e18-macos-distribution/epic.yaml
+  - specs/tech-architecture/e18-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e18/THREAT_MODEL.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -67,6 +72,7 @@ discovery:
   e17_build: complete
   e17_review: complete_local_release
   e17_release: complete_local_release
+  e18_plan: approved_exact_revision
   environment:
     status: verified_node24_target
     runtime:
@@ -217,9 +223,9 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e17
+  first_eligible_epic: e18
   first_tracer_bullet_epic: e05
-  selected_epic: e17
+  selected_epic: e18
   e17_plan: approved_exact_revision
   e17_plan_revision: sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929
   e17_plan_approved_at: '2026-09-18T03:15:25Z'
@@ -241,6 +247,27 @@ blueprint:
   - specs/tech-architecture/e17-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e17/THREAT_MODEL.md
+  e18_plan: approved_exact_revision
+  e18_plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+  e18_plan_approved_at: '2026-09-19T09:09:54Z'
+  e18_plan_approval_source: explicit_owner_message
+  e18_plan_audit: READY_implementation_mode
+  e18_plan_audit_artifact: specs/PLAN-AUDIT_LATEST.md
+  e18_plan_artifacts:
+  - specs/epics/e18-macos-distribution/epic.yaml
+  - specs/epics/e18-macos-distribution/e18s01-support-matrix-and-packaged-cli-smoke.md
+  - specs/epics/e18-macos-distribution/e18s01-tasks.yaml
+  - specs/epics/e18-macos-distribution/e18s02-reproducible-package-integrity-licenses-signing.md
+  - specs/epics/e18-macos-distribution/e18s02-tasks.yaml
+  - specs/epics/e18-macos-distribution/e18s03-upgrade-rollback-uninstall-preserve-research-data.md
+  - specs/epics/e18-macos-distribution/e18s03-tasks.yaml
+  - specs/epics/e18-macos-distribution/e18s04-shipped-guides-examples-limitations-release-notes.md
+  - specs/epics/e18-macos-distribution/e18s04-tasks.yaml
+  - specs/epics/e18-macos-distribution/e18s05-explicit-authorization-semver-and-r18-gate.md
+  - specs/epics/e18-macos-distribution/e18s05-tasks.yaml
+  - specs/tech-architecture/e18-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e18/THREAT_MODEL.md
   e13_plan: approved_exact_revision
   e13_plan_revision: sha256:28844f1507a52d8112bb1ebc9bd36f3de862b1ff34879a94b51625aefbfcfa3e
   e13_plan_approved_at: '2026-09-17T08:37:21Z'
@@ -337,7 +364,7 @@ blueprint:
   implementation_start: authorized_owner_plan_approval
   implementation_ready: true
   production_ready: false
-  story_planning: e01_through_e13_e14_e15_e16_complete;_e17_approved_exact_revision
+  story_planning: e01_through_e13_e14_e15_e16_e17_complete;_e18_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -463,18 +490,19 @@ metrics:
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 7
-      total_seconds: 6433.0
-      avg_seconds: 919.0
+      calls: 8
+      total_seconds: 7583.0
+      avg_seconds: 947.875
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
     slice-tasks:
-      calls: 6
-      total_seconds: 5481.0
-      avg_seconds: 913.5
+      calls: 7
+      total_seconds: 6631.0
+      avg_seconds: 947.2857142857143
     develop-tdd:
       calls: 2
       total_seconds: 5062.0
       avg_seconds: 2531.0
+      _start: '2026-09-19T11:21:42Z'
