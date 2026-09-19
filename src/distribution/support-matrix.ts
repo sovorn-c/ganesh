@@ -76,11 +76,20 @@ export function validateSupportMatrix(
           );
         } else {
           try {
-            const stat = fs.statSync(evidenceFile);
-            if (!stat.isFile()) {
+            const canonicalRoot = fs.realpathSync(rootResolved);
+            const canonicalEvidence = fs.realpathSync(evidenceFile);
+            const canonicalRelative = path.relative(canonicalRoot, canonicalEvidence);
+            if (canonicalRelative.startsWith("..") || path.isAbsolute(canonicalRelative)) {
               reasons.push(
-                `Verified combination ${combination.os}-${combination.arch} evidence pointer must be a regular file: ${combination.evidencePointer}`
+                `Verified combination ${combination.os}-${combination.arch} evidence pointer must be under project root: ${combination.evidencePointer}`
               );
+            } else {
+              const stat = fs.statSync(canonicalEvidence);
+              if (!stat.isFile()) {
+                reasons.push(
+                  `Verified combination ${combination.os}-${combination.arch} evidence pointer must be a regular file: ${combination.evidencePointer}`
+                );
+              }
             }
           } catch {
             reasons.push(

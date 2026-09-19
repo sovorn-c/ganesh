@@ -97,13 +97,22 @@ export async function runPackagedSmoke(
           );
         } else {
           try {
-            const stat = fs.statSync(evidenceFile);
-            if (!stat.isFile()) {
+            const canonicalRoot = fs.realpathSync(rootResolved);
+            const canonicalEvidence = fs.realpathSync(evidenceFile);
+            const canonicalRelative = path.relative(canonicalRoot, canonicalEvidence);
+            if (canonicalRelative.startsWith("..") || path.isAbsolute(canonicalRelative)) {
               reasons.push(
-                `Host combination ${process.platform}-${process.arch}-node24 evidence pointer must be a regular file: ${hostRow.evidencePointer}`
+                `Host combination ${process.platform}-${process.arch}-node24 evidence pointer must be under project root: ${hostRow.evidencePointer}`
               );
             } else {
-              matrixRowVerified = true;
+              const stat = fs.statSync(canonicalEvidence);
+              if (!stat.isFile()) {
+                reasons.push(
+                  `Host combination ${process.platform}-${process.arch}-node24 evidence pointer must be a regular file: ${hostRow.evidencePointer}`
+                );
+              } else {
+                matrixRowVerified = true;
+              }
             }
           } catch {
             reasons.push(

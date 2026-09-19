@@ -133,6 +133,43 @@ test("e18s01 SC-e18s01-P0-03 evidence pointer escaping project root fails closed
   }
 });
 
+test("e18s01 SC-e18s01-P0-03 evidence pointer inside root symlinked to external file fails closed via canonical containment", () => {
+  const temp = createTempPrefix("test-matrix-symlink-");
+  try {
+    const verifyDir = path.join(temp.dir, "specs", "verifications");
+    fs.mkdirSync(verifyDir, { recursive: true });
+    const symlinkPath = path.join(verifyDir, "symlink-evidence.yaml");
+    try {
+      fs.symlinkSync("/etc/passwd", symlinkPath);
+    } catch {
+      // If unprivileged environment prevents symlinks, skip
+      return;
+    }
+
+    const sample = createSampleSupportMatrix({
+      combinations: [
+        {
+          os: process.platform,
+          arch: process.arch,
+          nodeMajor: 24,
+          status: "verified",
+          evidencePointer: "specs/verifications/symlink-evidence.yaml"
+        }
+      ]
+    });
+    writeTempSupportMatrix(temp.dir, sample);
+    const loaded = loadSupportMatrix(temp.dir);
+    const validation = validateSupportMatrix(loaded, { projectRoot: temp.dir });
+    assert.equal(validation.status, "fail");
+    assert.ok(
+      validation.reasons && validation.reasons.some((r) => r.includes("must be under project root")),
+      "must reject symlinked evidence pointer pointing outside project root"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});
+
 test("e18s01 SC-e18s01-P0-03 matrix row marked verified with wrong node major fails closed", () => {
   const sample = createSampleSupportMatrix({
     combinations: [

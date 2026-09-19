@@ -2,7 +2,7 @@
 epic: e18
 epic_id: e18
 title: Installable maintained local release
-verified_at: "2026-09-19T19:10:00Z"
+verified_at: "2026-09-19T20:22:00Z"
 verifier: bp-build
 branch: feat/e18-macos-distribution
 runtime: Node.js 24.21.0
@@ -46,7 +46,7 @@ checks:
   tests:
     passed: true
     command: npm test
-    evidence: 556/556 tests passed across 52 test suites
+    evidence: 564/564 tests passed across 52 test suites
   typecheck:
     passed: true
     command: npm run typecheck
@@ -70,7 +70,7 @@ checks:
 summary:
   task_verifications: 20
   task_verifications_passing: 20
-  tests_passing: 556
+  tests_passing: 564
   review_started: true
   production_readiness_claimed: false
 notes:
