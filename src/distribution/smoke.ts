@@ -84,13 +84,32 @@ export async function runPackagedSmoke(
           `Host combination ${process.platform}-${process.arch}-node24 is marked verified but has no evidencePointer`
         );
       } else {
-        const evidenceFile = path.resolve(root, hostRow.evidencePointer);
-        if (!fs.existsSync(evidenceFile)) {
+        const rootResolved = path.resolve(root);
+        const evidenceFile = path.resolve(rootResolved, hostRow.evidencePointer);
+        const relative = path.relative(rootResolved, evidenceFile);
+        if (relative.startsWith("..") || path.isAbsolute(relative)) {
+          reasons.push(
+            `Host combination ${process.platform}-${process.arch}-node24 evidence pointer must be under project root: ${hostRow.evidencePointer}`
+          );
+        } else if (!fs.existsSync(evidenceFile)) {
           reasons.push(
             `Host combination ${process.platform}-${process.arch}-node24 evidence pointer not found: ${hostRow.evidencePointer}`
           );
         } else {
-          matrixRowVerified = true;
+          try {
+            const stat = fs.statSync(evidenceFile);
+            if (!stat.isFile()) {
+              reasons.push(
+                `Host combination ${process.platform}-${process.arch}-node24 evidence pointer must be a regular file: ${hostRow.evidencePointer}`
+              );
+            } else {
+              matrixRowVerified = true;
+            }
+          } catch {
+            reasons.push(
+              `Host combination ${process.platform}-${process.arch}-node24 evidence pointer stat failed: ${hostRow.evidencePointer}`
+            );
+          }
         }
       }
     } else {

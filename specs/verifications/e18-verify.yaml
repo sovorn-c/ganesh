@@ -1,0 +1,84 @@
+---
+epic: e18
+epic_id: e18
+title: Installable maintained local release
+verified_at: "2026-09-19T19:10:00Z"
+verifier: bp-build
+branch: feat/e18-macos-distribution
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+stories:
+  e18s01:
+    title: Support matrix, smoke run, and macos boundary disclaimer
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/verifications/e18s01-verify.yaml
+  e18s02:
+    title: Reproducible package integrity, third-party licenses, and signing applicability
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/verifications/e18s02-verify.yaml
+  e18s03:
+    title: Upgrade, rollback, and uninstall preserve research data
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/verifications/e18s03-verify.yaml
+  e18s04:
+    title: Shipped documentation inventory, offline guides, and limitations
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/verifications/e18s04-verify.yaml
+  e18s05:
+    title: Explicit-authorization SemVer release procedure and R18 qualification gate
+    status: passed
+    tasks_total: 4
+    tasks_passing: 4
+    task_evidence: specs/verifications/e18s05-verify.yaml
+checks:
+  task_verifications:
+    passed: true
+    evidence: 20/20 E18 tasks verified and passing across e18s01 through e18s05
+  tests:
+    passed: true
+    command: npm test
+    evidence: 556/556 tests passed across 52 test suites
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+  preflight:
+    passed: true
+    command: npm run preflight
+    evidence: exit 0 with execution-mode not_configured warning
+  qualify:
+    passed: true
+    command: npm run qualify
+    evidence: "Local Qualification: PASS; Shipment: BLOCKED (B06 qualified-human evidence unaddressed, shipment blocker preserved)"
+  packaging_evidence:
+    passed: true
+    evidence: "validatePackagingEvidence passes with support matrix, package manifest, license inventory, signing applicability, guide inventory, and lifecycle preservation"
+summary:
+  task_verifications: 20
+  task_verifications_passing: 20
+  tests_passing: 556
+  review_started: true
+  production_readiness_claimed: false
+notes:
+  - Support matrix defines verified and unverified combinations without claiming certification.
+  - Package artifact computes reproducible sha256 digest with files whitelist and excludes package-manifest.json to avoid digest drift.
+  - License inventory verifies direct dependencies, notice pointers, and LGPL-3.0 compliance for biblatex-csl-converter.
+  - Signing applicability strictly enforces npm-pack-tarball and not-applicable provenance prior to authorized publication.
+  - Upgrade, rollback, and uninstall preserve research data in .ganesh, with CWE-59 symlink traversal prevention.
+  - Shipped documentation inventory validates all required guides, runbooks, and limitation disclaimers.
+  - Release procedure performs full commit history analysis for SemVer proposal with publication not-authorized by default.
+  - B06 qualified-human evidence remains an explicit shipment blocker; production readiness is not claimed.

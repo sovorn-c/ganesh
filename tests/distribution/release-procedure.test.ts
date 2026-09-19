@@ -137,6 +137,7 @@ test("e18s05 SC-e18s05-P1-04 valid packaging-evidence allows R18 passed but miss
     fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
     fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
     fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+    fs.copyFileSync(path.join(root, "ganesh-0.1.0.tgz"), path.join(dir, "ganesh-0.1.0.tgz"));
 
     // Set R18 passed in catalog
     const outcomesWithR18Passed = {
@@ -321,6 +322,7 @@ test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when package
     fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
     fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
     fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+    fs.copyFileSync(path.join(root, "ganesh-0.1.0.tgz"), path.join(dir, "ganesh-0.1.0.tgz"));
 
     // Overwrite package-manifest.json to omit docs
     const manifestPath = path.join(dir, "specs", "distribution", "package-manifest.json");
@@ -332,6 +334,66 @@ test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when package
     assert.equal(report.status, "fail");
     assert.equal(report.packageManifestValid, false);
     assert.ok(report.reasons?.some((r) => r.includes("omit required guides")));
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when referenced package tarball is missing from disk", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "package.json"), path.join(dir, "package.json"));
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+    // DO NOT copy ganesh-0.1.0.tgz; referenced tarball is missing!
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.packageManifestValid, false);
+    assert.ok(
+      report.reasons?.some((r) => r.includes("not found on disk")),
+      "must fail closed when referenced tarball is missing from disk"
+    );
+  } finally {
+    cleanup();
+  }
+});
+
+test("e18s05 SC-e18s05-P0-03 validatePackagingEvidence fails closed when package.json contains dist/src-evil/**", () => {
+  const { dir, cleanup } = createTempDir();
+  try {
+    const root = process.cwd();
+    fs.cpSync(path.join(root, "specs", "distribution"), path.join(dir, "specs", "distribution"), { recursive: true });
+    fs.cpSync(path.join(root, "specs", "verifications"), path.join(dir, "specs", "verifications"), { recursive: true });
+    fs.cpSync(path.join(root, "docs"), path.join(dir, "docs"), { recursive: true });
+    fs.copyFileSync(path.join(root, "NOTICE"), path.join(dir, "NOTICE"));
+    fs.copyFileSync(path.join(root, "ganesh-0.1.0.tgz"), path.join(dir, "ganesh-0.1.0.tgz"));
+
+    // Evil whitelist: dist/src-evil/** instead of dist/src/**
+    fs.writeFileSync(
+      path.join(dir, "package.json"),
+      JSON.stringify(
+        {
+          name: "ganesh",
+          version: "0.1.0",
+          files: ["dist/src-evil/**", "docs/**", "README.md", "NOTICE", "specs/distribution/**"]
+        },
+        null,
+        2
+      ),
+      "utf8"
+    );
+
+    const report = validatePackagingEvidence(dir);
+    assert.equal(report.status, "fail");
+    assert.equal(report.packageManifestValid, false);
+    assert.ok(
+      report.reasons?.some((r) => r.includes("files whitelist missing required paths")),
+      "must reject dist/src-evil/**"
+    );
   } finally {
     cleanup();
   }

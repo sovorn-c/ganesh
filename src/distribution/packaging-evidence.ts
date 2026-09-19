@@ -38,6 +38,21 @@ export function validatePackagingEvidence(
   const packageJsonPath = path.join(projectRoot, "package.json");
   const manifestPath = path.join(projectRoot, "specs", "distribution", "package-manifest.json");
 
+function matchesWhitelistPattern(declaredFile: string, requiredPattern: string): boolean {
+  if (declaredFile === requiredPattern) {
+    return true;
+  }
+  if (requiredPattern.endsWith("/**")) {
+    const baseDir = requiredPattern.slice(0, -3);
+    return (
+      declaredFile === baseDir ||
+      declaredFile === `${baseDir}/` ||
+      declaredFile.startsWith(`${baseDir}/`)
+    );
+  }
+  return false;
+}
+
   let packageJsonOk = false;
   if (fs.existsSync(packageJsonPath)) {
     try {
@@ -46,7 +61,7 @@ export function validatePackagingEvidence(
         reasons.push("package.json files whitelist missing or empty");
       } else {
         const hasRequired = REQUIRED_PACKAGE_WHITELIST.every((pattern) =>
-          pkg.files?.some((f) => f === pattern || f.startsWith(pattern.replace("/**", "")))
+          pkg.files?.some((f) => matchesWhitelistPattern(f, pattern))
         );
         if (!hasRequired) {
           reasons.push(
@@ -80,24 +95,39 @@ export function validatePackagingEvidence(
       } else {
         packedFilesList = manifest.files;
 
-        // If tarball is present on disk, verify its digest against manifest
+        // Require referenced tarball exists on disk and verify its digest
         const potentialTarballPaths = [
           path.join(projectRoot, manifest.tarball),
           path.join(projectRoot, "specs", "distribution", manifest.tarball)
         ];
         const existingTarball = potentialTarballPaths.find((p) => fs.existsSync(p));
-        if (existingTarball) {
-          const tarballBytes = fs.readFileSync(existingTarball);
-          const actualDigest = crypto.createHash("sha256").update(tarballBytes).digest("hex");
-          if (actualDigest.toLowerCase() !== manifest.digest.toLowerCase()) {
-            reasons.push(
-              `Tarball digest mismatch: manifest declares ${manifest.digest}, actual is ${actualDigest}`
-            );
-          } else {
-            manifestOk = true;
-          }
+        if (!existingTarball) {
+          reasons.push(
+            `Referenced package tarball "${manifest.tarball}" not found on disk`
+          );
         } else {
-          manifestOk = true;
+          try {
+            const stat = fs.statSync(existingTarball);
+            if (!stat.isFile()) {
+              reasons.push(
+                `Referenced package tarball "${manifest.tarball}" must be a regular file`
+              );
+            } else {
+              const tarballBytes = fs.readFileSync(existingTarball);
+              const actualDigest = crypto.createHash("sha256").update(tarballBytes).digest("hex");
+              if (actualDigest.toLowerCase() !== manifest.digest.toLowerCase()) {
+                reasons.push(
+                  `Tarball digest mismatch: manifest declares ${manifest.digest}, actual is ${actualDigest}`
+                );
+              } else {
+                manifestOk = true;
+              }
+            }
+          } catch (err) {
+            reasons.push(
+              `Failed reading package tarball "${manifest.tarball}": ${(err as Error).message}`
+            );
+          }
         }
 
         // Compare required guides vs packed files

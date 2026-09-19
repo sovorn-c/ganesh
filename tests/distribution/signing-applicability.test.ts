@@ -109,6 +109,22 @@ test("e18s02 SC-e18s02-P0-03 validateSigningApplicability fails closed on non-np
       report3.reasons && report3.reasons.some((r: string) => r.includes("npmProvenance")),
       "must reject missing npmProvenance"
     );
+
+    // Test forged npmProvenance: "not-applicable-forged"
+    const fakeSigning4 = {
+      channel: "npm-pack-tarball",
+      artifactDigest: "sha256",
+      lockfileIntegrity: true,
+      appleCodesign: "not-applicable",
+      npmProvenance: "not-applicable-forged" // Forged provenance!
+    };
+    fs.writeFileSync(signingPath, JSON.stringify(fakeSigning4, null, 2), "utf8");
+    const report4 = validateSigningApplicability(temp.dir, { filePath: signingPath });
+    assert.equal(report4.status, "fail");
+    assert.ok(
+      report4.reasons && report4.reasons.some((r: string) => r.includes("npmProvenance") || r.includes("exact approved value")),
+      "must reject forged not-applicable-forged npmProvenance"
+    );
   } finally {
     temp.cleanup();
   }

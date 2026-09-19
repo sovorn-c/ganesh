@@ -79,6 +79,60 @@ test("e18s01 SC-e18s01-P0-03 invented verified combination without evidence fail
   }
 });
 
+test("e18s01 SC-e18s01-P0-03 evidence pointer pointing to directory fails closed", () => {
+  const temp = createTempPrefix("test-matrix-dir-");
+  try {
+    const sample = createSampleSupportMatrix({
+      combinations: [
+        {
+          os: process.platform,
+          arch: process.arch,
+          nodeMajor: 24,
+          status: "verified",
+          evidencePointer: "." // Directory, not regular file!
+        }
+      ]
+    });
+    writeTempSupportMatrix(temp.dir, sample);
+    const loaded = loadSupportMatrix(temp.dir);
+    const validation = validateSupportMatrix(loaded, { projectRoot: temp.dir });
+    assert.equal(validation.status, "fail");
+    assert.ok(
+      validation.reasons && validation.reasons.some((r) => r.includes("must be a regular file")),
+      "must reject directory evidence pointer"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});
+
+test("e18s01 SC-e18s01-P0-03 evidence pointer escaping project root fails closed", () => {
+  const temp = createTempPrefix("test-matrix-traversal-");
+  try {
+    const sample = createSampleSupportMatrix({
+      combinations: [
+        {
+          os: process.platform,
+          arch: process.arch,
+          nodeMajor: 24,
+          status: "verified",
+          evidencePointer: "../../etc/passwd" // Directory traversal!
+        }
+      ]
+    });
+    writeTempSupportMatrix(temp.dir, sample);
+    const loaded = loadSupportMatrix(temp.dir);
+    const validation = validateSupportMatrix(loaded, { projectRoot: temp.dir });
+    assert.equal(validation.status, "fail");
+    assert.ok(
+      validation.reasons && validation.reasons.some((r) => r.includes("must be under project root")),
+      "must reject path traversal evidence pointer"
+    );
+  } finally {
+    temp.cleanup();
+  }
+});
+
 test("e18s01 SC-e18s01-P0-03 matrix row marked verified with wrong node major fails closed", () => {
   const sample = createSampleSupportMatrix({
     combinations: [

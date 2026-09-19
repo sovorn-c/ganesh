@@ -54,9 +54,10 @@ export function validateSigningApplicability(
     );
   }
 
-  if (!npmProvenance || !npmProvenance.startsWith("not-applicable")) {
+  const APPROVED_NPM_PROVENANCE = "not-applicable-until-authorized-registry-publication";
+  if (npmProvenance !== APPROVED_NPM_PROVENANCE) {
     reasons.push(
-      `npmProvenance must indicate not-applicable before authorized registry publication, got "${npmProvenance}"`
+      `npmProvenance must be exact approved value "${APPROVED_NPM_PROVENANCE}", got "${npmProvenance}"`
     );
   }
 

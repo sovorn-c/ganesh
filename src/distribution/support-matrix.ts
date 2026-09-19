@@ -63,11 +63,30 @@ export function validateSupportMatrix(
           `Verified combination ${combination.os}-${combination.arch} must have an evidencePointer`
         );
       } else if (options?.projectRoot) {
-        const evidenceFile = path.resolve(options.projectRoot, combination.evidencePointer);
-        if (!fs.existsSync(evidenceFile)) {
+        const rootResolved = path.resolve(options.projectRoot);
+        const evidenceFile = path.resolve(rootResolved, combination.evidencePointer);
+        const relative = path.relative(rootResolved, evidenceFile);
+        if (relative.startsWith("..") || path.isAbsolute(relative)) {
+          reasons.push(
+            `Verified combination ${combination.os}-${combination.arch} evidence pointer must be under project root: ${combination.evidencePointer}`
+          );
+        } else if (!fs.existsSync(evidenceFile)) {
           reasons.push(
             `Verified combination ${combination.os}-${combination.arch} evidence pointer not found: ${combination.evidencePointer}`
           );
+        } else {
+          try {
+            const stat = fs.statSync(evidenceFile);
+            if (!stat.isFile()) {
+              reasons.push(
+                `Verified combination ${combination.os}-${combination.arch} evidence pointer must be a regular file: ${combination.evidencePointer}`
+              );
+            }
+          } catch {
+            reasons.push(
+              `Verified combination ${combination.os}-${combination.arch} evidence pointer stat failed: ${combination.evidencePointer}`
+            );
+          }
         }
       }
     }
