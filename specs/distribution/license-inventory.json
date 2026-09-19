@@ -1,0 +1,62 @@
+{
+  "version": "0.1.0",
+  "productLicense": "UNLICENSED",
+  "notes": "Product license is undeclared / all rights reserved; third-party direct dependencies listed with licenses and notices.",
+  "dependencies": [
+    {
+      "name": "@earendil-works/pi-coding-agent",
+      "version": "0.85.1",
+      "license": "MIT",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "biblatex-csl-converter",
+      "version": "3.6.0",
+      "license": "LGPL-3.0",
+      "noticePointer": "NOTICE",
+      "sourceLink": "https://github.com/fiduswriter/biblatex-csl-converter"
+    },
+    {
+      "name": "csv-parse",
+      "version": "7.0.2",
+      "license": "MIT",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "mammoth",
+      "version": "1.12.2",
+      "license": "BSD-2-Clause",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "parse5",
+      "version": "8.0.1",
+      "license": "MIT",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "pdfjs-dist",
+      "version": "6.3.289",
+      "license": "Apache-2.0",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "read-excel-file",
+      "version": "9.3.10",
+      "license": "MIT",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "saxes",
+      "version": "6.0.0",
+      "license": "ISC",
+      "noticePointer": "NOTICE"
+    },
+    {
+      "name": "yauzl",
+      "version": "3.4.0",
+      "license": "MIT",
+      "noticePointer": "NOTICE"
+    }
+  ]
+}

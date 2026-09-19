@@ -1,0 +1,48 @@
+Ganesh
+Copyright (c) 2026 Ganesh contributors. All rights reserved.
+
+This product bundles and distributes software components licensed under third-party open-source licenses.
+
+========================================================================
+Third-Party Software Notices
+========================================================================
+
+1. biblatex-csl-converter
+   License: GNU Lesser General Public License v3.0 (LGPL-3.0)
+   Copyright: (c) Johannes Wilm and contributors
+   Source code: https://github.com/fiduswriter/biblatex-csl-converter
+   Notice: In accordance with the LGPL-3.0, users are entitled to obtain the complete
+   corresponding source code for biblatex-csl-converter from the upstream repository above,
+   or to replace the library with a compatible version under the terms of the LGPL-3.0.
+
+2. @earendil-works/pi-coding-agent
+   License: MIT
+   Copyright: (c) Earendil Works
+
+3. csv-parse
+   License: MIT
+   Copyright: (c) David Worms
+
+4. mammoth
+   License: BSD-2-Clause
+   Copyright: (c) Michael Williamson
+
+5. parse5
+   License: MIT
+   Copyright: (c) Ivan Nikulin
+
+6. pdfjs-dist
+   License: Apache-2.0
+   Copyright: (c) Mozilla Foundation
+
+7. read-excel-file
+   License: MIT
+   Copyright: (c) Cat-in-the-Cloud
+
+8. saxes
+   License: ISC
+   Copyright: (c) Louis-Dominique Dubeau
+
+9. yauzl
+   License: MIT
+   Copyright: (c) Josh Wolfe

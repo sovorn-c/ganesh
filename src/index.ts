@@ -181,3 +181,6 @@ export * from "./qualification/release-gate.js";
 export * from "./distribution/types.js";
 export * from "./distribution/support-matrix.js";
 export * from "./distribution/smoke.js";
+export * from "./distribution/package-artifact.js";
+export * from "./distribution/license-inventory.js";
+export * from "./distribution/signing-applicability.js";

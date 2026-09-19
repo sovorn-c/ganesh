@@ -19,8 +19,16 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "preflight": "npm run build && node dist/src/preflight-cli.js",
     "diagnostics": "npm run build && node dist/src/diagnostics-cli.js",
-    "qualify": "npm run build && node dist/src/qualify-cli.js"
+    "qualify": "npm run build && node dist/src/qualify-cli.js",
+    "pack": "npm run build && node -e \"import('./dist/src/distribution/package-artifact.js').then(m => m.buildPackageArtifact(process.cwd()))\""
   },
+  "files": [
+    "dist/src/**",
+    "docs/**",
+    "README.md",
+    "NOTICE",
+    "specs/distribution/**"
+  ],
   "dependencies": {
     "@earendil-works/pi-coding-agent": "0.85.1",
     "biblatex-csl-converter": "3.6.0",

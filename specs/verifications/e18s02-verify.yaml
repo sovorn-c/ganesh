@@ -1,0 +1,27 @@
+story_id: e18s02
+verified_at: "2026-09-19T11:38:15Z"
+verifier: bp-build
+branch: feat/e18-macos-distribution
+working_tree: active
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
+phases:
+  task_verifications:
+    passed: true
+    evidence: "e18s02-t01 through e18s02-t04 passed; files whitelist, package manifest with SHA-256 digest, third-party license inventory with LGPL-3.0 notices and source-links, invented Ganesh SPDX license refusal, and signing applicability passed."
+  tests:
+    passed: true
+    command: npm test
+    evidence: "package-artifact.test.ts, license-inventory.test.ts, signing-applicability.test.ts pass; total 530 tests passing."
+  typecheck:
+    passed: true
+    command: npm run typecheck
+  lint:
+    passed: true
+    command: npm run lint
+  build:
+    passed: true
+    command: npm run build
+gaps:
+  closed: true

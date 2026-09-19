@@ -20,7 +20,7 @@ development_status:
   e18: in_progress
 planning_level: e18_plan_approved
 active_epic: e18
-active_story: e18s02
+active_story: e18s03
 note: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf is owner-approved. Five stories totaling 21 BCP remain planned with failing task ledgers. /bp-build was not started. B06 qualified-human evidence remains a shipment blocker even after R18 packaging evidence exists; remote CI, publishing, deployment, and production readiness remain unclaimed.
 epics:
   e01:
@@ -845,13 +845,16 @@ epics:
         verification_evidence: specs/verifications/e18s01-verify.yaml
       e18s02:
         title: Reproducible Package Integrity, Licenses and Signing Applicability
-        status: planned
+        status: done
+        started_at: "2026-09-19T11:31:15Z"
+        completed_at: "2026-09-19T11:38:15Z"
         planning_status: ready
         bcps: 5
         risk: P0
         tasks_total: 4
-        tasks_passing: 0
-        tasks_failing: 4
+        tasks_passing: 4
+        tasks_failing: 0
+        verification_evidence: specs/verifications/e18s02-verify.yaml
       e18s03:
         title: Upgrade, Rollback and Uninstall Preserve Research Data
         status: planned

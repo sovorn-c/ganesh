@@ -2,13 +2,13 @@
 workflow_mode: solo-git
 active_flow: build_epic
 active_epic: e18
-active_story: e18s02
+active_story: e18s03
 handoff:
   next_skill: bp-build
   next_command: "/bp-build"
   summary: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
-    is owner-approved. e18s01 built and verified. Advancing develop-tdd on e18s02.
-  last_step_completed: e18s01 built and verified
+    is owner-approved. e18s01 and e18s02 built and verified. Advancing develop-tdd on e18s03.
+  last_step_completed: e18s02 built and verified
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml

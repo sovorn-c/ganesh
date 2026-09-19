@@ -1,0 +1,8 @@
+{
+  "channel": "npm-pack-tarball",
+  "artifactDigest": "sha256",
+  "lockfileIntegrity": true,
+  "appleCodesign": "not-applicable",
+  "npmProvenance": "not-applicable-until-authorized-registry-publication",
+  "notes": "npm tarball channel uses sha256 digest plus lockfile integrity; Apple codesign and registry provenance are not applicable."
+}

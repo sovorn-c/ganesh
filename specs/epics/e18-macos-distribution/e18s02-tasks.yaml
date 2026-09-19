@@ -1,7 +1,7 @@
 story_id: e18s02
 spec: e18s02-reproducible-package-integrity-licenses-signing.md
 title: Reproducible Package Integrity, Licenses and Signing Applicability
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: e18s02-t01
@@ -10,7 +10,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s02-P0-01]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, integrity, Security Review]
@@ -20,7 +20,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s02-P0-02]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, licenses, Security Review]
@@ -30,7 +30,7 @@ tasks:
     risk: P0
     security: high
     scenarios: [SC-e18s02-P0-03, SC-e18s02-P1-04]
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [distribution, signing, Security Review]
@@ -40,7 +40,7 @@ tasks:
     risk: P1
     security: medium
     scenarios: [SC-e18s02-P0-01]
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [compatibility, regression]
