@@ -945,7 +945,7 @@ epics:
         tasks_failing: 0
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-19T22:58:02Z"
-  rationale: "Traceability gate PASS: all 76 stories are traceable with 0 dark stories. Link oracle heuristic ratio is 0.258503 (76 low-confidence heuristic links of 294 total), below the downgrade threshold. Blind spots contain 0 HIGH findings, 11 MEDIUM warnings, and 76 LOW warnings; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the expected terminal active_story null state. Adversarial refute attempt found no missing E18 implementation tag or verification bundle."
-  heuristic_ratio: 0.258503
+  generated_at: "2026-09-20T17:17:05Z"
+  rationale: "Traceability gate PASS: all 81 stories are traceable with 0 dark stories. Link oracle heuristic ratio is 0.258786 (81 low-confidence heuristic links of 313 total), below the downgrade threshold. Blind spots contain 0 HIGH findings, 11 MEDIUM warnings, and 81 LOW warnings; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=0 FILLED=101. Adversarial refute attempt found no dark story, missing E19 verification bundle, or unresolved HIGH blind spot."
+  heuristic_ratio: 0.258786
   downgrade_applied: false
