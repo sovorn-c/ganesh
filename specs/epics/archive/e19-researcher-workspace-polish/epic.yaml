@@ -1,0 +1,206 @@
+---
+id: e19
+title: Researcher-facing workspace polish and continuous verification
+scope_ids:
+- R19
+outcome: Researchers understand Ganesh immediately, can find the next bounded research action, and receive honest release and verification status.
+boundaries:
+  includes:
+  - First-run Ganesh identity, a concise launch banner or initial message, and a bounded Supervisor context that is real runtime context rather than inert curated-resource text.
+  - Returning-workspace guidance and contextual next-action presentation over the existing `/ganesh-*` command and Pi extension seam.
+  - Focused entry points for orientation, landscape mapping, screening, appraisal, review, and specialist coordination that reuse existing stores, work contracts, capability checks, and disagreement handling.
+  - A small executable competency subset for orientation, landscape mapping, screening, appraisal, and review, with provenance, uncertainty, unsupported-context handling, and human escalation.
+  - Visible execution-mode guidance when local execution matters; `ask`, `approve`, and `full-access` remain explicit user choices and are never auto-selected.
+  - Release/support messaging that distinguishes maintained local npm tarball, private/unpublished distribution, and shipment blocked by B06, publication authorization, or production-readiness gates.
+  - GitHub Actions on push and pull request running the existing Node.js 24 local gates: preflight, tests, typecheck, lint, build as required by those commands, and local qualification.
+  excludes:
+  - Twenty-two mechanical Pi skill files, a second workflow engine, a separate web application, or a new agent runtime.
+  - Automatic execution-mode selection, unrestricted shell authority, or claims that full-access is a sandbox.
+  - Automatic npm publication, deployment, tagging, production-ready status, or completion of B06 qualified-human evaluation.
+  - New support claims for Darwin, Windows, or any OS/architecture combination not verified by the support matrix.
+  - Reopening E02–E18 foundations, changing project schemas, `PacketKind`, `OWNER_OPERATIONS`, disclosure rules, E15 deletion/restore contracts, or research-data storage semantics.
+  - Changes to global Pi configuration, hosted research accounts, or remote model authorization policy.
+depends_on:
+- e18
+acceptance_outcomes:
+- A new researcher can identify Ganesh and its bounded Supervisor role at first launch, understand the next safe action, and return to an existing project without repeated onboarding noise.
+- Contextual next-action guidance and focused `/ganesh-*` entry points invoke existing orientation, landscape, screening, appraisal, review, and specialist coordination behavior while preserving owner authority, provenance, budgets, cancellation, and disagreement retention.
+- The five selected competencies are executable and inspectable as runtime affordances; unsupported contexts, uncertainty, provenance, and human escalation remain visible, and catalog metadata is not misrepresented as full skill implementation.
+- Local execution guidance is visible at the point of need, while no execution mode is selected without the researcher.
+- Release messaging and qualification output clearly distinguish local tarball maintenance, private/unpublished state, shipment blockers, and production readiness.
+- GitHub Actions runs the same Node.js 24 local gates on push and pull request, reports failures honestly, and does not expand the verified support matrix beyond Linux x64 Node.js 24 or substitute for B06.
+architecture_decisions:
+- Reuse the existing `runWorkspace`, Pi runtime, and `registerWorkspaceCommands` seams; do not create a second workflow engine or UI.
+- Keep Supervisor context bounded and policy-relevant, with authority enforced by existing capability modules rather than prompt text.
+- Represent the five selected competencies as a focused runtime affordance layer over existing domain stores and work contracts; do not mirror the entire competency catalog as files.
+- Treat GitHub Actions as a verifier of existing local commands, not a new release, publication, qualification, or support-claim authority.
+- Permit E19 to extend the workspace surface even though E18 froze it for the distribution slice; preserve all E18 data, packaging, and release contracts.
+roadmap_notes:
+  release_placement: next epic after completed e18 in the existing complete local-first release roadmap
+  wsjf_inputs:
+    business_value: 10
+    time_criticality: 8
+    risk_reduction: 9
+    security_boost: 0
+    job_size: 34
+  wsjf: 0.794118
+  total_bcps: 34
+  bcp_basis: Five vertical stories total 34 BCP after inspection of runWorkspace, registerWorkspaceCommands, competency inventory, checkExecutionMode, release-gate flags, and the absence of hosted workflows.
+status: complete
+planning_stage: complete
+story_planning: complete
+risk: P0
+hard_gates:
+- No implicit execution mode may be introduced.
+- CI must run the existing Node.js 24 gates without claiming Darwin, Windows, B06, scholarly certification, or production readiness.
+- Existing capability, provenance, cancellation, data-preservation, and authority contracts must remain enforced through the new affordances.
+plan_pins:
+  supervisor_context_seam: interactive-mode-initial-fields
+  supervisor_context_rationale: >-
+    PiWorkspaceTuiPort currently passes empty InteractiveMode initial fields.
+    Locked Pi 0.85.1 InteractiveMode accepts initialMessage and initialMessages.
+    E19 composes bounded Ganesh Supervisor context and launch identity through
+    those fields. pi:base-prompt stays an inert curated resource and is not
+    Supervisor identity. Authority stays in capability-broker, not prompt text.
+  executable_competencies:
+  - id: comp-01
+    command: /ganesh-orient
+    store: recordOrientation / inspectOrientation / listOrientations
+  - id: comp-02
+    command: /ganesh-landscape
+    store: recordLandscapeMap / getLandscapeMap / listLandscapeMaps
+  - id: comp-05
+    command: /ganesh-screen
+    store: recordScreeningDecision / listScreeningDecisions
+  - id: comp-08
+    command: /ganesh-appraise
+    store: recordAppraisal / getAppraisal / listAppraisals
+  - id: comp-22
+    command: /ganesh-review
+    store: openReviewCycle / inspectReviewCycle / listReviewCycles
+  specialist_entry_point:
+    command: /ganesh-specialist
+    store: queueRoleRun / inspectWork / recordDisagreement
+    competency_id: none
+  catalog_remainder: metadata-only
+  execution_mode: GANESH_EXECUTION_MODE plus checkExecutionMode; never default ask, approve, or full-access
+  ci_forge: github-actions
+  ci_runner: ubuntu-latest
+  ci_node: "24"
+  ci_commands:
+  - npm run preflight
+  - npm test
+  - npm run typecheck
+  - npm run lint
+  - npm run build
+  - npm run qualify
+  ci_authority: verifier-of-local-gates
+  hosted_ci_flag: remains-false
+  support_matrix: unchanged; Linux x64 Node.js 24 only
+  additive_read_apis: listOrientations, listAppraisals, listReviewCycles; inspect capability only; no schema change
+requirement_deltas:
+- story_id: e19s01
+  type: ADDED
+  requirement: First-run identity, bounded Supervisor context and returning next-action
+  after: Launch composes Ganesh identity, a bounded Ganesh Supervisor role statement, and one next safe action from current project records. Created and reopened launches differ. Supervisor context is passed as real InteractiveMode initial fields, not pi:base-prompt.
+- story_id: e19s01
+  type: MODIFIED
+  requirement: Empty InteractiveMode initial context
+  before: >-
+    PiWorkspaceTuiPort constructed InteractiveMode with empty initial fields
+    and no Ganesh identity banner. runWorkspace success text only said current
+    records are ready.
+  after: TuiPort receives composed launch guidance. Created launches identify Ganesh and the bounded Supervisor. Reopened launches skip first-run onboarding noise and present a returning next action. --print-launch prints the same guidance text.
+- story_id: e19s02
+  type: ADDED
+  requirement: Focused research entry points
+  after: /ganesh-orient, /ganesh-landscape, /ganesh-screen, /ganesh-appraise, /ganesh-review, and /ganesh-specialist inspect or record through existing stores and work APIs. Help lists them. Workers cannot exercise owner mutations.
+- story_id: e19s02
+  type: MODIFIED
+  requirement: Workspace help catalog
+  before: presentHelp listed help, alternatives, confirm/reject/defer, inspect, viewer, status, access, and cancel.
+  after: Help also lists the six research entry points. Alternatives still inspect without adopting a branch.
+- story_id: e19s03
+  type: ADDED
+  requirement: Executable competency subset
+  after: comp-01, comp-02, comp-05, comp-08, and comp-22 are inspectable runtime affordances with provenance, uncertainty, unsupported-context, and human-escalation fields. The other inventory rows remain metadata. No 22-file skill catalog is written.
+- story_id: e19s03
+  type: MODIFIED
+  requirement: Competency inventory as metadata-only qualification artifact
+  before: validateCompetencyInventory treated all inventory rows as metadata for qualification. Workspace had no executable subset and no metadata-versus-runtime distinction.
+  after: Workspace affordances mark only the five selected competencies executable. Inventory validation still must not infer scholarly certification. A claim that all 22 rows are implemented skills fails closed.
+- story_id: e19s04
+  type: ADDED
+  requirement: Execution-mode guidance at point of need
+  after: When a workspace action needs local execution, the workspace shows the current checkExecutionMode report. Empty or invalid GANESH_EXECUTION_MODE stays unselected. Guidance never writes a mode and never calls full-access a sandbox.
+- story_id: e19s05
+  type: ADDED
+  requirement: Honest release states and GitHub Actions verifier
+  after: Product and qualify output distinguish maintained local npm tarball, private/unpublished distribution, and shipment blocked by B06, publication authorization, or production-readiness. A GitHub Actions workflow on push and pull_request runs the existing Node.js 24 local gates on ubuntu-latest. The workflow does not publish, tag, deploy, or mark Darwin/Windows/B06/production-ready.
+- story_id: e19s05
+  type: MODIFIED
+  requirement: Hosted CI exclusion from E18 distribution freeze
+  before: E18 excluded hosted CI and froze src/workspace/**. Qualification hostedCi and productionReady stayed false. Qualify rendered Scope Outcomes R01–R18.
+  after: E19 adds GitHub Actions as a verifier of existing local commands only. hostedCi and productionReady remain false. R19 is listed in qualify output. src/workspace/** may change for E19 polish. Support matrix and packaging contracts stay as E18 left them.
+stories:
+- id: e19s01
+  title: First-Run Identity, Bounded Supervisor Context and Returning Next Action
+  status: done
+  bcps: 8
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on: []
+  spec_file: e19s01-first-run-identity-and-returning-guidance.md
+  tasks_file: e19s01-tasks.yaml
+- id: e19s02
+  title: Focused Research Entry Points Over Existing Stores
+  status: done
+  bcps: 8
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on:
+  - e19s01
+  spec_file: e19s02-focused-research-entry-points.md
+  tasks_file: e19s02-tasks.yaml
+- id: e19s03
+  title: Executable Competency Subset with Provenance and Escalation
+  status: done
+  bcps: 7
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on:
+  - e19s02
+  spec_file: e19s03-executable-competency-subset.md
+  tasks_file: e19s03-tasks.yaml
+- id: e19s04
+  title: Explicit Execution-Mode Guidance Without Auto-Selection
+  status: done
+  bcps: 5
+  risk: P0
+  delta: ADDED
+  depends_on:
+  - e19s01
+  spec_file: e19s04-explicit-execution-mode-guidance.md
+  tasks_file: e19s04-tasks.yaml
+- id: e19s05
+  title: Honest Release States and GitHub Actions Continuous Verification
+  status: done
+  bcps: 6
+  risk: P0
+  delta: ADDED + MODIFIED
+  depends_on:
+  - e19s01
+  - e19s02
+  - e19s03
+  - e19s04
+  spec_file: e19s05-honest-release-states-and-github-actions.md
+  tasks_file: e19s05-tasks.yaml
+capsule_dir: epics/e19-researcher-workspace-polish
+next_skill: bp-build
+plan_revision: sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310
+plan_approval: approved_exact_revision
+plan_approval_revision: sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310
+plan_approved_at: "2026-09-20T08:28:10Z"
+plan_approval_source: explicit_owner_message
+implementation_authorized: true
+sequence: 19

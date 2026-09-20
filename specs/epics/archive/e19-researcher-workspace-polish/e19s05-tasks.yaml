@@ -1,0 +1,46 @@
+story_id: e19s05
+spec: e19s05-honest-release-states-and-github-actions.md
+title: Honest Release States and GitHub Actions Continuous Verification
+status: passed
+bcps: 6
+tasks:
+  - id: e19s05-t01
+    description: Add release-state presenter and product/qualify copy that distinguish maintained local npm tarball, private/unpublished, and shipment-blocked.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s05.*(tarball|unpublished|shipment-blocked|B06)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s05-P0-01]
+    status: passed
+    allure:
+      severity: critical
+      categories: [distribution, honesty]
+  - id: e19s05-t02
+    description: Add the GitHub Actions local-gates workflow and a parser that requires push/PR, Node 24, ubuntu-latest, and the pinned local commands.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s05.*(workflow|push|pull_request|node-version|preflight|qualify)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s05-P0-02]
+    status: passed
+    allure:
+      severity: critical
+      categories: [ci, continuous-verification]
+  - id: e19s05-t03
+    description: Refuse Darwin/Windows/B06/production-ready/publish claims, keep hostedCi and productionReady false, list R19 honestly, and keep no new security findings.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s05.*(darwin|windows|production-ready|hostedCi|publish|R19)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s05-P0-03, SC-e19s05-P1-04]
+    status: passed
+    allure:
+      severity: critical
+      categories: [honesty, Security Review]
+  - id: e19s05-t04
+    description: Keep released E01-E18 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e19s05-P0-01]
+    status: passed
+    allure:
+      severity: high
+      categories: [compatibility, regression]

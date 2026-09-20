@@ -1,0 +1,46 @@
+story_id: e19s02
+spec: e19s02-focused-research-entry-points.md
+title: Focused Research Entry Points Over Existing Stores
+status: passed
+bcps: 8
+tasks:
+  - id: e19s02-t01
+    description: Add entry-point presenters and register the six /ganesh-* inspect paths over existing orientation, landscape, screening, appraisal, review, and specialist APIs.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'registers six named commands' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s02-P0-01]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, entry-points]
+  - id: e19s02-t02
+    description: Wire owner write paths through existing record/open/queue APIs with commandId idempotency and list the new commands in help.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s02.*(record|queue|help|idempoten|commandId)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s02-P0-03, SC-e19s02-P1-04]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, help]
+  - id: e19s02-t03
+    description: Deny worker mutation, preserve disagreement and budget contracts, and keep no new security findings in the command path.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s02.*(worker|forbidden|disagreement|budget|deny)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s02-P0-02]
+    status: passed
+    allure:
+      severity: critical
+      categories: [authority, Security Review]
+  - id: e19s02-t04
+    description: Keep released E01-E18 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e19s02-P0-01]
+    status: passed
+    allure:
+      severity: high
+      categories: [compatibility, regression]

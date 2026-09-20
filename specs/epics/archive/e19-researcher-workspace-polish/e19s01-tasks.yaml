@@ -1,0 +1,46 @@
+story_id: e19s01
+spec: e19s01-first-run-identity-and-returning-guidance.md
+title: First-Run Identity, Bounded Supervisor Context and Returning Next Action
+status: passed
+bcps: 8
+tasks:
+  - id: e19s01-t01
+    description: Add launch-guidance types and compose Ganesh identity, bounded Supervisor role, and created-versus-reopened variants.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'Ganesh.*Supervisor' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s01-P0-01]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, first-run]
+  - id: e19s01-t02
+    description: Pass composed InteractiveMode initial fields through TuiPort and print the same guidance, including one next action, from --print-launch.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s01.*(initial|print-launch|next-action|guidance)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s01-P0-02, SC-e19s01-P0-03]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, supervisor-context]
+  - id: e19s01-t03
+    description: Omit restricted content from Supervisor context, refuse pi:base-prompt as identity, and keep no new security findings in the launch path.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'Ganesh.*restricted' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s01-P1-04]
+    status: passed
+    allure:
+      severity: critical
+      categories: [privacy, Security Review]
+  - id: e19s01-t04
+    description: Keep released E01-E18 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e19s01-P0-01]
+    status: passed
+    allure:
+      severity: high
+      categories: [compatibility, regression]
