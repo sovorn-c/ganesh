@@ -5,7 +5,7 @@ active_epic: e19
 active_story: e19s05
 git:
   branch: feat/e19-researcher-workspace-polish
-  hash: 644b414
+  hash: 661e802
 epic_cycle:
   current_step: develop-tdd
   next_skill: request-review
@@ -15,7 +15,7 @@ epic_cycle:
 handoff:
   next_skill: request-review
   next_command: "/bp-review"
-  summary: E19 implementation is complete through e19s05 on feat/e19-researcher-workspace-polish under owner-approved plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310. Review blockers F-01 through F-05 are fixed and final local checks pass, including the full suite (577/577) after refreshing the maintained tarball. Execution ledgers remain pending review reconciliation. The bare npm run lint command is intercepted by the local Pi shell wrapper; the underlying npm CLI and a shell-indirected npm run lint both pass. Do not run verify-work, audit-code, or release before the requested review.
+  summary: E19 implementation is complete through e19s05 on feat/e19-researcher-workspace-polish under owner-approved plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310. Review blockers F-01 through F-05 are fixed; execution ledgers are reconciled, the full suite passes (583/583), and changed-scope coverage passes at 95.69% functions and 89.55% lines. The bare npm run lint command is intercepted by the local Pi shell wrapper; the underlying npm CLI and a shell-indirected npm run lint both pass. Do not run verify-work, audit-code, or release before the requested review.
   last_step_completed: develop-tdd implementation and local blocker fixes complete for e19s01 through e19s05; review handoff ready
   required_reading:
   - CONVENTIONS.md

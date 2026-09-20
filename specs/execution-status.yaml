@@ -18,11 +18,11 @@ development_status:
   e13: done
   e17: done
   e18: done
-  e19: planned
+  e19: done
 planning_level: e19_stories_ready
 active_epic: e19
 active_story: e19s05
-note: E19 plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310 is owner-approved. E19 implementation is in progress; each story has three passing implementation tasks and one failing legacy-regression task. E18 remains complete locally; B06 qualified-human evidence, publication, deployment, and production readiness remain shipment gates.
+note: E19 plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310 is owner-approved. E19 implementation and local verification are complete through e19s05; all story tasks pass, including the changed-scope gate at 95.69% functions and 89.55% lines. E18 remains complete locally; B06 qualified-human evidence, publication, deployment, and production readiness remain shipment gates.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -894,58 +894,58 @@ epics:
         verification_evidence: specs/verifications/e18s05-verify.yaml
   e19:
     title: Researcher-facing workspace polish and continuous verification
-    status: planned
+    status: complete
     planning_status: ready
     story_planning: complete
     stories:
       e19s01:
         title: First-Run Identity, Bounded Supervisor Context and Returning Next Action
-        status: planned
+        status: done
         planning_status: ready
         bcps: 8
         risk: P0
         tasks_total: 4
-        tasks_passing: 3
-        tasks_failing: 1
+        tasks_passing: 4
+        tasks_failing: 0
       e19s02:
         title: Focused Research Entry Points Over Existing Stores
-        status: planned
+        status: done
         planning_status: ready
         bcps: 8
         risk: P0
         tasks_total: 4
-        tasks_passing: 3
-        tasks_failing: 1
+        tasks_passing: 4
+        tasks_failing: 0
       e19s03:
         title: Executable Competency Subset with Provenance and Escalation
-        status: planned
+        status: done
         planning_status: ready
         bcps: 7
         risk: P0
         tasks_total: 4
-        tasks_passing: 3
-        tasks_failing: 1
+        tasks_passing: 4
+        tasks_failing: 0
       e19s04:
         title: Explicit Execution-Mode Guidance Without Auto-Selection
-        status: planned
+        status: done
         planning_status: ready
         bcps: 5
         risk: P0
         tasks_total: 4
-        tasks_passing: 3
-        tasks_failing: 1
+        tasks_passing: 4
+        tasks_failing: 0
       e19s05:
         title: Honest Release States and GitHub Actions Continuous Verification
-        status: planned
+        status: done
         planning_status: ready
         bcps: 6
         risk: P0
         tasks_total: 4
-        tasks_passing: 3
-        tasks_failing: 1
+        tasks_passing: 4
+        tasks_failing: 0
 gate_trace:
   verdict: PASS
-  generated_at: "2026-09-19T22:58:02Z"
-  rationale: "Traceability gate PASS: all 76 stories are traceable with 0 dark stories. Link oracle heuristic ratio is 0.258503 (76 low-confidence heuristic links of 294 total), below the downgrade threshold. Blind spots contain 0 HIGH findings, 11 MEDIUM warnings, and 76 LOW warnings; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=1 FILLED=1; the warning is the expected terminal active_story null state. Adversarial refute attempt found no missing E18 implementation tag or verification bundle."
-  heuristic_ratio: 0.258503
+  generated_at: "2026-09-20T17:17:05Z"
+  rationale: "Traceability gate PASS: all 81 stories are traceable with 0 dark stories. Link oracle heuristic ratio is 0.258786 (81 low-confidence heuristic links of 313 total), below the downgrade threshold. Blind spots contain 0 HIGH findings, 11 MEDIUM warnings, and 81 LOW warnings; no critical gap was found. Completeness critic: BLOCKER=0 WARNING=0 FILLED=101. Adversarial refute attempt found no dark story, missing E19 verification bundle, or unresolved HIGH blind spot."
+  heuristic_ratio: 0.258786
   downgrade_applied: false
