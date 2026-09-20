@@ -63,7 +63,7 @@ bcp_estimate:
     ganesh bin, qualify R18 hardcoded block, npm pack defaults, E15 deletion versus
     product uninstall, docs/runbooks, undeclared product license, and LGPL-3.0
     biblatex-csl-converter notices. Not a tool-computed BCP Plus count.
-status: planned
+status: complete
 planning_stage: complete
 risk: P0
 story_planning: complete
@@ -138,7 +138,7 @@ requirement_deltas:
 stories:
 - id: e18s01
   title: Support Matrix and Packaged CLI Smoke
-  status: planned
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED + MODIFIED
@@ -147,7 +147,7 @@ stories:
   tasks_file: e18s01-tasks.yaml
 - id: e18s02
   title: Reproducible Package Integrity, Licenses and Signing Applicability
-  status: planned
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
@@ -157,7 +157,7 @@ stories:
   tasks_file: e18s02-tasks.yaml
 - id: e18s03
   title: Upgrade, Rollback and Uninstall Preserve Research Data
-  status: planned
+  status: done
   bcps: 5
   risk: P0
   delta: ADDED
@@ -168,7 +168,7 @@ stories:
   tasks_file: e18s03-tasks.yaml
 - id: e18s04
   title: Shipped Guides, Examples, Limitations, Release Notes and Support
-  status: planned
+  status: done
   bcps: 3
   risk: P0
   delta: ADDED
@@ -178,7 +178,7 @@ stories:
   tasks_file: e18s04-tasks.yaml
 - id: e18s05
   title: Explicit-Authorization SemVer Procedure and Evidence-Backed R18 Gate
-  status: planned
+  status: done
   bcps: 3
   risk: P0
   delta: ADDED + MODIFIED

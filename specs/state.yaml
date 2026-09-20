@@ -1,13 +1,13 @@
 ---
 workflow_mode: solo-git
-active_flow: build_epic
-active_epic: e18
+active_flow: plan
+active_epic: none
 active_story: null
 handoff:
-  next_skill: bp-review
-  next_command: "/bp-review"
-  summary: E18 installable maintained local release plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf built and verified across all 5 stories (e18s01–e18s05). Ready for epic review.
-  last_step_completed: e18s05 built and verified; all E18 stories complete
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E18 installable maintained local release was integrated on local main under the owner-approved plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf. Five stories passed and local qualification passes; B06 qualified-human evidence, remote CI, publishing, deployment, and production readiness remain unclaimed.
+  last_step_completed: E18 release-branch local integration complete
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
@@ -248,6 +248,9 @@ blueprint:
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e17/THREAT_MODEL.md
   e18_plan: approved_exact_revision
+  e18_build: complete
+  e18_review: complete_local_release
+  e18_release: complete_local_release
   e18_plan_revision: sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf
   e18_plan_approved_at: '2026-09-19T09:09:54Z'
   e18_plan_approval_source: explicit_owner_message
