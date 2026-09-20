@@ -1,27 +1,31 @@
 ---
 workflow_mode: solo-git
-active_flow: build_epic
-active_epic: e19
-active_story: e19s05
+active_flow: plan
+active_epic: none
+active_story: none
 git:
-  branch: feat/e19-researcher-workspace-polish
-  hash: 661e802
+  branch: main
+  hash: 3789500
 epic_cycle:
-  current_step: develop-tdd
-  next_skill: request-review
+  current_step: release-branch
+  next_skill: bp-plan
   completed_steps:
   - kickoff-branch
   - develop-tdd
+  - verify-work
+  - audit-code
+  - gate-trace
+  - release-branch
 handoff:
-  next_skill: request-review
-  next_command: "/bp-review"
-  summary: E19 implementation is complete through e19s05 on feat/e19-researcher-workspace-polish under owner-approved plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310. Review blockers F-01 through F-05 are fixed; execution ledgers are reconciled, the full suite passes (583/583), and changed-scope coverage passes at 95.69% functions and 89.55% lines. The bare npm run lint command is intercepted by the local Pi shell wrapper; the underlying npm CLI and a shell-indirected npm run lint both pass. Do not run verify-work, audit-code, or release before the requested review.
-  last_step_completed: develop-tdd implementation and local blocker fixes complete for e19s01 through e19s05; review handoff ready
+  next_skill: bp-plan
+  next_command: "/bp-plan"
+  summary: E19 researcher-facing workspace polish was integrated into local main at merge tip 3789500 after the coverage and verification corrections. Five stories, 20 task checks, verification bundles, changed-scope coverage, build, typecheck, lint, preflight, qualification, security, traceability, and completeness gates pass locally. R18, B06 qualified-human evidence, hosted CI, publication, deployment, and production readiness remain unclaimed shipment gates. No push, tag, PR, publish, or deployment was performed.
+  last_step_completed: E19 local merge, status synchronization, and capsule archival prepared for finalization commit
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
   - specs/tech-architecture/tech-stack.md
-  - specs/epics/e19-researcher-workspace-polish/epic.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/epic.yaml
   - specs/tech-architecture/e19-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e19/THREAT_MODEL.md
@@ -242,18 +246,21 @@ blueprint:
   e19_plan_approval_source: explicit_owner_message
   e19_plan_audit: READY_implementation_mode
   e19_plan_audit_artifact: specs/PLAN-AUDIT_LATEST.md
+  e19_build: complete
+  e19_review: complete_local_release
+  e19_release: complete_local_release
   e19_plan_artifacts:
-  - specs/epics/e19-researcher-workspace-polish/epic.yaml
-  - specs/epics/e19-researcher-workspace-polish/e19s01-first-run-identity-and-returning-guidance.md
-  - specs/epics/e19-researcher-workspace-polish/e19s01-tasks.yaml
-  - specs/epics/e19-researcher-workspace-polish/e19s02-focused-research-entry-points.md
-  - specs/epics/e19-researcher-workspace-polish/e19s02-tasks.yaml
-  - specs/epics/e19-researcher-workspace-polish/e19s03-executable-competency-subset.md
-  - specs/epics/e19-researcher-workspace-polish/e19s03-tasks.yaml
-  - specs/epics/e19-researcher-workspace-polish/e19s04-explicit-execution-mode-guidance.md
-  - specs/epics/e19-researcher-workspace-polish/e19s04-tasks.yaml
-  - specs/epics/e19-researcher-workspace-polish/e19s05-honest-release-states-and-github-actions.md
-  - specs/epics/e19-researcher-workspace-polish/e19s05-tasks.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/epic.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s01-first-run-identity-and-returning-guidance.md
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s01-tasks.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s02-focused-research-entry-points.md
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s02-tasks.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s03-executable-competency-subset.md
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s03-tasks.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s04-explicit-execution-mode-guidance.md
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s04-tasks.yaml
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s05-honest-release-states-and-github-actions.md
+  - specs/epics/archive/e19-researcher-workspace-polish/e19s05-tasks.yaml
   - specs/tech-architecture/e19-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
   - specs/security/epics/e19/THREAT_MODEL.md

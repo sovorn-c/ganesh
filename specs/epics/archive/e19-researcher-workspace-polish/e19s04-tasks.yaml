@@ -1,0 +1,46 @@
+story_id: e19s04
+spec: e19s04-explicit-execution-mode-guidance.md
+title: Explicit Execution-Mode Guidance Without Auto-Selection
+status: passed
+bcps: 5
+tasks:
+  - id: e19s04-t01
+    description: Add execution-mode guidance over checkExecutionMode and show it when a workspace action needs local execution.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s04.*(guidance|point-of-need|not_configured|specialist)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s04-P0-01]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, execution-mode]
+  - id: e19s04-t02
+    description: Keep empty and invalid values unselected and include the full-access notice without sandbox language.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s04.*(auto-select|invalid|full-access|sandbox)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s04-P0-02, SC-e19s04-P0-03]
+    status: passed
+    allure:
+      severity: critical
+      categories: [honesty, Security Review]
+  - id: e19s04-t03
+    description: Prove guidance never writes GANESH_EXECUTION_MODE and keep no new security findings.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s04.*(env|write|GANESH_EXECUTION_MODE)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s04-P1-04]
+    status: passed
+    allure:
+      severity: critical
+      categories: [authority, Security Review]
+  - id: e19s04-t04
+    description: Keep released E01-E18 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e19s04-P0-01]
+    status: passed
+    allure:
+      severity: high
+      categories: [compatibility, regression]

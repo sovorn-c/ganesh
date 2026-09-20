@@ -1,0 +1,46 @@
+story_id: e19s03
+spec: e19s03-executable-competency-subset.md
+title: Executable Competency Subset with Provenance and Escalation
+status: passed
+bcps: 7
+tasks:
+  - id: e19s03-t01
+    description: Add affordance views that mark comp-01, comp-02, comp-05, comp-08, and comp-22 executable over the e19s02 entry points.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'marks only five.*executable' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e19s03-P0-01]
+    status: passed
+    allure:
+      severity: critical
+      categories: [workspace, competency]
+  - id: e19s03-t02
+    description: Surface provenance, uncertainty, and unsupported-context on each executable affordance.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s03.*(provenance|uncertainty|unsupported)' dist/tests/*/*.test.js"
+    risk: P0
+    security: medium
+    scenarios: [SC-e19s03-P0-02]
+    status: passed
+    allure:
+      severity: critical
+      categories: [honesty, provenance]
+  - id: e19s03-t03
+    description: Keep non-selected inventory rows metadata-only, require human escalation outside competence, refuse a 22-file skill tree, and keep no new security findings.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run build && node scripts/require-test-match.mjs 'e19s03.*(metadata-only|escalat|skill.file|22)' dist/tests/*/*.test.js"
+    risk: P0
+    security: high
+    scenarios: [SC-e19s03-P0-03, SC-e19s03-P1-04]
+    status: passed
+    allure:
+      severity: critical
+      categories: [honesty, Security Review]
+  - id: e19s03-t04
+    description: Keep released E01-E18 behavior passing under Node.js 24.
+    verify: "node -e \"if (process.versions.node.split('.')[0] !== '24') process.exit(1)\" && npm run typecheck && npm run lint && npm run build && npm test"
+    risk: P1
+    security: medium
+    scenarios: [SC-e19s03-P0-01]
+    status: passed
+    allure:
+      severity: high
+      categories: [compatibility, regression]
