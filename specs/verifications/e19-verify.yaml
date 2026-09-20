@@ -1,0 +1,32 @@
+epic: e19
+epic_id: e19
+title: Researcher-facing workspace polish and continuous verification
+verified_at: "2026-09-20T17:17:05Z"
+verifier: bp-release-solo
+branch: feat/e19-researcher-workspace-polish
+runtime: Node.js 24.21.0
+status: passed
+plan_revision: sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310
+stories:
+  e19s01: {status: passed, tasks_total: 4, tasks_passing: 4, task_evidence: specs/verifications/e19s01-verify.yaml}
+  e19s02: {status: passed, tasks_total: 4, tasks_passing: 4, task_evidence: specs/verifications/e19s02-verify.yaml}
+  e19s03: {status: passed, tasks_total: 4, tasks_passing: 4, task_evidence: specs/verifications/e19s03-verify.yaml}
+  e19s04: {status: passed, tasks_total: 4, tasks_passing: 4, task_evidence: specs/verifications/e19s04-verify.yaml}
+  e19s05: {status: passed, tasks_total: 4, tasks_passing: 4, task_evidence: specs/verifications/e19s05-verify.yaml}
+checks:
+  task_verifications: {passed: true, evidence: 20/20 E19 tasks passed}
+  tests: {passed: true, command: npm test, evidence: 583/583 tests passed}
+  typecheck: {passed: true, command: npm run typecheck}
+  lint: {passed: true, command: sh -c 'npm run lint'}
+  build: {passed: true, command: npm run build}
+  preflight: {passed: true, command: npm run preflight, evidence: exit 0 with execution-mode not-configured warning}
+  qualify: {passed: true, command: npm run qualify, evidence: R19 passed and R18 remains blocked}
+  changed_scope_coverage: {passed: true, evidence: 95.69% functions and 89.55% lines}
+  diff_check: {passed: true, command: git diff --check}
+summary:
+  task_verifications: 20
+  task_verifications_passing: 20
+  tests_passing: 583
+  production_readiness_claimed: false
+notes:
+  - R19 is local-only and does not imply publication, hosted CI, deployment, B06 completion, or production readiness.
