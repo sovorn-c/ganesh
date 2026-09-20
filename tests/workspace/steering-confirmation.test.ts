@@ -95,7 +95,8 @@ describe("E14 steering and confirmation", () => {
     }, session);
     assert.deepEqual(registered, [
       "ganesh-help", "ganesh-alternatives", "ganesh-confirm", "ganesh-reject", "ganesh-defer",
-      "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel"
+      "ganesh-inspect", "ganesh-viewer", "ganesh-status", "ganesh-access", "ganesh-cancel",
+      "ganesh-orient", "ganesh-landscape", "ganesh-screen", "ganesh-appraise", "ganesh-review", "ganesh-specialist"
     ]);
     assert.deepEqual(shortcuts, ["ctrl+enter", "ctrl+alt+h", "ctrl+alt+a", "ctrl+alt+y", "ctrl+alt+n", "ctrl+alt+d", "ctrl+alt+i", "ctrl+alt+v", "ctrl+alt+c", "ctrl+alt+s", "ctrl+alt+x", "ctrl+alt+right", "ctrl+alt+left"]);
     const shortcutHandlers = new Map<string, (ctx: ExtensionContext) => void | Promise<void>>();

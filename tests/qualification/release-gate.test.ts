@@ -98,17 +98,17 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
   });
 
   // SC-e17s05-P0-03: Outcomes listed; R18 not invented
-  it("e17s05 lists outcomes R01 through R18 without inventing R18 pass (SC-e17s05-P0-03)", () => {
+  it("e17s05 lists outcomes R01 through R19 without inventing R18 pass (SC-e17s05-P0-03)", () => {
     const repoRoot = path.resolve(".");
     const report = runReleaseQualification(repoRoot, { mode: "catalog" });
 
-    assert.equal(report.outcomes.length, 18);
+    assert.equal(report.outcomes.length, 19);
     const r18 = report.outcomes.find((o) => o.id === "R18");
     assert.ok(r18, "R18 must be present in outcome list");
     assert.equal(r18.status, "blocked");
     assert.notEqual(r18.status, "passed");
 
-    for (let i = 1; i <= 18; i++) {
+    for (let i = 1; i <= 19; i++) {
       const id = `R${String(i).padStart(2, "0")}`;
       const found = report.outcomes.find((o) => o.id === id);
       assert.ok(found, `Expected outcome ${id} in report`);
@@ -171,7 +171,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
     assert.equal(parsed.hostedCi, false);
     assert.equal(parsed.productionReady, false);
     assert.equal(parsed.scholarlyCertification, "not-inferred");
-    assert.equal(parsed.outcomes.length, 18);
+    assert.equal(parsed.outcomes.length, 19);
   });
 
   it("e17s05 qualify CLI renders human summary by default (SC-e17s05-P0-01)", () => {
@@ -211,7 +211,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       assert.equal(report.localQualification, "failed");
       assert.ok(report.reasons && report.reasons.some((r) => r.includes("Missing scope outcome in catalog")));
       // E17-004: All 18 outcome rows must be emitted even when missing from catalog
-      assert.equal(report.outcomes.length, 18);
+      assert.equal(report.outcomes.length, 19);
       const r02 = report.outcomes.find((o) => o.id === "R02");
       assert.ok(r02);
       assert.equal(r02.status, "unimplemented");
@@ -247,7 +247,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       const report = runReleaseQualification(dir);
       assert.equal(report.localQualification, "pass");
       assert.equal(report.shipment, "blocked");
-      assert.equal(report.outcomes.length, 18);
+      assert.equal(report.outcomes.length, 19);
       const r18 = report.outcomes.find((o) => o.id === "R18");
       assert.ok(r18);
       assert.equal(r18.status, "blocked");
@@ -278,7 +278,7 @@ describe("e17s05 local automation-ready release-qualification gate", () => {
       const report = runReleaseQualification(dir);
       assert.equal(report.localQualification, "failed");
       assert.ok(report.reasons && report.reasons.some((r) => r.includes("Required local scope outcome R03 is not passed")));
-      assert.equal(report.outcomes.length, 18);
+      assert.equal(report.outcomes.length, 19);
     } finally {
       cleanup();
     }

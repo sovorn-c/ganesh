@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { runReleaseQualification } from "../qualification/release-gate.js";
 import { validatePackagingEvidence } from "./packaging-evidence.js";
+import { presentReleaseStates } from "./release-messaging.js";
 import type {
   ReleaseProcedureOptions,
   ReleaseProcedureReport,
@@ -124,6 +125,7 @@ export function runReleaseProcedure(
     qualify,
     packagingEvidence,
     semverProposal,
+    releaseStates: presentReleaseStates(),
     hostedCi: false,
     productionReady: false,
     reasons: passed ? undefined : reasons

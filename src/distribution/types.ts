@@ -1,5 +1,6 @@
 // story: e18s01
 import type { ReleaseQualificationOptions, ReleaseQualificationReport } from "../qualification/qualification-types.js";
+import type { ReleaseStateView } from "./release-messaging.js";
 
 export type PlatformOS = "darwin" | "linux" | "win32" | string;
 export type PlatformArch = "x64" | "arm64" | "ia32" | string;
@@ -214,6 +215,7 @@ export interface ReleaseProcedureReport {
   qualify: ReleaseQualificationReport;
   packagingEvidence: PackagingEvidenceReport;
   semverProposal: SemVerProposal;
+  releaseStates: ReleaseStateView;
   hostedCi: false;
   productionReady: false;
   reasons?: string[];

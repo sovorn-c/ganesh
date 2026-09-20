@@ -6,6 +6,7 @@ import { confirmExactVersion } from "./confirmation.js";
 import { openLocalViewer, presentInspection, nativeLocalViewerPort } from "./evidence.js";
 import { cancelFromWorkspace, presentWorkStatus } from "./status.js";
 import { presentAlternatives, presentHelp } from "./steering.js";
+import { presentResearchEntry, type ResearchEntryKind, RESEARCH_ENTRY_COMMANDS } from "./entry-points.js";
 import type { WorkspaceSession } from "./workspace-types.js";
 
 type WorkspaceCommandRegistrar = Pick<ExtensionAPI, "registerCommand" | "registerShortcut">;
@@ -140,6 +141,20 @@ export function registerWorkspaceCommands(pi: WorkspaceCommandRegistrar, session
       }
     }
   });
+
+  const researchKinds: readonly ResearchEntryKind[] = ["orient", "landscape", "screen", "appraise", "review", "specialist"];
+  for (const [command, kind] of RESEARCH_ENTRY_COMMANDS.map((command, index) => [command, researchKinds[index]] as const)) {
+    pi.registerCommand(command, {
+      description: `Inspect or record ${kind} research state through the existing store`,
+      handler: async (args, ctx) => {
+        try {
+          ctx.ui.notify(presentResearchEntry(session, kind, args).text, "info");
+        } catch (error) {
+          ctx.ui.notify(error instanceof Error ? error.message : `${kind} entry failed`, "warning");
+        }
+      }
+    });
+  }
 
   const shortcuts = [
     ["ctrl+enter", "intake"],

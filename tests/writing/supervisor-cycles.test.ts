@@ -19,6 +19,32 @@ import { projectFixture, disposeFixture, artifact } from "../support/project-fix
 import { writingWorker } from "../support/writing-fixtures.js";
 
 describe("e13s03 supervisor request/response cycles, dissent and history", () => {
+  it("e19s02 review retries return the original cycle and reject a conflicting draft", () => {
+    const fixture = projectFixture();
+    const owner = createOwnerCapability("owner-test");
+    try {
+      const firstDraft = recordDraft(fixture.handle, owner, {
+        commandId: "e19s02-review-draft-1",
+        title: "First draft",
+        bodyMarkdown: "First draft body"
+      });
+      const secondDraft = recordDraft(fixture.handle, owner, {
+        commandId: "e19s02-review-draft-2",
+        title: "Second draft",
+        bodyMarkdown: "Second draft body"
+      });
+      const request = { commandId: "e19s02-review-cycle", draftId: firstDraft.id };
+      const cycle = openReviewCycle(fixture.handle, owner, request);
+      assert.deepEqual(openReviewCycle(fixture.handle, owner, request), cycle);
+      assert.throws(
+        () => openReviewCycle(fixture.handle, owner, { ...request, draftId: secondDraft.id }),
+        (error: unknown) => error instanceof ProjectStoreError && error.code === "payload-conflict"
+      );
+    } finally {
+      disposeFixture(fixture);
+    }
+  });
+
   it("e13s03 SC-e13s03-P0-01 request/response cycle returns attributed feedback and dissent after reopen", () => {
     const fixture = projectFixture();
     const owner = createOwnerCapability("owner-test");

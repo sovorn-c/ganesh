@@ -109,11 +109,15 @@ export function openReviewCycle(
 
   const payloadHash = sha256(bytesFor(JSON.stringify(request)));
   const existingOp = findWritingOperation(handle.db, request.commandId, "open-review-cycle");
-  if (existingOp && existingOp.entityId) {
-    const existingRow = handle.db.prepare("SELECT * FROM review_cycles WHERE id = ?").get(existingOp.entityId) as Record<string, unknown> | undefined;
-    if (existingRow) {
-      return mapCycleRow(existingRow);
+  if (existingOp) {
+    if (existingOp.payloadHash !== payloadHash || !existingOp.entityId) {
+      throw new ProjectStoreError("payload-conflict", "command payload does not match prior invocation");
     }
+    const existingRow = handle.db.prepare("SELECT * FROM review_cycles WHERE id = ?").get(existingOp.entityId) as Record<string, unknown> | undefined;
+    if (!existingRow) {
+      throw new ProjectStoreError("payload-conflict", "prior review-cycle invocation has no recorded result");
+    }
+    return mapCycleRow(existingRow);
   }
 
   const id = newId("cycle");
@@ -259,6 +263,13 @@ export function recordOwnerCycleDisposition(
 
   const updatedRow = handle.db.prepare("SELECT * FROM review_cycles WHERE id = ?").get(request.cycleId) as Record<string, unknown>;
   return mapCycleRow(updatedRow);
+}
+
+export function listReviewCycles(handle: ProjectHandle, capability: unknown): readonly ReviewCycle[] {
+  assertWritingSchema(handle);
+  assertWritingInspectAccess(handle, capability);
+  const rows = handle.db.prepare("SELECT * FROM review_cycles ORDER BY created_at, id").all() as Array<Record<string, unknown>>;
+  return rows.map(mapCycleRow);
 }
 
 export function inspectReviewCycle(

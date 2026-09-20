@@ -161,6 +161,15 @@ export function recordAppraisal(handle: ProjectHandle, capability: unknown, requ
   return appraisal;
 }
 
+export function listAppraisals(handle: ProjectHandle, capability: unknown): readonly AppraisalRecord[] {
+  assertClaimSchema(handle);
+  if (!allowed(handle, capability, ["evidence:inspect"]) && !allowed(handle, capability, ["evidence:appraise"])) {
+    throw new ProjectStoreError("forbidden", "appraisal inspection requires evidence:inspect capability");
+  }
+  const rows = handle.db.prepare("SELECT * FROM appraisals ORDER BY created_at, id").all() as Array<Record<string, unknown>>;
+  return rows.map(appraisalFromRow);
+}
+
 export function getAppraisal(handle: ProjectHandle, capability: unknown, appraisalId: string): AppraisalRecord {
   assertClaimSchema(handle);
   if (!allowed(handle, capability, ["evidence:inspect"]) && !allowed(handle, capability, ["evidence:appraise"])) {throw new ProjectStoreError("forbidden", "appraisal inspection requires evidence:inspect capability");}

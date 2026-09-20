@@ -18,10 +18,11 @@ development_status:
   e13: done
   e17: done
   e18: done
-planning_level: e18_complete
-active_epic: none
-active_story: none
-note: E18 installable maintained local release was integrated on local main under plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf. Five stories and 20 task checks passed; local qualification passes. B06 qualified-human evidence remains a shipment blocker; remote CI, publishing, deployment, and production readiness remain unclaimed.
+  e19: planned
+planning_level: e19_stories_ready
+active_epic: e19
+active_story: e19s05
+note: E19 plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310 is owner-approved. E19 implementation is in progress; each story has three passing implementation tasks and one failing legacy-regression task. E18 remains complete locally; B06 qualified-human evidence, publication, deployment, and production readiness remain shipment gates.
 epics:
   e01:
     title: Verified development and runtime baseline
@@ -891,6 +892,57 @@ epics:
         tasks_passing: 4
         tasks_failing: 0
         verification_evidence: specs/verifications/e18s05-verify.yaml
+  e19:
+    title: Researcher-facing workspace polish and continuous verification
+    status: planned
+    planning_status: ready
+    story_planning: complete
+    stories:
+      e19s01:
+        title: First-Run Identity, Bounded Supervisor Context and Returning Next Action
+        status: planned
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 3
+        tasks_failing: 1
+      e19s02:
+        title: Focused Research Entry Points Over Existing Stores
+        status: planned
+        planning_status: ready
+        bcps: 8
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 3
+        tasks_failing: 1
+      e19s03:
+        title: Executable Competency Subset with Provenance and Escalation
+        status: planned
+        planning_status: ready
+        bcps: 7
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 3
+        tasks_failing: 1
+      e19s04:
+        title: Explicit Execution-Mode Guidance Without Auto-Selection
+        status: planned
+        planning_status: ready
+        bcps: 5
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 3
+        tasks_failing: 1
+      e19s05:
+        title: Honest Release States and GitHub Actions Continuous Verification
+        status: planned
+        planning_status: ready
+        bcps: 6
+        risk: P0
+        tasks_total: 4
+        tasks_passing: 3
+        tasks_failing: 1
 gate_trace:
   verdict: PASS
   generated_at: "2026-09-19T22:58:02Z"

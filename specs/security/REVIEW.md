@@ -210,3 +210,12 @@ The section above records the resolved pass-2 security finding and its checks. I
 - **Credential and sink checks:** No credential-shaped literal was found in changed product code or shipped artifacts; the only broad scan match is documentation text naming the forbidden `token=` pattern. `npm run build`, `npm run typecheck`, `npm run lint`, `npm test` (564/564), and `git diff --check` passed.
 - **Process limitations:** This is local security evidence only. Remote CI, publishing, deployment, production readiness, and the separate `release-check` gate remain unclaimed. `scripts/verify-cwe-fixture-sync.sh` and repository-local `scripts/land-branch.sh` are absent from this checkout.
 - **Verdict:** PASS for the local security gate; no unresolved HIGH-confidence finding (confidence ≥8).
+
+## e19 security review — local integration gate
+
+- **Scope:** Current `feat/e19-researcher-workspace-polish` working tree changes for launch guidance, focused research entry points, executable competency affordances, execution-mode guidance, release messaging, continuous verification, and R19 qualification evidence.
+- **Runtime and dependency evidence:** Node.js `v24.21.0`; `npm audit --omit=dev --audit-level=high` reported `found 0 vulnerabilities`; no new npm dependency was added.
+- **Authority and data boundaries:** Workspace mutations remain owner-capability gated; worker entry-point writes are denied. Launch guidance omits restricted bodies and does not mint authority. Review-cycle payload conflicts and missing orientation command IDs fail closed.
+- **Honesty and release boundaries:** R19 passed evidence is restricted to existing E19 files under the project root. Execution mode is inspected but never selected or written. Workflow checks are verifier-only and do not publish, tag, deploy, or claim Darwin, Windows, B06, or production readiness.
+- **Injection and sink checks:** Changed paths use prepared SQL and contain no shell execution, network client, dynamic evaluation, unsafe deserialization, or credential-shaped literals. The repository's documented CWE fixture-sync helper is absent from this checkout, so that auxiliary check could not run.
+- **Verdict:** No unresolved HIGH-confidence security finding (confidence ≥8) identified for the E19 local integration. This is local security evidence only, not production-readiness, scholarly-validity, publication, deployment, or remote-CI approval.

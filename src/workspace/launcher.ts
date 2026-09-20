@@ -6,6 +6,7 @@ import { ProjectStoreError, type ProjectHandle } from "../project/project-types.
 import { createWorkspacePorts } from "./runtime-port.js";
 import { createWorkspaceExtensions } from "./extension.js";
 import { resolveProjectFolder } from "./argv.js";
+import { composeLaunchGuidance } from "./guidance.js";
 import type {
   WorkspaceLaunchErrorCode,
   WorkspaceLaunchRequest,
@@ -130,6 +131,7 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
       },
       ports
     };
+    const guidance = composeLaunchGuidance(session);
     const runtime = await ports.runtime.create({
       ...runtimeOptions,
       extensionFactories: createWorkspaceExtensions(session)
@@ -149,10 +151,16 @@ export async function runWorkspace(request: WorkspaceLaunchRequest): Promise<Wor
     process.once("exit", closeOnProcessExit);
     process.once("beforeExit", closeOnProcessExit);
     try {
-      await ports.tui.run(runtime, { projectRoot: root, agentDir, ownerId: handle.project.ownerId });
+      await ports.tui.run(runtime, {
+        projectRoot: root,
+        agentDir,
+        ownerId: handle.project.ownerId,
+        initialMessage: guidance.initialMessage,
+        initialMessages: guidance.initialMessages
+      });
       return {
         status,
-        message: status === "created" ? "Ganesh workspace created; current records are ready" : "Ganesh workspace reopened; current records are ready",
+        message: guidance.text,
         session
       };
     } finally {

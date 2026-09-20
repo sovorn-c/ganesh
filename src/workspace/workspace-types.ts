@@ -19,6 +19,8 @@ export interface WorkspaceTuiOptions {
   readonly projectRoot: string;
   readonly agentDir: string;
   readonly ownerId: string;
+  readonly initialMessage: string;
+  readonly initialMessages: readonly string[];
 }
 
 export interface TuiPort {

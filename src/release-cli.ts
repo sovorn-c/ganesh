@@ -13,6 +13,9 @@ function renderReleaseProcedureReport(report: ReleaseProcedureReport): string {
   lines.push(`Hosted CI:           ${report.hostedCi}`);
   lines.push(`Production Ready:    ${report.productionReady}`);
   lines.push("");
+  lines.push("--- Release States ---");
+  lines.push(report.releaseStates.text);
+  lines.push("");
   lines.push("--- SemVer Proposal ---");
   lines.push(`Current Version:     ${report.semverProposal.currentVersion}`);
   lines.push(`Proposed Version:    ${report.semverProposal.proposedVersion}`);

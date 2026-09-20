@@ -16,6 +16,37 @@ import type {
   SafetyDefectLedger
 } from "./qualification-types.js";
 
+const E19_VERIFICATION_POINTERS = new Set([
+  "specs/tech-architecture/e19-TEST_PLAN_LATEST.md",
+  "tests/workspace/launch-guidance.test.ts",
+  "tests/workspace/research-entry-points.test.ts",
+  "tests/workspace/competency-affordances.test.ts",
+  "tests/workspace/execution-mode-guidance.test.ts",
+  "tests/distribution/release-messaging.test.ts",
+  "tests/distribution/continuous-verification.test.ts",
+  "tests/qualification/e19-release-gate.test.ts",
+  ".github/workflows/local-gates.yml"
+]);
+
+function validateE19VerificationPointer(projectRoot: string, pointer: string | undefined): boolean {
+  if (!pointer) {
+    return false;
+  }
+  const pointers = pointer.split(";").map((value) => value.trim()).filter(Boolean);
+  return pointers.length > 0 && pointers.every((value) => {
+    if (path.isAbsolute(value) || !E19_VERIFICATION_POINTERS.has(value)) {
+      return false;
+    }
+    try {
+      const rootPath = fs.realpathSync(projectRoot);
+      const evidencePath = fs.realpathSync(path.resolve(projectRoot, value));
+      return evidencePath.startsWith(`${rootPath}${path.sep}`) && fs.statSync(evidencePath).isFile();
+    } catch {
+      return false;
+    }
+  });
+}
+
 const DEFAULT_OUTCOME_METADATA: Readonly<Record<string, { readonly epicId: string; readonly title: string }>> = Object.freeze({
   R01: { epicId: "e01", title: "Verified development and runtime baseline" },
   R02: { epicId: "e02", title: "Durable versioned research projects" },
@@ -34,7 +65,8 @@ const DEFAULT_OUTCOME_METADATA: Readonly<Record<string, { readonly epicId: strin
   R15: { epicId: "e15", title: "Research state recovery, portability, and clean deletion" },
   R16: { epicId: "e16", title: "Operational reliability, budgets, and redacted diagnostics" },
   R17: { epicId: "e17", title: "Scholarly and adversarial release qualification" },
-  R18: { epicId: "e18", title: "Installable maintained local release" }
+  R18: { epicId: "e18", title: "Installable maintained local release" },
+  R19: { epicId: "e19", title: "Researcher-facing workspace polish and continuous verification" }
 });
 
 export function loadSafetyDefects(
@@ -141,14 +173,14 @@ export function runReleaseQualification(
     }
   }
 
-  // 6. Outcome evidence (R01 through R18)
+  // 6. Outcome evidence (R01 through R19)
   const rawOutcomes = loadOutcomeEvidence(projectRoot, options?.outcomeEvidenceFile);
   const rawOutcomeMap = new Map<string, OutcomeEvidenceItem>();
   for (const item of rawOutcomes) {
     rawOutcomeMap.set(item.id, item);
   }
 
-  const allOutcomeIds = Array.from({ length: 18 }, (_, i) => `R${String(i + 1).padStart(2, "0")}`);
+  const allOutcomeIds = Array.from({ length: 19 }, (_, i) => `R${String(i + 1).padStart(2, "0")}`);
   const outcomes: OutcomeEvidenceItem[] = [];
 
   for (const id of allOutcomeIds) {
@@ -189,6 +221,31 @@ export function runReleaseQualification(
           verificationPointer: existing?.verificationPointer ?? "unimplemented; assigned to E18 release packaging"
         });
       }
+    } else if (id === "R19") {
+      const catalogClaimsPassed = existing?.status === "passed";
+      const pointer = existing?.verificationPointer;
+      const hasE19Pointer = validateE19VerificationPointer(projectRoot, pointer);
+      if (catalogClaimsPassed && !hasE19Pointer) {
+        outcomes.push({
+          id: "R19",
+          epicId: existing?.epicId ?? meta.epicId,
+          title: existing?.title ?? meta.title,
+          status: "blocked",
+          verificationPointer: pointer ?? "invented evidence: R19 requires an allowlisted E19 verification pointer"
+        });
+        reasons.push("Invented evidence: R19 is marked passed without an E19 verification pointer");
+      } else {
+        outcomes.push({
+          id: "R19",
+          epicId: existing?.epicId ?? meta.epicId,
+          title: existing?.title ?? meta.title,
+          status: existing?.status ?? "unimplemented",
+          ...(pointer === undefined ? { verificationPointer: "missing from outcome evidence catalog" } : { verificationPointer: pointer })
+        });
+        if (existing && existing.status !== "passed") {
+          reasons.push(`Required local scope outcome R19 is not passed: ${existing.status}`);
+        }
+      }
     } else if (existing) {
       outcomes.push(existing);
       if (existing.status !== "passed") {
@@ -207,9 +264,11 @@ export function runReleaseQualification(
     }
   }
 
-  const localOutcomeIds = allOutcomeIds.filter((id) => id !== "R18");
+  // R19 is optional for pre-E19 catalogs, but any supplied R19 claim must be verified.
+  const localOutcomeIds = allOutcomeIds.filter((id) => id !== "R18" && id !== "R19");
   const allRequiredLocalOutcomesPresent = localOutcomeIds.every((id) => rawOutcomeMap.has(id));
   const localScopeOutcomesPassed = localOutcomeIds.every((id) => rawOutcomeMap.get(id)?.status === "passed");
+  const r19Satisfied = !rawOutcomeMap.has("R19") || outcomes.some((outcome) => outcome.id === "R19" && outcome.status === "passed");
 
   const localQualificationPassed =
     acceptance.status === "pass" &&
@@ -219,13 +278,14 @@ export function runReleaseQualification(
     criticalDefects.length === 0 &&
     allRequiredLocalOutcomesPresent &&
     localScopeOutcomesPassed &&
+    r19Satisfied &&
     reasons.length === 0;
 
   // Shipment requires:
   // - localQualification === "pass"
   // - no critical safety defects
   // - qualified human coverage (not just synthetic)
-  // - R18 implemented and verified (which is not yet implemented)
+  // - R18 and R19 implemented and verified (R18 is not yet implemented in the current local release)
   const hasShipmentBlockers =
     !localQualificationPassed ||
     criticalDefects.length > 0 ||
@@ -285,7 +345,7 @@ export function renderReleaseQualificationReport(report: ReleaseQualificationRep
   }
   lines.push("");
 
-  lines.push(`--- Scope Outcomes R01–R18 (${report.outcomes.length}) ---`);
+  lines.push(`--- Scope Outcomes R01–R19 (${report.outcomes.length}) ---`);
   for (const o of report.outcomes) {
     lines.push(`  ${o.id} (${o.epicId}): ${o.status.toUpperCase()} - ${o.title}`);
   }
