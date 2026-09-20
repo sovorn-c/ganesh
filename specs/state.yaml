@@ -1,21 +1,31 @@
 ---
 workflow_mode: solo-git
-active_flow: plan
-active_epic: none
-active_story: null
+active_flow: build_epic
+active_epic: e19
+active_story: e19s05
+git:
+  branch: feat/e19-researcher-workspace-polish
+  hash: 644b414
+epic_cycle:
+  current_step: develop-tdd
+  next_skill: request-review
+  completed_steps:
+  - kickoff-branch
+  - develop-tdd
 handoff:
-  next_skill: bp-plan
-  next_command: "/bp-plan"
-  summary: E18 installable maintained local release was integrated on local main under the owner-approved plan revision sha256:1539ef9fa1ecf90c1541cfa0b534be3dc3ebe493e59402117185a078428323cf. Five stories passed and local qualification passes; B06 qualified-human evidence, remote CI, publishing, deployment, and production readiness remain unclaimed.
-  last_step_completed: E18 release-branch local integration complete
+  next_skill: request-review
+  next_command: "/bp-review"
+  summary: E19 implementation is complete through e19s05 on feat/e19-researcher-workspace-polish under owner-approved plan revision sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310. Review blockers F-01 through F-05 are fixed and final local checks pass, including the full suite (577/577) after refreshing the maintained tarball. Execution ledgers remain pending review reconciliation. The bare npm run lint command is intercepted by the local Pi shell wrapper; the underlying npm CLI and a shell-indirected npm run lint both pass. Do not run verify-work, audit-code, or release before the requested review.
+  last_step_completed: develop-tdd implementation and local blocker fixes complete for e19s01 through e19s05; review handoff ready
   required_reading:
   - CONVENTIONS.md
   - specs/release-plan.yaml
   - specs/tech-architecture/tech-stack.md
-  - specs/epics/e18-macos-distribution/epic.yaml
-  - specs/tech-architecture/e18-TEST_PLAN_LATEST.md
+  - specs/epics/e19-researcher-workspace-polish/epic.yaml
+  - specs/tech-architecture/e19-TEST_PLAN_LATEST.md
   - specs/IMPACT_LATEST.md
-  - specs/security/epics/e18/THREAT_MODEL.md
+  - specs/security/epics/e19/THREAT_MODEL.md
+  - specs/PLAN-AUDIT_LATEST.md
   open_decisions: []
 discovery:
   seed_conventions: confirmed
@@ -223,9 +233,30 @@ blueprint:
   roadmap_approval_revision: sha256:cfa3a93975478ba685ee05fe66917a9d7e5cec40f4366082b2a9c42402b9553b
   roadmap_approval_source: owner_requested_e06_bp_plan_after_ready_checkpoint
   roadmap_approval_recorded_at: '2026-09-10T22:58:09Z'
-  first_eligible_epic: e18
+  first_eligible_epic: e19
   first_tracer_bullet_epic: e05
-  selected_epic: e18
+  selected_epic: e19
+  e19_plan: approved_exact_revision
+  e19_plan_revision: sha256:894e127b456177863c1a7fa8f96ed034da6d0be92421884f8498d46e65716310
+  e19_plan_approved_at: '2026-09-20T08:28:10Z'
+  e19_plan_approval_source: explicit_owner_message
+  e19_plan_audit: READY_implementation_mode
+  e19_plan_audit_artifact: specs/PLAN-AUDIT_LATEST.md
+  e19_plan_artifacts:
+  - specs/epics/e19-researcher-workspace-polish/epic.yaml
+  - specs/epics/e19-researcher-workspace-polish/e19s01-first-run-identity-and-returning-guidance.md
+  - specs/epics/e19-researcher-workspace-polish/e19s01-tasks.yaml
+  - specs/epics/e19-researcher-workspace-polish/e19s02-focused-research-entry-points.md
+  - specs/epics/e19-researcher-workspace-polish/e19s02-tasks.yaml
+  - specs/epics/e19-researcher-workspace-polish/e19s03-executable-competency-subset.md
+  - specs/epics/e19-researcher-workspace-polish/e19s03-tasks.yaml
+  - specs/epics/e19-researcher-workspace-polish/e19s04-explicit-execution-mode-guidance.md
+  - specs/epics/e19-researcher-workspace-polish/e19s04-tasks.yaml
+  - specs/epics/e19-researcher-workspace-polish/e19s05-honest-release-states-and-github-actions.md
+  - specs/epics/e19-researcher-workspace-polish/e19s05-tasks.yaml
+  - specs/tech-architecture/e19-TEST_PLAN_LATEST.md
+  - specs/IMPACT_LATEST.md
+  - specs/security/epics/e19/THREAT_MODEL.md
   e17_plan: approved_exact_revision
   e17_plan_revision: sha256:4d5fd5dc3ccaf7ca66a508095b2ef73692372895659fce03049bcb9240121929
   e17_plan_approved_at: '2026-09-18T03:15:25Z'
@@ -367,7 +398,7 @@ blueprint:
   implementation_start: authorized_owner_plan_approval
   implementation_ready: true
   production_ready: false
-  story_planning: e01_through_e13_e14_e15_e16_e17_complete;_e18_approved_exact_revision
+  story_planning: e01_through_e18_complete;_e19_approved_exact_revision
   e09_plan: approved_exact_revision
   e09_plan_revision: sha256:0d2302d253f0714d9bf0ab370876a9bc4f4cb98d355ca8ec359982a7d44fe3c5
   e09_plan_approved_at: '2026-09-13T23:11:15Z'
@@ -485,25 +516,25 @@ metrics:
       total_seconds: 18614.0
       avg_seconds: 1692.1818181818182
     plan-tests:
-      calls: 3
-      total_seconds: 440.0
-      avg_seconds: 146.66666666666666
+      calls: 4
+      total_seconds: 441.0
+      avg_seconds: 110.25
     plan-work:
-      calls: 3
+      calls: 4
       total_seconds: 0.0
       avg_seconds: 0.0
     bp-plan:
-      calls: 8
-      total_seconds: 7583.0
-      avg_seconds: 947.875
+      calls: 9
+      total_seconds: 7888.0
+      avg_seconds: 876.4444444444445
     bp-review:
       calls: 1
       total_seconds: 0.0
       avg_seconds: 0.0
     slice-tasks:
-      calls: 7
-      total_seconds: 6631.0
-      avg_seconds: 947.2857142857143
+      calls: 8
+      total_seconds: 7260.0
+      avg_seconds: 907.5
     develop-tdd:
       calls: 2
       total_seconds: 5062.0

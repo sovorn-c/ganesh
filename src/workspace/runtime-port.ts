@@ -40,14 +40,15 @@ export class PiWorkspaceRuntimePort {
 }
 
 export class PiWorkspaceTuiPort implements TuiPort {
-  async run(runtime: object, options: { readonly projectRoot: string; readonly agentDir: string; readonly ownerId: string }): Promise<void> {
+  async run(runtime: object, options: { readonly projectRoot: string; readonly agentDir: string; readonly ownerId: string; readonly initialMessage: string; readonly initialMessages: readonly string[] }): Promise<void> {
     const previousAgentDir = process.env.PI_CODING_AGENT_DIR;
     process.env.PI_CODING_AGENT_DIR = options.agentDir;
     try {
       const mode = new InteractiveMode(runtime as AgentSessionRuntime, {
         migratedProviders: [],
+        initialMessage: options.initialMessage,
         initialImages: [],
-        initialMessages: [],
+        initialMessages: [...options.initialMessages],
         autoTrustOnReloadCwd: options.projectRoot
       });
       await mode.run();

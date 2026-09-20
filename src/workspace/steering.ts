@@ -33,7 +33,13 @@ const HELP_ACTIONS: readonly HelpAction[] = [
   { command: "/ganesh-viewer", label: "Open local viewer", description: "request an authorized native viewer for saved evidence" },
   { command: "/ganesh-status", label: "Work status", description: "show readable status and remaining budget" },
   { command: "/ganesh-access", label: "Access path", description: "report terminal access blockers explicitly" },
-  { command: "/ganesh-cancel", label: "Cancel work", description: "fence a run or contract through the existing work APIs" }
+  { command: "/ganesh-cancel", label: "Cancel work", description: "fence a run or contract through the existing work APIs" },
+  { command: "/ganesh-orient", label: "Research orientation", description: "inspect or record orientation through the methodology store" },
+  { command: "/ganesh-landscape", label: "Research landscape", description: "inspect or record a literature landscape map" },
+  { command: "/ganesh-screen", label: "Screening", description: "inspect or record a literature screening decision" },
+  { command: "/ganesh-appraise", label: "Evidence appraisal", description: "inspect or record an evidence appraisal" },
+  { command: "/ganesh-review", label: "Review cycle", description: "inspect or open a writing review cycle" },
+  { command: "/ganesh-specialist", label: "Specialist coordination", description: "inspect work or queue an authorized specialist run" }
 ];
 
 function formatAlternativeText(view: Pick<AlternativeView, "sourceBranchId" | "destinationBranchId" | "differences" | "impacts">): string {

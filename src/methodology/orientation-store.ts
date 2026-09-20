@@ -114,6 +114,16 @@ export function recordOrientation(
   };
 }
 
+export function listOrientations(
+  handle: ProjectHandle,
+  capability: unknown
+): readonly OrientationRecord[] {
+  assertMethodologySchema(handle);
+  assertMethodologyAccess(handle, capability, "methodology:inspect");
+  const rows = handle.db.prepare("SELECT id FROM orientations ORDER BY created_at, id").all() as Array<{ id: string }>;
+  return rows.map((row) => inspectOrientation(handle, capability, row.id));
+}
+
 export function inspectOrientation(
   handle: ProjectHandle,
   capability: unknown,

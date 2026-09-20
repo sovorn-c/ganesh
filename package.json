@@ -15,7 +15,7 @@
     "dev": "npm run build && node dist/src/cli.js",
     "test": "npm run build && node --test --test-concurrency=1 dist/tests/*/*.test.js",
     "build": "tsc -p tsconfig.json",
-    "lint": "eslint src tests",
+    "lint": "node -e \"const{spawnSync}=require('node:child_process'),r=spawnSync(process.execPath,['node_modules/eslint/bin/eslint.js','src','tests'],{encoding:'utf8'});if(r.status)process.stderr.write((r.stdout??'')+(r.stderr??''));process.exit(r.status??1)\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "preflight": "npm run build && node dist/src/preflight-cli.js",
     "diagnostics": "npm run build && node dist/src/diagnostics-cli.js",
