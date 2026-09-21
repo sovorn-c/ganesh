@@ -2,7 +2,7 @@
   "name": "ganesh",
   "version": "0.1.0",
   "tarball": "ganesh-0.1.0.tgz",
-  "digest": "47c3407f27cb15b932353af1d585267ed462c3cbb977cffe8af8d84e3f35b81f",
+  "digest": "1cc34e6cca91a680db8d79e4968fa4a291f180e8b8b8eaacfb0b8fd99dc5596c",
   "files": [
     "NOTICE",
     "README.md",
@@ -199,7 +199,6 @@
     "specs/distribution/guide-inventory.json",
     "specs/distribution/license-inventory.json",
     "specs/distribution/signing-applicability.json",
-    "specs/distribution/support-matrix.json",
-    "specs/README.md"
+    "specs/distribution/support-matrix.json"
   ]
 }

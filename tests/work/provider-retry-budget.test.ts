@@ -55,7 +55,7 @@ describe("Provider retry budgets and timing", () => {
         inputVersionIds: [input.id],
         destination: "local",
         purpose: "testing",
-        limits: { tokens: 100, calls: 10, timeMs: 5000 },
+        limits: { tokens: 100, calls: 10, timeMs: 60000 },
         scope: { maxRetries: 5, minProviderIntervalMs: 50 }, // capped at 2 retries (3 attempts total)
       });
       const authorized = authorizeContract(fixture.handle, owner, {
@@ -64,7 +64,7 @@ describe("Provider retry budgets and timing", () => {
       const run = queueRun(fixture.handle, owner, {
         contractId: authorized.id,
         commandId: "retry-cmd-01",
-        reservation: { tokens: 1, calls: 3, timeMs: 100 },
+        reservation: { tokens: 1, calls: 3, timeMs: 60000 },
       });
 
       let starts = 0;

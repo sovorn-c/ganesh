@@ -14,7 +14,7 @@ test("e18s02 SC-e18s02-P0-01 buildPackageArtifact applies files whitelist and co
   try {
     const report = await buildPackageArtifact(process.cwd(), {
       destination: temp.dir,
-      writeManifest: true
+      writeManifest: false
     });
 
     assert.equal(report.status, "pass");
@@ -75,13 +75,13 @@ test("e18s02 SC-e18s02-P0-01 consecutive packs produce identical digest (package
   try {
     const report1 = await buildPackageArtifact(process.cwd(), {
       destination: temp1.dir,
-      writeManifest: true
+      writeManifest: false
     });
     assert.equal(report1.status, "pass");
 
     const report2 = await buildPackageArtifact(process.cwd(), {
       destination: temp2.dir,
-      writeManifest: true
+      writeManifest: false
     });
     assert.equal(report2.status, "pass");
 

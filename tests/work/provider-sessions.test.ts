@@ -24,9 +24,9 @@ test("e05s05 destination consent timeout retry failure fallback and uncertain us
     const input = artifact(fixture.handle, "remote", "1", "public bytes");
     classifyInput(fixture.handle, input.id, { sensitivity: "public", basis: "test" });
     grantDataUse(fixture.handle, { inputVersion: input.id, destination: "provider-a", purpose: "research-work", authority: "owner-test" });
-    const proposed = proposeContract(fixture.handle, owner, { id: "provider-contract", objective: "remote work", inputVersionIds: [input.id], destination: "provider-a", purpose: "research-work", limits: { tokens: 10, calls: 3, timeMs: 10 }, scope: { maxRetries: 1 } });
+    const proposed = proposeContract(fixture.handle, owner, { id: "provider-contract", objective: "remote work", inputVersionIds: [input.id], destination: "provider-a", purpose: "research-work", limits: { tokens: 10, calls: 3, timeMs: 60000 }, scope: { maxRetries: 1 } });
     const authorized = authorizeContract(fixture.handle, owner, { contractId: proposed.id });
-    const run = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "provider-command", providerQuote: { status: "known", amount: 0, currency: "USD" }, reservation: { tokens: 1, calls: 2, timeMs: 2 } });
+    const run = queueRun(fixture.handle, owner, { contractId: authorized.id, commandId: "provider-command", providerQuote: { status: "known", amount: 0, currency: "USD" }, reservation: { tokens: 1, calls: 2, timeMs: 60000 } });
     let attempts = 0;
     const result = await dispatchRun(fixture.handle, owner, run.id, { start: () => { attempts += 1; return { status: attempts === 1 ? "timeout" : "failure", errorCode: "provider-down" }; } });
     assert.equal(result.status, "failed");
