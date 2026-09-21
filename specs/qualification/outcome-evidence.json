@@ -132,7 +132,7 @@
       "epicId": "e19",
       "title": "Researcher-facing workspace polish and continuous verification",
       "status": "passed",
-      "verificationPointer": "specs/tech-architecture/e19-TEST_PLAN_LATEST.md; tests/workspace/launch-guidance.test.ts; tests/workspace/research-entry-points.test.ts; tests/workspace/competency-affordances.test.ts; tests/workspace/execution-mode-guidance.test.ts; tests/distribution/continuous-verification.test.ts; tests/qualification/e19-release-gate.test.ts"
+      "verificationPointer": "tests/workspace/launch-guidance.test.ts; tests/workspace/research-entry-points.test.ts; tests/workspace/competency-affordances.test.ts; tests/workspace/execution-mode-guidance.test.ts; tests/distribution/continuous-verification.test.ts; tests/qualification/e19-release-gate.test.ts"
     }
   ]
 }

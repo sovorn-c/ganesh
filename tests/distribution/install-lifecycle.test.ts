@@ -32,7 +32,10 @@ test("e18s03 SC-e18s03-P0-01 upgrade packed CLI and reopen project with schema s
       "Important research data content that must stay intact across CLI upgrades."
     );
 
-    const packResult = await buildPackageArtifact(process.cwd(), { destination: tempPrefix.dir });
+    const packResult = await buildPackageArtifact(process.cwd(), {
+      destination: tempPrefix.dir,
+      writeManifest: false
+    });
     assert.equal(packResult.status, "pass");
 
     // Close project handle before lifecycle upgrade
@@ -78,7 +81,10 @@ test("e18s03 SC-e18s03-P0-02 uninstall removes product from prefix and preserves
       "Research notes that must never be deleted by product uninstall."
     );
 
-    const packResult = await buildPackageArtifact(process.cwd(), { destination: tempPrefix.dir });
+    const packResult = await buildPackageArtifact(process.cwd(), {
+      destination: tempPrefix.dir,
+      writeManifest: false
+    });
     assert.equal(packResult.status, "pass");
 
     // Install package into prefix first
@@ -146,7 +152,10 @@ test("e18s03 SC-e18s03-P0-03 rollback uses E15 backup restore without second eng
       "Evidence preserved before rollback."
     );
 
-    const packResult = await buildPackageArtifact(process.cwd(), { destination: tempPrefix.dir });
+    const packResult = await buildPackageArtifact(process.cwd(), {
+      destination: tempPrefix.dir,
+      writeManifest: false
+    });
     assert.equal(packResult.status, "pass");
 
     const snapshot = backupProject(fix.handle, fix.ownerCap, {
@@ -218,7 +227,10 @@ test("e18s03 SC-e18s03-P1-04 unknown-future schema stays honest and blocks migra
 
     futureHandle.close();
 
-    const packResult = await buildPackageArtifact(process.cwd(), { destination: tempPrefix.dir });
+    const packResult = await buildPackageArtifact(process.cwd(), {
+      destination: tempPrefix.dir,
+      writeManifest: false
+    });
     const installRes = spawnSync(
       "npm",
       ["install", packResult.tarballPath, "--prefix", tempPrefix.dir, "--no-audit", "--no-fund"],
